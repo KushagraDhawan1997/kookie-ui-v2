@@ -26,7 +26,32 @@
       "Bash(node scripts/measure-css.mjs)",
       "Bash(open packages/ui/preview/density.html)",
       "Bash(open preview/density.html)",
-      "Bash(open http://localhost:*)"
+      "Bash(open http://localhost:*)",
+      "Bash(node scripts/review-ui/run.mjs *)",
+      "Bash(node --test scripts/review-ui/*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-checks.mjs\""
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/review-before-stop.mjs\""
+          }
+        ]
+      }
     ]
   }
 }

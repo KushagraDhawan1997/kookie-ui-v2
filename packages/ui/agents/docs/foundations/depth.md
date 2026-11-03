@@ -4,6 +4,8 @@ The `depth` setting decides whether your app has a light source, and so whether 
 casts a shadow. You set it once on the `Theme`. No component accepts a shadow prop, and each kind
 of component already knows whether it casts one.
 
+*Figure.* A task board. The task cards and the loud New task button cast shadows, while the board and its column labels stay flat on the page.
+
 ## Set depth once, at the root
 
 ```tsx

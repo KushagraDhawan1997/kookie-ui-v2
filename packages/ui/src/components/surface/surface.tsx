@@ -5,7 +5,7 @@ import * as React from "react";
 
 import { composeRender, useMergedRefs, type RenderElement } from "../../system/render.ts";
 import { useClipWarning } from "../../system/clip.tsx";
-import { BackdropContext } from "../../theme/theme.tsx";
+import { BackdropContext, ON_GLASS, useMaterial } from "../../theme/theme.tsx";
 import type { Size } from "../../system/axes.ts";
 import { useSize } from "../../system/size.ts";
 
@@ -64,6 +64,12 @@ export function Surface({ size: sizeProp, render, className, style, children, re
   // A pane clips, so content wider than it is is not reachable at all (§3, 2026-08-21).
   const clipRef = useClipWarning("<Surface>");
   const setRoot = useMergedRefs(ref, clipRef);
+  // ON GLASS INSIDE GLASS, AND NOTHING ELSE (2026-11-02, Kushagra). A ground inside a glass pane
+  // painted opaque white while every control and Card beside it went translucent, and this
+  // file's own header already said it "participates in the scope already there". It now does:
+  // asked with no backdrop of its own, the scope answers `on-glass` only inside a glass pane,
+  // and a ground never expresses a thickness of its own.
+  const onGlass = useMaterial() === ON_GLASS;
   const merged = {
     /**
      * THE CONSUMER'S PROPS COME FIRST, and the two `undefined`s below are the identity — do
@@ -81,6 +87,7 @@ export function Surface({ size: sizeProp, render, className, style, children, re
     "data-emphasis": undefined,
     ref: setRoot,
     "data-size": size,
+    "data-material": onGlass ? ON_GLASS : undefined,
     className: className ? `kui-surface kui-ground ${className}` : "kui-surface kui-ground",
     style,
   };

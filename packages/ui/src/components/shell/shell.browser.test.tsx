@@ -4584,7 +4584,10 @@ describe("a floating band in the work area clears the frame's safe area (ยง27, ย
     const surfacePad = parseFloat(
       tokenOn(flush.querySelector(".kui-shell-content")!, "--kui-sf-p"),
     );
-    expect(padOf(flush)).toBeCloseTo(surfacePad, 1);
+    // One step outside the content's edge since RULES.md 3 (2026-11-02): the band's inset is the
+    // surface padding less one layout step, with no reach added when the panes tile.
+    const step = parseFloat(tokenOn(flush.querySelector(".kui-shell-content")!, "--layout-space-2"));
+    expect(padOf(flush)).toBeCloseTo(surfacePad - step, 1);
     expect(padOf(floating)).toBeGreaterThan(padOf(flush));
   });
 

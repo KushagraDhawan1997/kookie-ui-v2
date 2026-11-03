@@ -69,9 +69,13 @@ const nextConfig: NextConfig = {
     },
     {
       source: "/start/your-first-screen",
-      destination: "/start/quickstart",
+      destination: "/build/quickstart",
       permanent: true,
     },
+    /* Installation, Quickstart and AI agents moved from Getting started to Build (2026-11-02). */
+    { source: "/start/installation", destination: "/build/installation", permanent: true },
+    { source: "/start/quickstart", destination: "/build/quickstart", permanent: true },
+    { source: "/start/agents", destination: "/build/agents", permanent: true },
     {
       source: "/foundations/space-and-layout",
       destination: "/foundations/layout",

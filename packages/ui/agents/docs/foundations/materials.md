@@ -4,6 +4,8 @@ The material setting controls whether the panels in your app are opaque or made 
 set it once on the `Theme`, and it applies only where content actually passes behind a
 component, such as a toolbar over a canvas or a menu over the page.
 
+*Figure.* A museum app showing a painting. The toolbar floats over the painting in glass, so the picture stays visible behind it.
+
 ## Set one material for the whole app
 
 ```tsx

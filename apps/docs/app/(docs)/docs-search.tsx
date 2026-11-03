@@ -44,7 +44,8 @@ import {
 } from "@kushagradhawan/kookie-ui-react";
 
 import { EmptyState } from "../../blocks/empty-state";
-import { SearchIcon } from "../icons";
+import { ChapterIcon, SearchIcon, SectionIcon } from "../icons";
+import { NAV_ICONS } from "./docs-nav";
 import { searchEntries, type SearchEntry } from "./search";
 
 export function DocsSearch({ index }: { index: readonly SearchEntry[] }) {
@@ -120,7 +121,12 @@ export function DocsSearch({ index }: { index: readonly SearchEntry[] }) {
           />
           <CommandList>
             {(entry: SearchEntry) => (
-              <CommandItem key={entry.href} value={entry} render={<Link href={entry.href} />}>
+              <CommandItem
+                key={entry.href}
+                value={entry}
+                leading={<HitIcon entry={entry} />}
+                render={<Link href={entry.href} />}
+              >
                 {/* NOT `Text`, AND THAT IS THE POINT (2026-09-06). Both halves were pinned at
                     step 2, so when the palette's rows moved one step up the boxes grew and the
                     words stayed where they were — a size-2 result sitting in a size-3 row. `Text`
@@ -155,4 +161,16 @@ export function DocsSearch({ index }: { index: readonly SearchEntry[] }) {
       </Command>
     </>
   );
+}
+
+/* WHAT KIND OF PLACE A RESULT IS (2026-11-01, the icon audit). Chapters, their sections and
+   components came back as identical rows, so the glyph is the quick filter and the title
+   confirms. A component reuses its sidebar glyph, so the two are learned together. */
+function HitIcon({ entry }: { entry: SearchEntry }) {
+  if (entry.kind === "heading") return <SectionIcon />;
+  if (entry.kind === "component") {
+    const Icon = NAV_ICONS[entry.href];
+    if (Icon) return <Icon />;
+  }
+  return <ChapterIcon />;
 }

@@ -30,7 +30,7 @@ import {
 } from "@kushagradhawan/kookie-ui-react";
 
 import { setContrast, useAppearance, type ContrastChoice } from "./appearance";
-import { SettingsIcon } from "./icons";
+import { ThemeIcon } from "./icons";
 import { THEME_AXES, resetTheme, setThemeAxis, useThemeChoice, type ThemeAxisKey } from "./theme-store";
 
 /** The panel's index: a small form, one step under the frame's chrome (playground.tsx's rule). */
@@ -111,7 +111,7 @@ export function ThemePanel() {
       <PopoverTrigger
         render={
           <ToolbarButton iconOnly backdrop aria-label="Theme">
-            <SettingsIcon />
+            <ThemeIcon />
           </ToolbarButton>
         }
       />

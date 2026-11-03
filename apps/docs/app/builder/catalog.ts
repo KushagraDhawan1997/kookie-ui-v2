@@ -897,6 +897,20 @@ export const CATALOG: Record<string, CatalogEntry> = {
     make: () => node("Row", {}, { text: "Deployments" }),
   },
 
+  RowGroup: {
+    family: "Surface",
+    blurb: "A grouped list: a small label, a card of rows with a divider between each, and a note.",
+    props: { size: size(), label: text, note: text },
+    children: "any",
+    make: () =>
+      node("RowGroup", { label: "Notifications" }, {
+        children: [
+          node("Row", {}, { text: "Email" }),
+          node("Row", {}, { text: "Push" }),
+        ],
+      }),
+  },
+
   /* ── Indicators ─────────────────────────────────────────────────────────────────────── */
   Notice: {
     family: "Surface",
@@ -1486,6 +1500,14 @@ export const CATALOG: Record<string, CatalogEntry> = {
  * and holds the reason to a sentence).
  */
 export const EXCLUDED: { name: string; why: string }[] = [
+  {
+    name: "Navigator",
+    why: "A navigator is a stack of screens that opens new ones from a function of its path. A builder document is one static tree and holds no behaviour, so a placed one could only ever show its root screen. Its parts are excluded with it.",
+  },
+  { name: "NavigatorScreen", why: "A screen exists only inside a Navigator, which the builder cannot place." },
+  { name: "NavigatorLink", why: "A link pushes onto a Navigator, which the builder cannot place." },
+  { name: "NavigatorBack", why: "Back pops a Navigator, which the builder cannot place." },
+  { name: "NavigatorOutlet", why: "The outlet is where a Navigator's screens go, and the builder cannot place a Navigator." },
   {
     name: "Confirmation",
     why: "A confirmation is a question, and its two answers are callbacks. A builder document holds no behaviour, so a placed one would be two buttons that answer nothing.",

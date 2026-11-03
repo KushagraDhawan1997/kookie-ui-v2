@@ -239,6 +239,9 @@ import {
   ComposerRow,
   ComposerSend,
   Flex,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
   iconStroke,
   type Size,
 } from "@kushagradhawan/kookie-ui-react";
@@ -275,9 +278,16 @@ export default function Example({ size = "2", backdrop = false }: { size?: Size;
       </Flex>
       <ComposerInput aria-label="Message" placeholder="Add a note for the reviewer…" />
       <ComposerRow>
-        <Button iconOnly aria-label="Add attachment">
-          {icon(Attachment01Icon)}
-        </Button>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button iconOnly aria-label="Add attachment">
+                {icon(Attachment01Icon)}
+              </Button>
+            }
+          />
+          <TooltipContent>Add attachment</TooltipContent>
+        </Tooltip>
         <ComposerSend icons={{ ready: icon(ArrowUp02Icon) }} />
       </ComposerRow>
     </Composer>

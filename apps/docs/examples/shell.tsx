@@ -35,6 +35,9 @@ import {
   Text,
   Toolbar,
   ToolbarButton,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
   iconStroke,
 } from "@kushagradhawan/kookie-ui-react";
 
@@ -81,9 +84,16 @@ export default function Example() {
             {/* Top-aligned, not centred: the mark is a display glyph and it defines the row,
                 so centring the button would sink it below the trigger in the pane next door.
                 Aligning to the start puts both at the same offset from their pane's padding. */}
-            <Button iconOnly backdrop aria-label="New" style={{ alignSelf: "start" }}>
-              {icon(PlusSignIcon)}
-            </Button>
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <Button iconOnly backdrop aria-label="New" style={{ alignSelf: "start" }}>
+                    {icon(PlusSignIcon)}
+                  </Button>
+                }
+              />
+              <TooltipContent>New</TooltipContent>
+            </Tooltip>
           </ShellPaneHeader>
 
           {/* `fade` is what keeps the rows legible on their way behind the chrome. */}
@@ -128,9 +138,16 @@ export default function Example() {
                   nav rows pass under it, and an avatar's fallback wash is an alpha — rows read
                   straight through the disc. The button is what states `backdrop`, and an
                   account avatar is a target in every app that has one anyway. */}
-              <ToolbarButton iconOnly aria-label="Kushagra Dhawan">
-                <Avatar fallback="KD" />
-              </ToolbarButton>
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <ToolbarButton iconOnly aria-label="Kushagra Dhawan">
+                      <Avatar fallback="KD" />
+                    </ToolbarButton>
+                  }
+                />
+                <TooltipContent>Kushagra Dhawan</TooltipContent>
+              </Tooltip>
               <AppearanceToggle />
             </Toolbar>
           </ShellPaneFooter>

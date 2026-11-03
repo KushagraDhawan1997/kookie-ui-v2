@@ -1,0 +1,476 @@
+[
+  {
+    "id": "one-figure",
+    "title": "One focal action per screen",
+    "severity": "error",
+    "why": "Boldness is spent exactly once. Two loud actions on one screen means neither is the point. Make the second one medium and the composition still says which is which. A dialog or a menu is its own screen, and two tab panels are never on screen together.",
+    "rule": 8,
+    "checkedBy": [
+      "builder",
+      "screen"
+    ]
+  },
+  {
+    "id": "size-1-retired",
+    "title": "size 1 is retired from composed surfaces",
+    "severity": "error",
+    "why": "12px is for genuinely marginal text. The muted and faint ink roles already say \"this matters less\" at a readable size, so shrinking the text as well says it twice and costs legibility.",
+    "rule": 18,
+    "checkedBy": [
+      "builder",
+      "screen"
+    ]
+  },
+  {
+    "id": "accessible-name",
+    "title": "Every control states its name",
+    "severity": "error",
+    "why": "A control the eye reads from its glyph is a control a screen reader cannot read at all. A mark refuses children on purpose, because its label is a sibling, so the accessible name has to be stated (WCAG 4.1.2).",
+    "rule": null,
+    "checkedBy": [
+      "builder",
+      "screen"
+    ]
+  },
+  {
+    "id": "empty-container",
+    "title": "An empty container draws nothing",
+    "severity": "warning",
+    "why": "A layout with nothing in it still takes its padding and its place in the rhythm. It reads as a mistake to the eye and as noise in the exported code. Fill it or cut it.",
+    "rule": null,
+    "checkedBy": [
+      "builder"
+    ]
+  },
+  {
+    "id": "empty-compound",
+    "title": "A compound with no parts is a broken control",
+    "severity": "error",
+    "why": "An empty layout is untidy. An empty compound is broken. A choice control with no choices, a tab that leads nowhere and a dialog with no content each render as a control the eye can see and nobody can use.",
+    "rule": null,
+    "checkedBy": [
+      "builder"
+    ]
+  },
+  {
+    "id": "single-child-layout",
+    "title": "A layout around one thing is not a layout",
+    "severity": "warning",
+    "why": "A gap needs two things to sit between, so a layout holding one child and saying nothing but `gap` sets a distance nothing uses. A layout that also aligns, justifies or pads is doing real work with one child, such as right-aligning a lone Save button, and is left alone.",
+    "rule": null,
+    "checkedBy": [
+      "builder"
+    ]
+  },
+  {
+    "id": "flat-rhythm",
+    "title": "Distance is relationship",
+    "severity": "warning",
+    "why": "Things that belong together sit closer than things that do not. The gap inside a group has to be at least two steps under the gap around it, or the eye reads one undifferentiated column. Only distances on the same axis compete, because no eye measures a row's internal gap against the column rhythm around it. And only a group counts against the rhythm it sits in: a section at gap 6 holding groups at gap 5 is two distances between groups, which is the house interval rather than a fault.",
+    "rule": 11,
+    "checkedBy": [
+      "builder"
+    ]
+  },
+  {
+    "id": "heading-space",
+    "title": "Space around a heading is asymmetric",
+    "severity": "warning",
+    "why": "A heading belongs to what follows it: generous above, tight below, roughly three to four times one against the other. The common failure is one uniform gap, which leaves the heading floating between two blocks and belonging to neither.",
+    "rule": 12,
+    "checkedBy": [
+      "builder"
+    ]
+  },
+  {
+    "id": "mixed-control-sizes",
+    "title": "Same role, same treatment",
+    "severity": "error",
+    "why": "Controls sitting in one row do one job, so they take one size. Two sizes for one job is a difference the reader has to work out. The reference is what most of the row says: matching the majority to whichever control happens to be first is how a fix makes a row worse.",
+    "rule": 19,
+    "checkedBy": [
+      "builder",
+      "screen"
+    ]
+  },
+  {
+    "id": "control-scale",
+    "title": "A control matches the surface it sits on",
+    "severity": "warning",
+    "why": "A size-3 dialog holds size-3 fields and buttons. A control two steps under its container reads as a mistake rather than as modesty.",
+    "rule": 19,
+    "checkedBy": [
+      "builder"
+    ]
+  },
+  {
+    "id": "tone-as-decoration",
+    "title": "Tone is vocabulary, not decoration",
+    "severity": "warning",
+    "why": "The ten families are colour as data, and `destructive`, `success` and `warning` each mean something. Four or more of them on one surface is a palette being enjoyed rather than a meaning being said. Three reads as a legend: a status set, or a three-series key.",
+    "rule": 10,
+    "checkedBy": [
+      "builder"
+    ]
+  },
+  {
+    "id": "heading-ladder",
+    "title": "A heading outranks its body",
+    "severity": "warning",
+    "why": "Page 8, section 7, card title 6, body 3, label and meta 2. A heading at or below body size is a label wearing a heading's element.",
+    "rule": 17,
+    "checkedBy": [
+      "builder"
+    ]
+  },
+  {
+    "id": "eyebrow",
+    "title": "No eyebrows",
+    "severity": "warning",
+    "why": "A title carries its own subject. A small label above it is two elements doing one element's job.",
+    "rule": 22,
+    "checkedBy": [
+      "builder"
+    ]
+  },
+  {
+    "id": "filler-text",
+    "title": "The palette's own words are still in it",
+    "severity": "warning",
+    "why": "The words are yours. A node still carrying the text the palette gave it is a node nobody has written yet, and that is what an unfinished export looks like to whoever reads it.",
+    "rule": 21,
+    "checkedBy": [
+      "builder"
+    ]
+  },
+  {
+    "id": "zero-width-container",
+    "title": "A measured Box needs something to measure",
+    "severity": "error",
+    "why": "Containment makes a Box's contents stop contributing to its own width, so a `container` Box that is a row-flex item with nothing sizing it renders zero pixels wide and draws nothing at all. This is the defect that made containment opt-in.",
+    "rule": null,
+    "checkedBy": [
+      "builder"
+    ]
+  },
+  {
+    "id": "nested-card",
+    "title": "A card does not go inside a card",
+    "severity": "error",
+    "why": "A Card is an object with its own plane: opaque and lifted in an elevated theme. Two of them stacked is an object standing on an object, which describes a relationship this system does not have. For a quiet region inside one card, use a `Surface`. For several objects on one ground, put the cards in a `Surface`. The grammar prevents this when you drop a node, but a document pasted or edited elsewhere can still arrive holding one.",
+    "rule": 13,
+    "checkedBy": [
+      "builder"
+    ]
+  },
+  {
+    "id": "orphan-part",
+    "title": "A part needs its compound",
+    "severity": "error",
+    "why": "The parts of a compound carry wiring as well as appearance: a title that is nobody's accessible name, or a row outside the list it belongs to. The grammar prevents this when you drop a node, but a document edited elsewhere can still arrive holding one.",
+    "rule": null,
+    "checkedBy": [
+      "builder"
+    ]
+  },
+  {
+    "id": "placeholder-as-label",
+    "title": "A placeholder is not a label",
+    "severity": "warning",
+    "why": "Placeholder text disappears the moment someone types, so it cannot be the only thing that says what a field is for. It also reads as a value already filled in. Put the field in a Field with a FieldLabel (NN/g, WCAG 3.3.2).",
+    "rule": 24,
+    "checkedBy": [
+      "builder"
+    ]
+  },
+  {
+    "id": "instructions-in-placeholder",
+    "title": "Instructions do not go in a placeholder",
+    "severity": "warning",
+    "why": "A format hint in a placeholder is gone as soon as typing starts, which is exactly when it is needed. Say the format in a FieldDescription, which stays (NN/g, GOV.UK).",
+    "rule": 24,
+    "checkedBy": [
+      "builder"
+    ]
+  },
+  {
+    "id": "label-in-name",
+    "title": "The spoken name contains the visible words",
+    "severity": "error",
+    "why": "Someone using voice control says what they see. A button reading “Save” whose accessible name is “Store document” cannot be pressed by saying “Save”. The visible text must appear in the name, and usually the name should simply be the text (WCAG 2.5.3).",
+    "rule": null,
+    "checkedBy": [
+      "builder"
+    ]
+  },
+  {
+    "id": "empty-heading",
+    "title": "A heading has words",
+    "severity": "error",
+    "why": "An empty heading still puts an entry in the page outline, so a screen reader announces a heading with nothing in it and the outline has a hole (axe empty-heading).",
+    "rule": null,
+    "checkedBy": [
+      "builder"
+    ]
+  },
+  {
+    "id": "single-radio",
+    "title": "One radio cannot be turned off",
+    "severity": "warning",
+    "why": "A radio is one answer among several. A group of one can be chosen and never unchosen, so it is a yes-or-no question asked with the wrong control. Use a Checkbox (GOV.UK).",
+    "rule": 25,
+    "checkedBy": [
+      "builder"
+    ]
+  },
+  {
+    "id": "radios-in-a-row",
+    "title": "Radios sit in a row only when there are two",
+    "severity": "warning",
+    "why": "Options in a row are read as one line and their labels run together. Two short options, like Yes and No, can share a row. Three or more stack, one option per line (GOV.UK).",
+    "rule": null,
+    "checkedBy": [
+      "builder"
+    ]
+  },
+  {
+    "id": "switch-in-a-form",
+    "title": "A switch acts at once, so it does not wait for Save",
+    "severity": "warning",
+    "why": "A switch says the change has already happened. Beside a Save button it says two opposite things, and people either leave without saving or wonder whether flipping it did anything. In a form that is submitted, use a Checkbox (NN/g).",
+    "rule": 25,
+    "checkedBy": [
+      "builder"
+    ]
+  },
+  {
+    "id": "tabs-without-panels",
+    "title": "Every tab has its panel",
+    "severity": "error",
+    "why": "A tab is a promise that something is behind it. A tab with no panel of its value opens onto nothing, and a panel no tab names can never be reached (axe aria-required-children).",
+    "rule": null,
+    "checkedBy": [
+      "builder"
+    ]
+  },
+  {
+    "id": "single-tab",
+    "title": "One tab switches to nothing",
+    "severity": "warning",
+    "why": "Tabs exist to choose between views. A tab list with one tab is a heading dressed as a control, with nothing to switch to (NN/g).",
+    "rule": null,
+    "checkedBy": [
+      "builder"
+    ]
+  },
+  {
+    "id": "too-many-choices",
+    "title": "A long flat list is slow to choose from",
+    "severity": "warning",
+    "why": "The time to choose grows with the number of options (Hick's law). Past about seven tabs, five segments or nine menu items with no grouping, people scan instead of choosing. Group the menu, or move the options into a Select.",
+    "rule": 25,
+    "checkedBy": [
+      "builder"
+    ]
+  },
+  {
+    "id": "table-headers",
+    "title": "A table says what its columns are",
+    "severity": "error",
+    "why": "A screen reader reads each cell with its column's header. A table with no header row, or a header cell with no words, leaves every value without its meaning (axe empty-table-header, WAI tables).",
+    "rule": null,
+    "checkedBy": [
+      "builder"
+    ]
+  },
+  {
+    "id": "breadcrumb-current-linked",
+    "title": "The last crumb is where you are",
+    "severity": "warning",
+    "why": "The last item in a breadcrumb is the current page. As a link it offers to take you where you already are. Make it a BreadcrumbPage (NN/g).",
+    "rule": null,
+    "checkedBy": [
+      "builder"
+    ]
+  },
+  {
+    "id": "vague-action",
+    "title": "An action says what it does",
+    "severity": "warning",
+    "why": "“OK”, “Yes” and “Submit” make the reader go back and reread the question to know what they are agreeing to. “Delete project” can be pressed without rereading anything. A link that says “click here” or “learn more” means nothing out of context, and screen reader users often hear links out of context (Carbon, NN/g, WCAG 2.4.4).",
+    "rule": 23,
+    "checkedBy": [
+      "builder"
+    ]
+  },
+  {
+    "id": "long-action",
+    "title": "An action is a verb and its object",
+    "severity": "warning",
+    "why": "A button is read in a glance. Past three or four words it becomes a sentence, which belongs in the text beside it. A button is also not a sentence, so it ends without a period (Carbon).",
+    "rule": 23,
+    "checkedBy": [
+      "builder"
+    ]
+  },
+  {
+    "id": "way-back-as-loud",
+    "title": "The way back is quieter than the way forward",
+    "severity": "warning",
+    "why": "Cancel, Back and Close are escape routes, not goals. When they carry the same weight as Save or Continue, the reader has to read both labels to find the one that finishes the task (LukeW, primary and secondary actions).",
+    "rule": 9,
+    "checkedBy": [
+      "builder"
+    ]
+  },
+  {
+    "id": "reset-beside-submit",
+    "title": "No reset beside submit",
+    "severity": "warning",
+    "why": "A Reset or Clear button next to Submit is the easiest way to lose everything just typed, and almost nobody needs it. Leave it out (NN/g).",
+    "rule": null,
+    "checkedBy": [
+      "builder"
+    ]
+  },
+  {
+    "id": "negative-option",
+    "title": "An option is stated in the positive",
+    "severity": "warning",
+    "why": "“Don't send me emails”, left unticked, means send me emails, and the reader has to work that out. Say the positive, “Send me emails”, and let the tick carry the no (NN/g).",
+    "rule": null,
+    "checkedBy": [
+      "builder"
+    ]
+  },
+  {
+    "id": "generic-error",
+    "title": "An error says how to fix it",
+    "severity": "warning",
+    "why": "“Invalid” tells someone they are wrong and not what to do about it. Say what went wrong and what to enter instead, such as “Enter an email address in the correct format, like name@example.com” (GOV.UK).",
+    "rule": 24,
+    "checkedBy": [
+      "builder"
+    ]
+  },
+  {
+    "id": "picture-without-alt",
+    "title": "A picture of a person says who it is",
+    "severity": "warning",
+    "why": "An avatar with a photo and no alternative text is announced as an unnamed image, or not at all, so the person in it is invisible to a screen reader (axe image-alt).",
+    "rule": null,
+    "checkedBy": [
+      "builder"
+    ]
+  },
+  {
+    "id": "panel-close",
+    "title": "Every titled panel has a Close button",
+    "severity": "error",
+    "why": "A person should never hunt for the way out, and a screen reader user on a touch screen needs a button to leave. Close sits at the trailing edge of the panel's band, even when there's also a Cancel.",
+    "rule": 1,
+    "checkedBy": [
+      "screen"
+    ]
+  },
+  {
+    "id": "hand-built-band",
+    "title": "A panel's band is a real Toolbar",
+    "severity": "error",
+    "why": "A row of buttons placed by hand misses everything the Toolbar carries: its inset, its glass buttons and its spacing. Use the band the component draws.",
+    "rule": 2,
+    "checkedBy": [
+      "screen"
+    ]
+  },
+  {
+    "id": "band-wrapper",
+    "title": "A title in a band is a ToolbarTitle",
+    "severity": "error",
+    "why": "Grouping band items in a Flex is how a band is written, and the Toolbar spaces the groups. A title's own air comes from ToolbarTitle, so a plain heading in a band sits cramped against its neighbour.",
+    "rule": 2,
+    "checkedBy": [
+      "screen"
+    ]
+  },
+  {
+    "id": "band-inset",
+    "title": "A band sits one step inside the content edge",
+    "severity": "error",
+    "why": "The band is chrome, the content is the page. Standing the band one step closer to the edge separates them, and stating it against the panel's padding moves it with the panel's size.",
+    "rule": 3,
+    "checkedBy": [
+      "screen"
+    ]
+  },
+  {
+    "id": "opaque-in-glass",
+    "title": "Everything in a glass panel reads the glass",
+    "severity": "error",
+    "why": "Controls inside a glass panel take its material. An opaque surface among them stands out as the one thing that didn't.",
+    "rule": 5,
+    "checkedBy": [
+      "screen"
+    ]
+  },
+  {
+    "id": "flow-cta-width",
+    "title": "A flow's main action is full width on every screen",
+    "severity": "error",
+    "why": "In a flow, the main action in the same place at full width on every screen is easy to find and easy to press, and it keeps its place as the person moves through.",
+    "rule": 6,
+    "checkedBy": [
+      "screen"
+    ]
+  },
+  {
+    "id": "text-axis",
+    "title": "Label, rows and lines share one left edge",
+    "severity": "error",
+    "why": "One edge reads as one group. A selection or hover fill hangs outside that edge; when it pushes the text in, every row starts somewhere new.",
+    "rule": 15,
+    "checkedBy": [
+      "screen"
+    ]
+  },
+  {
+    "id": "tone-budget",
+    "title": "Three tones or fewer on one surface",
+    "severity": "warning",
+    "why": "Each tone carries a meaning. Past three on one surface, the meanings stop reading and the colour becomes noise.",
+    "rule": 10,
+    "checkedBy": [
+      "screen"
+    ]
+  },
+  {
+    "id": "clipped-text",
+    "title": "Words are never cut off",
+    "severity": "error",
+    "why": "A window may bleed off a figure's band; a sentence sliced by an edge reads as a mistake.",
+    "rule": 26,
+    "checkedBy": [
+      "screen"
+    ]
+  },
+  {
+    "id": "dot-separator",
+    "title": "No dot between facts",
+    "severity": "error",
+    "why": "A dot glued between two facts is two things doing one place's job. Give each fact its own place, or cut one. Less is more.",
+    "rule": 27,
+    "checkedBy": [
+      "screen"
+    ]
+  },
+  {
+    "id": "hover-with-separators",
+    "title": "Lines or hover, never both",
+    "severity": "error",
+    "why": "A list divided by lines doesn't light its rows, and a list that lights its rows draws no lines. Both at once is two ways of saying the same thing, and they fight.",
+    "rule": 28,
+    "checkedBy": [
+      "screen"
+    ]
+  }
+]

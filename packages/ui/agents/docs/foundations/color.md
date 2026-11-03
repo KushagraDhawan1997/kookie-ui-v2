@@ -4,7 +4,13 @@ You tell a component what a colour means, and the theme works out the value. Tha
 changes with light and dark mode, with the contrast setting, and with the surface underneath,
 so you never write a hex value and never have to remember a palette.
 
+*Figure.* A calendar week. Blue events are the work calendar and green ones the personal calendar, so the colour is the information. Today and New event are the accent.
+
 ## Name the meaning, and let the theme choose the colour
+
+A hex value stays the same in dark mode, ignores the high-contrast setting and survives a change
+of brand colour. `tone="destructive"` avoids all three problems, because the theme produces the
+value for the current mode and setting.
 
 ```tsx
 // Wrong: a fixed value.
@@ -13,10 +19,6 @@ so you never write a hex value and never have to remember a palette.
 // Right: a meaning.
 <Text tone="destructive">Payment failed</Text>
 ```
-
-A hex value stays the same in dark mode, ignores the high-contrast setting and survives a change
-of brand colour. `tone="destructive"` avoids all three problems, because the theme produces the
-value for the current mode and setting.
 
 There's no `color` or `variant` prop. If you must set a colour yourself, use `style`, where it
 stays easy to spot in a review.
@@ -35,7 +37,9 @@ yellow and does not turn olive.
 | `blue` `green` `orange` `amber` | Colour as data: a chart series, a project label or a category, where the colour itself is the information. |
 | `destructive` | An action that removes something, and the error state. |
 | `success` `warning` `info` | Status: something worked, something needs attention, or the text adds context. |
+
 *Figure, in light and dark.* Read a column top to bottom: every family is equally light at the same step, so swapping a tone never changes how loud something looks. Dark is not light inverted — each step is redesigned for a dark background.
+
 `success` and `green` look the same today, but they are two separate families, so you can move
 `success` towards teal and the green in your charts stays where it is. `warning` and `amber`,
 and `info` and `blue`, work the same way. Use a meaning name when the item carries a meaning,
@@ -103,7 +107,9 @@ and each mode:
   such as a menu option that you can't choose.
 
 If some text matters less, keep it loud at a smaller size, or make it medium.
+
 *Figure, in light and dark.* The three levels reach the same contrast in every family. Look at accent: its medium and quiet go grey, because a faded brand colour stops looking like the brand. The meanings stay coloured, because a faded red still reads as danger.
+
 ## High contrast
 
 High contrast is a theme setting, not a prop on each component. The theme follows the operating
@@ -125,7 +131,9 @@ Three named backgrounds sit under everything else. From the bottom up:
 --color-ground    /* a region that holds objects, such as a sidebar */
 --color-surface   /* the opaque fill of an object, such as a card */
 ```
+
 *Figure, in light and dark.* In light, a card and the page are the same white, so the card's shadow is what separates them — only the ground is a different colour. In dark, all three step apart: page darkest, cards lightest.
+
 The library doesn't paint the page background, because every nested `Theme` would paint over it
 again. Paint it yourself with `--color-page`. A `Surface` uses `--color-ground`, and a `Card`
 uses `--color-surface`.

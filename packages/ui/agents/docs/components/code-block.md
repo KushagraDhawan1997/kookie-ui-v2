@@ -57,7 +57,16 @@ The `topbar` row holds a file name on one side and a copy button on the other. T
 import * as React from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Copy01Icon } from "@hugeicons/core-free-icons";
-import { Code, CodeBlock, Toolbar, ToolbarButton, iconStroke } from "@kushagradhawan/kookie-ui-react";
+import {
+  Code,
+  CodeBlock,
+  Toolbar,
+  ToolbarButton,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+  iconStroke,
+} from "@kushagradhawan/kookie-ui-react";
 
 const SOURCE = `export async function archiveProject(id: string) {
   const project = await db.projects.find(id);
@@ -76,18 +85,25 @@ export default function Example() {
       topbar={
         <Toolbar>
           <Code>archive.ts</Code>
-          <ToolbarButton
-            iconOnly
-            done={copied}
-            aria-label={copied ? "Copied" : "Copy code"}
-            onClick={() => {
-              void navigator.clipboard.writeText(SOURCE);
-              setCopied(true);
-              window.setTimeout(() => setCopied(false), 2000);
-            }}
-          >
-            <HugeiconsIcon icon={Copy01Icon} strokeWidth={iconStroke} aria-hidden />
-          </ToolbarButton>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <ToolbarButton
+                  iconOnly
+                  done={copied}
+                  aria-label={copied ? "Copied" : "Copy code"}
+                  onClick={() => {
+                    void navigator.clipboard.writeText(SOURCE);
+                    setCopied(true);
+                    window.setTimeout(() => setCopied(false), 2000);
+                  }}
+                >
+                  <HugeiconsIcon icon={Copy01Icon} strokeWidth={iconStroke} aria-hidden />
+                </ToolbarButton>
+              }
+            />
+            <TooltipContent>{copied ? "Copied" : "Copy code"}</TooltipContent>
+          </Tooltip>
         </Toolbar>
       }
     >

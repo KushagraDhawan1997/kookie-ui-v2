@@ -2,7 +2,7 @@
 
 This harness measures whether the agent surface in `@kushagradhawan/kookie-ui-react` helps a coding agent build better screens. The surface is `agents/AGENTS.md` and `agents/docs/`.
 
-It runs headless Claude Code on 8 product-style tasks in 3 arms, 3 times each (72 runs). Then it scores each app without a model.
+It runs headless Claude Code on 10 product-style tasks in 3 arms, 3 times each (90 runs). Then it scores each app without a model.
 
 ## Arms
 
@@ -14,16 +14,20 @@ Every arm starts from the same Vite + React 19 + TypeScript (strict) app in `tem
 
 ## Scoring
 
-All four measures are deterministic:
+All five measures are deterministic:
 
 1. `tsc --noEmit` error count.
 2. The package's ESLint plugin: errors and warnings.
 3. `checkUsage` findings from `@kushagradhawan/kookie-ui-react/agent`.
 4. Rubric checks for the task, read off the TypeScript AST (`lib/checks.ts`).
+5. The screen check (`scripts/review-ui/run.mjs`) on the app as it renders, served with Vite.
+   It enforces RULES.md: a Close in every panel, a real Toolbar band, full-width flow actions,
+   one text axis, and the rest. A task's `screen` field says which buttons open its panel and
+   walk its flow. It needs an installed app; on a dry-run base it reports n/a.
 
 Each rubric check cites the sentence in `packages/ui/agents/docs/` that it enforces, with the page and line. `test/citations.test.ts` fails if a cited sentence moves or changes.
 
-A run passes when the agent changed the app, tsc and the plugin report no errors, `checkUsage` reports no errors, and no rubric check fails.
+A run passes when the agent changed the app, tsc and the plugin report no errors, `checkUsage` reports no errors, no rubric check fails, and the screen check reports no errors.
 
 ## Before you start
 

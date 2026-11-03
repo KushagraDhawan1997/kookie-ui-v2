@@ -73,6 +73,28 @@ import { parseMeta } from "./blocks/highlight";
 import { Example } from "./app/(docs)/example";
 import { ReviewRules } from "./app/(docs)/review-rules";
 import { ColorGrounds, ColorInks, ColorScales } from "./app/(docs)/color-figures";
+import { IconSizes } from "./app/(docs)/icon-sizes";
+import {
+  ControlFigure,
+  FitFigure,
+  AppearanceFigure,
+  OneActionFigure,
+  GroupingFigure,
+  RankFigure,
+  ToneFigure,
+  SameSizeFigure,
+  OwnsTheJobFigure,
+  RealWordsFigure,
+  MaterialsFigure,
+  TypographyFigure,
+  ColourFigure,
+  DepthFigure,
+  IconsFigure,
+  InteractionFigure,
+  OneFormFigure,
+  PrinciplesFigure,
+  CompositionFigure,
+} from "./app/(docs)/principle-figures";
 import { nodeText, slugify } from "./app/(docs)/slug";
 import type { TypeSize } from "@kushagradhawan/kookie-ui-react";
 
@@ -296,6 +318,110 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     ColorGrounds: () => (
       <Figure>
         <ColorGrounds />
+      </Figure>
+    ),
+    /* The Icons chapter's size table, from the package's own `iconSize`. */
+    IconSizes: () => (
+      <Figure>
+        <IconSizes />
+      </Figure>
+    ),
+
+    /* The Principles chapter's figures: real screens on the figures' grey ground, one per principle that a
+       picture shows better than words. */
+    CompositionFigure: () => (
+      <Figure>
+        <CompositionFigure />
+      </Figure>
+    ),
+    PrinciplesFigure: () => (
+      <Figure>
+        <PrinciplesFigure />
+      </Figure>
+    ),
+    ColourFigure: () => (
+      <Figure>
+        <ColourFigure />
+      </Figure>
+    ),
+    DepthFigure: () => (
+      <Figure>
+        <DepthFigure />
+      </Figure>
+    ),
+    IconsFigure: () => (
+      <Figure>
+        <IconsFigure />
+      </Figure>
+    ),
+    InteractionFigure: () => (
+      <Figure>
+        <InteractionFigure />
+      </Figure>
+    ),
+    MaterialsFigure: () => (
+      <Figure>
+        <MaterialsFigure />
+      </Figure>
+    ),
+    TypographyFigure: () => (
+      <Figure>
+        <TypographyFigure />
+      </Figure>
+    ),
+    GroupingFigure: () => (
+      <Figure>
+        <GroupingFigure />
+      </Figure>
+    ),
+    RankFigure: () => (
+      <Figure>
+        <RankFigure />
+      </Figure>
+    ),
+    ToneFigure: () => (
+      <Figure>
+        <ToneFigure />
+      </Figure>
+    ),
+    SameSizeFigure: () => (
+      <Figure>
+        <SameSizeFigure />
+      </Figure>
+    ),
+    OwnsTheJobFigure: () => (
+      <Figure>
+        <OwnsTheJobFigure />
+      </Figure>
+    ),
+    RealWordsFigure: () => (
+      <Figure>
+        <RealWordsFigure />
+      </Figure>
+    ),
+    OneActionFigure: () => (
+      <Figure>
+        <OneActionFigure />
+      </Figure>
+    ),
+    AppearanceFigure: () => (
+      <Figure>
+        <AppearanceFigure />
+      </Figure>
+    ),
+    FitFigure: () => (
+      <Figure>
+        <FitFigure />
+      </Figure>
+    ),
+    OneFormFigure: () => (
+      <Figure>
+        <OneFormFigure />
+      </Figure>
+    ),
+    ControlFigure: () => (
+      <Figure>
+        <ControlFigure />
       </Figure>
     ),
 

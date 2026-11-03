@@ -4,10 +4,10 @@ open page answers the second, on the screen and for a screen reader.
 
 ## The app frame
 
-<Example name="shell" />
-
 A `Shell` holds a header, navigation columns, the work area and optional detail panes. Each pane
 is its own component, so you use only the panes you need.
+
+<Example name="shell" />
 
 - **`ShellHeader`:** A row across the full width of the frame.
 - **`ShellRail`:** A narrow column of icons that switches between the main areas of the app.
@@ -64,6 +64,8 @@ from the top of the app to the open page.
 
 Use `Tabs` when the content under the row changes. Use a `SegmentedControl` when the choice sets
 a value, such as a grid or a list layout, and the content stays where it is.
+
+<OneFormFigure />
 
 A screen reader hears the difference. A `SegmentedControl` is a radio group: the arrow keys change
 its value, and a form submits that value. A tab bar is a tab list, and each tab controls a panel.

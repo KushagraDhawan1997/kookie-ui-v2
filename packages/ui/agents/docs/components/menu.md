@@ -57,7 +57,7 @@ The part names follow shadcn/ui's dropdown menu (MIT), and the behaviour comes f
 ```tsx
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  Copy01Icon,
+  CopyPlusIcon,
   Delete02Icon,
   FileExportIcon,
   PencilEdit02Icon,
@@ -84,7 +84,7 @@ import type { Size } from "@kushagradhawan/kookie-ui-react";
 
 // The package ships no icon set, so the glyphs are yours. `iconStroke` is the weight the system
 // draws its own chevrons at, so your set matches them. No size: the row sizes the slot's svg.
-const icon = (glyph: typeof Copy01Icon) => (
+const icon = (glyph: typeof CopyPlusIcon) => (
   <HugeiconsIcon icon={glyph} strokeWidth={iconStroke} aria-hidden />
 );
 
@@ -98,7 +98,7 @@ export default function Example({ size = "2" }: { size?: Size }) {
           {/* A glyph goes in `leading`, never in the label: the checkbox and radio rows below
               put their indicator in that same slot, so every row's words start on one line
               whether it is a tick, an icon or nothing at all. */}
-          <MenuItem leading={icon(Copy01Icon)} trailing={<Kbd>⌘D</Kbd>}>
+          <MenuItem leading={icon(CopyPlusIcon)} trailing={<Kbd>⌘D</Kbd>}>
             Duplicate
           </MenuItem>
           <MenuItem leading={icon(PencilEdit02Icon)}>Rename</MenuItem>
@@ -236,7 +236,8 @@ Put an icon in `leading` and a `<Kbd>` shortcut in `trailing`. A row without an 
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Archive01Icon,
-  Copy01Icon,
+  CopyPlusIcon,
+  FolderTransferIcon,
   Delete02Icon,
   Link01Icon,
   PencilEdit02Icon,
@@ -252,12 +253,12 @@ import {
   iconStroke,
 } from "@kushagradhawan/kookie-ui-react";
 
-const icon = (glyph: typeof Copy01Icon) => (
+const icon = (glyph: typeof CopyPlusIcon) => (
   <HugeiconsIcon icon={glyph} strokeWidth={iconStroke} aria-hidden />
 );
 
-// Put an icon in `leading` and a shortcut in `trailing`. A row without an icon
-// still lines up, because the leading column is always kept.
+// Put an icon in `leading` and a shortcut in `trailing`. Give every row an icon, because a
+// row without one reads as a different kind of row.
 export default function Example() {
   return (
     <Menu>
@@ -266,11 +267,11 @@ export default function Example() {
         <MenuItem leading={icon(PencilEdit02Icon)} trailing={<Kbd>⌘R</Kbd>}>
           Rename
         </MenuItem>
-        <MenuItem leading={icon(Copy01Icon)} trailing={<Kbd>⌘D</Kbd>}>
+        <MenuItem leading={icon(CopyPlusIcon)} trailing={<Kbd>⌘D</Kbd>}>
           Duplicate
         </MenuItem>
         <MenuItem leading={icon(Link01Icon)}>Copy link</MenuItem>
-        <MenuItem>Move to folder…</MenuItem>
+        <MenuItem leading={icon(FolderTransferIcon)}>Move to folder…</MenuItem>
         <Separator />
         <MenuItem leading={icon(Archive01Icon)}>Archive</MenuItem>
         <MenuItem leading={icon(Delete02Icon)} tone="destructive">
@@ -432,7 +433,7 @@ When a row goes to a page, pass an anchor to `render` so the row becomes a real 
 
 ```tsx
 import { HugeiconsIcon } from "@hugeicons/react";
-import { CreditCardIcon, Logout01Icon, Settings01Icon, UserIcon } from "@hugeicons/core-free-icons";
+import { CreditCardIcon, Logout01Icon, Settings02Icon, UserIcon } from "@hugeicons/core-free-icons";
 import {
   Button,
   Menu,
@@ -457,7 +458,7 @@ export default function Example() {
         <MenuItem leading={icon(UserIcon)} render={<a href="#profile" />}>
           Profile
         </MenuItem>
-        <MenuItem leading={icon(Settings01Icon)} render={<a href="#settings" />}>
+        <MenuItem leading={icon(Settings02Icon)} render={<a href="#settings" />}>
           Settings
         </MenuItem>
         <MenuItem leading={icon(CreditCardIcon)} render={<a href="#billing" />}>

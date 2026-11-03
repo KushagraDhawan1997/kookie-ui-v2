@@ -26,6 +26,8 @@
  */
 import type { ComponentRefusals } from "../../system/refused.ts";
 import * as React from "react";
+
+import { HostCloseContext, HostTitleContext } from "../../system/host-title.ts";
 import { Dialog as BaseDialog } from "@base-ui/react/dialog";
 import { DirectionProvider } from "@base-ui/react/direction-provider";
 
@@ -323,7 +325,11 @@ function DialogPopup({
         * Motion was removed 2026-09-20; docs/archive/motion-v1.md records it.
         */}
       <div className="kui-dialog-body" role="presentation">
-        <GlassScope material={material}>{children}</GlassScope>
+        <HostTitleContext.Provider value={DialogTitle}>
+          <HostCloseContext.Provider value={DialogClose as React.ComponentType<{ render: React.ReactElement }>}>
+            <GlassScope material={material}>{children}</GlassScope>
+          </HostCloseContext.Provider>
+        </HostTitleContext.Provider>
       </div>
     </BaseDialog.Popup>
   );

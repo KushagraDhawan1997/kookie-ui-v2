@@ -2,95 +2,80 @@
 
 An AI agent can make a screen look good. It cannot make fifty screens agree, because it answers
 every question again on every screen. Kookie is a system of patterns, carried by components, that
-answers those questions once and keeps the answers correct.
+answers those questions once and keeps the answers correct. Six principles decide those answers.
 
-## Correct over popular
 
-Kookie chooses what is right over what is easy to adopt. Two things decide what is right: the
-research on how people see and use interfaces, and whether products built on Kookie are better.
+## Fit the person, where they are
 
-## Function over appearance
+The body and the mind set the floors, in the situation the person is in: their hand, their eyes,
+the device, the window and the light. Targets are big enough to hit, text is big enough to read,
+and contrast is high enough to see. Readable text always meets the reading contrast floor, and no
+setting lowers it. Under a touch pointer, controls grow to 44 pixels, because a finger is less
+precise than a mouse.
 
-Kookie separates components by what they do, not by how they look. Components that look alike
-but do different jobs stay separate, with their own names and props.
-```tsx
-import {
-  Flex,
-  SegmentedControl,
-  SegmentedItem,
-  Stack,
-  Tabs,
-  TabsList,
-  TabsTab,
-} from "@kushagradhawan/kookie-ui-react";
 
-export default function Lookalikes() {
-  return (
-    <Stack gap="7">
-      <Flex justify="center">
-        <Tabs defaultValue="usage">
-          <TabsList>
-            <TabsTab value="usage">Usage</TabsTab>
-            <TabsTab value="invoices">Invoices</TabsTab>
-            <TabsTab value="limits">Limits</TabsTab>
-          </TabsList>
-        </Tabs>
-      </Flex>
-      <Flex justify="center">
-        <SegmentedControl
-          defaultValue="month"
-          aria-label="Date range"
-        >
-          <SegmentedItem value="day">Day</SegmentedItem>
-          <SegmentedItem value="week">Week</SegmentedItem>
-          <SegmentedItem value="month">Month</SegmentedItem>
-        </SegmentedControl>
-      </Flex>
-    </Stack>
-  );
-}
-```
-`Tabs` moves you to another view. A `SegmentedControl` sets a value and leaves the content in
-place. The [components](/components) index groups every component by its job.
+Sources: Fitts (1954) on target size and distance, Legge and Bigelow on text size and
+reading speed, Wertheimer (1923) on grouping. The 44-pixel target is a judgment inside the
+range that touch studies measured (Parhi and others, 2006).
 
-## Patterns before components
+## Serve the job
 
-A pattern is a problem that recurs, with a known solution. A component is a pattern packaged for
-reuse. Some patterns coordinate several parts, such as an app frame. Kookie ships these as one
-coordinator, like `Shell`, that arranges its parts, so no part has to control the container
-around it.
+People use a tool to get work done. Put the task in front, and keep everything else one step
+away. Getting the job done well is the satisfaction the tool gives.
 
-## Measured limits and judgments
+Source: Norman's gulfs of execution and evaluation, which measure the effort between what a
+person intends and the result they get.
 
-Some answers are measured. Readable text always meets the reading contrast floor, and no setting
-lowers it. Under a touch pointer, controls grow to 44 pixels by default, and `pointer` can change
-that. Borders meet the contrast floor only with `contrast="high"`, or when the person asks for
-more contrast. Fitts's law is a model, not a limit: it informs the sizes Kookie picks.
-Everything else, such as corner radius or the accent hue, is a judgment, and Kookie never
-presents it as a measurement.
+## One job, one form, everywhere
 
-## Answer each question once
+Use the pattern people already know. Components that do different jobs stay apart, even when they
+look alike, and each component's [Use instead](/components) section names the one it gets
+confused with. Things that do the same job become one, answered once, so the same meaning gives
+the same result on every screen. Challenge a pattern only to replace it everywhere, never to vary
+it in one place.
 
-Consistency is cheaper than inconsistency. Kookie answers each design question in one place, so a
-component takes a meaning instead of a value.
 
-```tsx
-<Button tone="destructive" emphasis="loud">
-  Delete project
-</Button>
-```
+Sources: Grudin (1989), citing Polson, on reusing what people know. Raissi and others (2020)
+found that changing two of eight keys slowed people across the whole layout. That a near-copy
+does more harm than a clean break is a judgment.
 
-## The right thing by default
+## Less
 
-The correct result is what you get when you don't think about it. In a narrow window, a dialog
-becomes a sheet with no prop. Under a touch pointer, targets and text grow, and hover effects do
-not stick after a tap. Where the answer depends on your product, Kookie gives you the tool and
-makes no decision.
+Fewer things. Every element, option and setting earns its place, and what nobody uses goes.
 
-Kookie teaches through defaults and type errors, and keeps hard limits for the few floors it
-enforces.
+Sources: Hick and Hyman on choice time, and Sweller on extra information slowing learning of
+hard material. The rest is a judgment, in the line of Dieter Rams.
 
-## The trade-off
+## People stay in control
 
-Kookie gives you fewer overrides. In return, your screens stay consistent as the app grows.
-`style` and `className` remain available, and both are easy to find in a review.
+People see what is happening, steer it and undo it. Every gesture has a visible equivalent. When
+work is handed to an AI, the handover stays visible, steerable and reversible.
+
+
+Sources: Sadana and others (2018) found that 1 person in 16 discovered a hidden hold-and-swipe
+gesture. Bainbridge (1983) on what automation takes from people, and Amershi and others (2019)
+on correcting and dismissing AI. Applying this to AI handovers is a judgment.
+
+## Craft
+
+Care for every detail, and own taste as taste. Measured limits are cited and held, and
+everything else, such as corner radius or the accent hue, is called a judgment. What the system
+says about itself is true.
+
+Source: a judgment, openly. Taste decides the look. The person's limits and the job decide
+everything else.
+
+## How Kookie decides
+
+- **Correct over popular:** Kookie chooses what is right over what is easy to adopt. Research on
+  how people see and use interfaces decides what is right, and so does whether products built on
+  Kookie are better.
+- **Patterns before components:** A pattern is a problem that recurs, with a known solution. A
+  component is a pattern packaged for reuse. A pattern that coordinates several parts, such as an
+  app frame, ships as one component that arranges them.
+- **The right thing by default:** The correct result is what you get when you don't think about
+  it. In a narrow window, a dialog becomes a sheet with no prop. Where the answer depends on your
+  product, Kookie gives you the tool and makes no decision.
+- **The trade-off:** Kookie gives you fewer overrides, and in return your screens stay consistent
+  as the app grows. `style` and `className` remain available, and both are easy to find in a
+  review.

@@ -98,6 +98,9 @@ import {
   Text,
   Toolbar,
   ToolbarButton,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
   iconStroke,
 } from "@kushagradhawan/kookie-ui-react";
 
@@ -144,9 +147,16 @@ export default function Example() {
             {/* Top-aligned, not centred: the mark is a display glyph and it defines the row,
                 so centring the button would sink it below the trigger in the pane next door.
                 Aligning to the start puts both at the same offset from their pane's padding. */}
-            <Button iconOnly backdrop aria-label="New" style={{ alignSelf: "start" }}>
-              {icon(PlusSignIcon)}
-            </Button>
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <Button iconOnly backdrop aria-label="New" style={{ alignSelf: "start" }}>
+                    {icon(PlusSignIcon)}
+                  </Button>
+                }
+              />
+              <TooltipContent>New</TooltipContent>
+            </Tooltip>
           </ShellPaneHeader>
 
           {/* `fade` is what keeps the rows legible on their way behind the chrome. */}
@@ -191,9 +201,16 @@ export default function Example() {
                   nav rows pass under it, and an avatar's fallback wash is an alpha — rows read
                   straight through the disc. The button is what states `backdrop`, and an
                   account avatar is a target in every app that has one anyway. */}
-              <ToolbarButton iconOnly aria-label="Kushagra Dhawan">
-                <Avatar fallback="KD" />
-              </ToolbarButton>
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <ToolbarButton iconOnly aria-label="Kushagra Dhawan">
+                      <Avatar fallback="KD" />
+                    </ToolbarButton>
+                  }
+                />
+                <TooltipContent>Kushagra Dhawan</TooltipContent>
+              </Tooltip>
               <AppearanceToggle />
             </Toolbar>
           </ShellPaneFooter>
@@ -599,7 +616,7 @@ The rail and sidebar have `flush={false}` while the content stays flush. The con
 
 ```tsx
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Home01Icon, LayerIcon, Search01Icon } from "@hugeicons/core-free-icons";
+import { Home01Icon, Image01Icon, LayoutBottomIcon, LayoutTopIcon, Search01Icon } from "@hugeicons/core-free-icons";
 import {
   Box,
   Heading,
@@ -636,11 +653,11 @@ export default function Example() {
         </ShellRail>
         <ShellSidebar aria-label="Layers" flush={false}>
           <ShellNavGroup label="Layers">
-            <ShellNavItem current leading={icon(LayerIcon)}>
+            <ShellNavItem current leading={icon(LayoutTopIcon)}>
               Header
             </ShellNavItem>
-            <ShellNavItem leading={icon(LayerIcon)}>Hero image</ShellNavItem>
-            <ShellNavItem leading={icon(LayerIcon)}>Footer</ShellNavItem>
+            <ShellNavItem leading={icon(Image01Icon)}>Hero image</ShellNavItem>
+            <ShellNavItem leading={icon(LayoutBottomIcon)}>Footer</ShellNavItem>
           </ShellNavGroup>
         </ShellSidebar>
         <ShellContent>

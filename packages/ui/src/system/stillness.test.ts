@@ -54,6 +54,11 @@ const CONTENT_LOOPS: Record<string, string> = {
   "components/spinner/spinner.css": "kui-spin",
   "components/progress/progress.css": "kui-progress-sweep",
   "components/attachment/attachment.css": "kui-attachment-sweep",
+  // NOT a loop, and the first motion back since the removal (2026-11-02, Kushagra: "We will do
+  // basic motion, but good"). A screen arriving in a Navigator is the one change whose meaning
+  // is direction — deeper or back — and an instant swap says neither. It rides this allowlist
+  // until the motion foundation has a second consumer and earns laws of its own.
+  "components/navigator/navigator.css": "kui-navigator-in",
 };
 
 /**

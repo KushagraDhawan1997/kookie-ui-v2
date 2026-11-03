@@ -3,14 +3,15 @@
  *
  *   node --experimental-strip-types eval/agents/score.ts <batch-dir> [--snapshot <data.json>]
  *
- * Four deterministic measures, no model judging:
+ * Five deterministic measures, no model judging:
  * - `tsc --noEmit` error count, with the app's own TypeScript
  * - the package's ESLint plugin, errors and warnings
  * - `checkUsage` findings
  * - the task's rubric checks (lib/checks.ts), each citing the docs sentence it enforces
+ * - the screen check (scripts/review-ui/run.mjs) on the running app, for tasks that name one
  *
  * A run PASSES when the agent changed the app, tsc and the plugin report no errors, checkUsage
- * reports no errors, and no rubric check fails.
+ * reports no errors, no rubric check fails, and the screen check ran and reports no errors.
  */
 import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
@@ -20,6 +21,7 @@ import { parseArgs } from "./lib/args.ts";
 import { runChecks, type Result } from "./lib/checks.ts";
 import { installedPackage, TEMPLATE_DIR, UI_PACKAGE } from "./lib/paths.ts";
 import { runLint, runTsc, snapshotPath, usageChecker, wrongProps, type Finding, type LintResult, type TscResult } from "./lib/static.ts";
+import { runScreen, type ScreenResult } from "./lib/screen.ts";
 import { loadProject } from "./lib/tree.ts";
 import { checksFor, TASKS } from "./tasks.ts";
 
@@ -37,7 +39,9 @@ export type Score = {
   usage: { errors: number; warnings: number; notes: number; findings: (Finding & { file: string })[] };
   rubric: Record<string, Result>;
   wrongProps: string[];
-  /** Every finding the four tools report, rubric fails included. */
+  /** The screen check on the rendered app (RULES.md). */
+  screen: ScreenResult;
+  /** Every finding the five tools report, rubric fails included. */
   findings: number;
   pass: boolean;
   run: Record<string, unknown> | null;
@@ -91,6 +95,7 @@ export async function scoreRun(dir: string, snapshot: string): Promise<Score> {
   const resultFile = path.join(dir, "result.json");
   const run = existsSync(resultFile) ? (JSON.parse(readFileSync(resultFile, "utf8")) as Record<string, unknown>) : null;
   const changed = touched(app, files);
+  const screen = await runScreen(app, task.screen);
 
   return {
     ...meta,
@@ -101,8 +106,22 @@ export async function scoreRun(dir: string, snapshot: string): Promise<Score> {
     usage,
     rubric,
     wrongProps: wrongProps(usageFindings, tsc.messages),
-    findings: tsc.errors + lint.errors + lint.warnings + lint.fatal + usageFindings.length + rubricFails,
-    pass: changed && tsc.available && tsc.errors === 0 && lint.errors === 0 && lint.fatal === 0 && usage.errors === 0 && rubricFails === 0,
+    screen,
+    findings: tsc.errors + lint.errors + lint.warnings + lint.fatal + usageFindings.length + rubricFails + screen.findings.length,
+    // An app that was never installed can't be checked on screen, and that doesn't fail a run;
+    // the report says so beside it. Any other unavailable check (the server didn't start, or the
+    // check couldn't reach the panel it was asked to press open) fails it, so a missing dialog
+    // can't pass as a clean one.
+    pass:
+      changed &&
+      tsc.available &&
+      tsc.errors === 0 &&
+      lint.errors === 0 &&
+      lint.fatal === 0 &&
+      usage.errors === 0 &&
+      rubricFails === 0 &&
+      screen.errors === 0 &&
+      (screen.available || screen.reason === "app not installed"),
     run,
   };
 }
@@ -118,7 +137,7 @@ export async function scoreBatch(batch: string, options: { snapshot?: string | u
     writeFileSync(path.join(dir, "score.json"), `${JSON.stringify(score, null, 2)}\n`);
     const fails = Object.entries(score.rubric).filter(([, r]) => r.status === "fail").map(([k]) => k);
     console.log(
-      `${score.pass ? "PASS" : "fail"}  ${id}  tsc ${score.tsc.available ? score.tsc.errors : "n/a"}  lint ${score.lint.errors}e/${score.lint.warnings}w  usage ${score.usage.findings.length}  rubric fails ${fails.length}${fails.length ? ` (${fails.join(", ")})` : ""}`,
+      `${score.pass ? "PASS" : "fail"}  ${id}  tsc ${score.tsc.available ? score.tsc.errors : "n/a"}  lint ${score.lint.errors}e/${score.lint.warnings}w  usage ${score.usage.findings.length}  screen ${score.screen.available ? score.screen.errors : "n/a"}  rubric fails ${fails.length}${fails.length ? ` (${fails.join(", ")})` : ""}`,
     );
     scores.push(score);
   }

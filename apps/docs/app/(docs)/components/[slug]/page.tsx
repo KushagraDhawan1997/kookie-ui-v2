@@ -406,6 +406,11 @@ export default async function ComponentPage({ params }: { params: Promise<{ slug
                           );
                         })}
                       </List>
+                      {alternativesFor(entry.name)
+                        .filter((alt) => alt.example)
+                        .map((alt) => (
+                          <Example key={alt.example} name={alt.example!} />
+                        ))}
                     </Section>
                   ) : null}
 

@@ -144,6 +144,35 @@ import {
   ToggleOnIcon,
   TypeCursorIcon,
   UserCircleIcon,
+  CopyPlusIcon,
+  ListSettingIcon,
+  DarkModeIcon,
+  BrickWallIcon,
+  PuzzleIcon,
+  TextUnderlineIcon,
+  AppWindowIcon,
+  Touch01Icon,
+  Mouse01Icon,
+  SwipeLeft01Icon,
+  OptionIcon,
+  SquareSplitHorizontalIcon,
+  SplitIcon,
+  CarouselHorizontalIcon,
+  SearchList01Icon,
+  LeftToRightListBulletIcon,
+  Chatting01Icon,
+  InputNumericIcon,
+  PanelBottomIcon,
+  TestTube01Icon,
+  CodeFolderIcon,
+  FileEmpty01Icon,
+  LayoutBottomIcon,
+  TableOfContentsIcon as HugeTableOfContentsIcon,
+  BubbleChatIcon,
+  SparklesIcon,
+  HashtagIcon,
+  AlertCircleIcon,
+  ShapesIcon,
 } from "@hugeicons/core-free-icons";
 
 /**
@@ -200,6 +229,10 @@ export const HomeIcon = glyph(Home01Icon);
 export const FolderIcon = glyph(Folder01Icon);
 export const ChartIcon = glyph(ChartLineData01Icon);
 export const SettingsIcon = glyph(Settings02Icon);
+/* The playground's Props button (2026-11-01, the icon audit). It was the gear, which the
+   sidebar's Theme button also wore, so one drawing meant two panels. A list with a setting
+   says "the options of this one thing". */
+export const PropsIcon = glyph(ListSettingIcon);
 export const UsersIcon = glyph(UserMultiple02Icon);
 
 /* The builder's editor chrome (2026-08-20). Named for the JOB, like every glyph above:
@@ -214,14 +247,18 @@ export const PreviewIcon = glyph(EyeIcon);
    nothing, a frame with a header band, a plain wide frame. */
 export const LayerStackIcon = glyph(LayoutTwoRowIcon);
 export const LayerFlexIcon = glyph(LayoutTwoColumnIcon);
-export const LayerGridIcon = glyph(LayoutGridIcon);
+export const LayerGridIcon = glyph(HugeGridIcon);
 export const LayerBoxIcon = glyph(SquareDashedIcon);
-export const LayerCardIcon = glyph(BrowserIcon);
+export const LayerCardIcon = glyph(Cards01Icon);
 export const LayerSurfaceIcon = glyph(RectangularIcon);
 export const LayersIcon = glyph(LayerIcon);
 export const PanelLeftIcon = glyph(SidebarLeftIcon);
 export const PanelRightIcon = glyph(SidebarRightIcon);
 export const CopyIcon = glyph(Copy01Icon);
+/* Duplicate is not Copy (2026-11-01, the icon audit): copy puts something on the clipboard,
+   duplicate makes a second one in place. One drawing for both taught one meaning for two
+   actions, so duplicate wears the copy mark with a plus. */
+export const DuplicateIcon = glyph(CopyPlusIcon);
 export const LinkIcon = glyph(Link02Icon);
 /* The code sample's NAME button (2026-08-28). It copies a path, so its glyph names the object
    rather than the verb — the copy mark is the code button's, one pane-width away. */
@@ -237,6 +274,9 @@ export const StopSquareIcon = glyph(StopIcon);
 export const RetryIcon = glyph(ReloadIcon);
 
 export const WarnIcon = glyph(Alert02Icon);
+/* An error is not a warning (2026-11-01, the icon audit): a triangle says "take care", a circle
+   with a mark says "this failed". Both give a tone a shape, so colour is never the only cue. */
+export const ErrorIcon = glyph(AlertCircleIcon);
 
 /* The sidebar's Workbench rows (2026-08-26). Named for the destination's meaning. */
 export const BoardIcon = glyph(PaintBoardIcon);
@@ -263,6 +303,29 @@ export const BuildIcon = glyph(ToolboxIcon);
    produced with help — and it keeps the Getting started column reading as one sequence. */
 export const AgentIcon = glyph(AiProgrammingIcon);
 export const IdeaIcon = glyph(HugeIdeaIcon);
+/* The phone tab bar's sections (2026-11-01, the icon audit). Foundations wore the bulb that
+   Principles wears and Patterns wore the Grid component's glyph, so each now has its own. */
+export const FoundationsIcon = glyph(BrickWallIcon);
+export const PatternsIcon = glyph(PuzzleIcon);
+/* The Appearance chapter is light, dark and contrast, the person's choices. The sliders stay
+   with the Theme component. */
+export const AppearanceIcon = glyph(DarkModeIcon);
+/* The Inputs chapters (2026-11-01). */
+export const TouchIcon = glyph(Touch01Icon);
+export const PointerIcon = glyph(Mouse01Icon);
+export const KeyboardInputIcon = glyph(KeyboardIcon);
+export const GesturesIcon = glyph(SwipeLeft01Icon);
+export const WhatsNewIcon = glyph(SparklesIcon);
+/* Search result kinds (2026-11-01): a chapter, and a section inside one. */
+export const ChapterIcon = glyph(BookOpen01Icon);
+export const SectionIcon = glyph(HashtagIcon);
+/* The blocks rows (2026-11-01). */
+export const SpecimenIcon = glyph(TestTube01Icon);
+export const CodeSampleIcon = glyph(CodeFolderIcon);
+export const EmptyStateIcon = glyph(FileEmpty01Icon);
+export const FooterIcon = glyph(LayoutBottomIcon);
+export const TableOfContentsIcon = glyph(HugeTableOfContentsIcon);
+export const ConversationIcon = glyph(BubbleChatIcon);
 /* An open book, for a chapter that teaches the words the rest of the site uses. It was a set
    of shapes while the chapter was called Component families, where different shapes stood for
    different kinds of thing. Under the name Vocabulary that reading is gone, and a shapes glyph
@@ -270,6 +333,8 @@ export const IdeaIcon = glyph(HugeIdeaIcon);
 export const VocabularyIcon = glyph(BookOpen01Icon);
 export const ColorIcon = glyph(ColorsIcon);
 export const TypeIcon = glyph(TextFontIcon);
+/* The Icons chapter (2026-11-01). */
+export const IconsIcon = glyph(ShapesIcon);
 export const LayoutIcon = glyph(Layout01Icon);
 export const SizeIcon = glyph(RulerIcon);
 export const RadiusIcon = glyph(HugeRadiusIcon);
@@ -315,7 +380,8 @@ export const FieldIcon = glyph(Note03Icon);
 export const FlexIcon = glyph(DistributeHorizontalCenterIcon);
 export const GridIcon = glyph(HugeGridIcon);
 export const HeadingIcon = glyph(Heading01Icon);
-export const KbdIcon = glyph(KeyboardIcon);
+/* A key cap, not a keyboard: the keyboard drawing is the Keyboard chapter's. */
+export const KbdIcon = glyph(OptionIcon);
 export const MenuIcon = glyph(Menu01Icon);
 export const NavTreeIcon = glyph(FolderTreeIcon);
 export const NoticeIcon = glyph(InformationCircleIcon);
@@ -342,3 +408,16 @@ export const ToggleIcon = glyph(TextBoldIcon);
 export const ToolbarIcon = glyph(LayoutTopIcon);
 export const TooltipIcon = glyph(Comment01Icon);
 export const TreeIcon = glyph(HierarchySquare03Icon);
+/* Filled 2026-11-01 (the icon audit), so the sidebar can show icons on every row again. The
+   Link component and the Shell had borrowed Copy link's and Toggle navigation's glyphs; each
+   now has its own. */
+export const TextLinkIcon = glyph(TextUnderlineIcon);
+export const ShellIcon = glyph(AppWindowIcon);
+export const ButtonGroupIcon = glyph(SquareSplitHorizontalIcon);
+export const SplitButtonIcon = glyph(SplitIcon);
+export const CarouselIcon = glyph(CarouselHorizontalIcon);
+export const ComboboxIcon = glyph(SearchList01Icon);
+export const ListIcon = glyph(LeftToRightListBulletIcon);
+export const MessageScrollerIcon = glyph(Chatting01Icon);
+export const NumberFieldIcon = glyph(InputNumericIcon);
+export const SheetIcon = glyph(PanelBottomIcon);

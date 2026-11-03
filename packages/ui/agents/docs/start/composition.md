@@ -10,6 +10,8 @@ measurements. The two exceptions are that colour never carries a message alone (
 that text people must read stays readable. The [builder](/builder) checks most of the rules
 while you work.
 
+*Figure.* A builder's property panel for a selected button: content and appearance in two groups spaced apart, the labels at the controls' size, and one size throughout.
+
 ## One obvious action per screen
 
 Give each screen one loud control, and make it the action the screen exists for. Set it with
@@ -18,51 +20,9 @@ Give each screen one loud control, and make it the action the screen exists for.
 One control stands out only when the controls around it are quieter. This is the isolation
 effect. When two controls are loud, neither one stands out, and a person can't tell which is the
 main action. One per screen is Kookie's judgment.
-```tsx
-import type * as React from "react";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Cancel01Icon, Tick02Icon } from "@hugeicons/core-free-icons";
-import { Button, Flex, Grid, Stack, Text, iconStroke } from "@kushagradhawan/kookie-ui-react";
 
-export default function OneAction() {
-  return (
-    <Grid columns={{ initial: "1", sm: "2" }} gap="7">
-      <Verdict ok={false} why="Two loud controls compete, so neither stands out.">
-        <Flex gap="3">
-          <Button tone="accent" emphasis="loud">Save</Button>
-          <Button tone="accent" emphasis="loud">Publish</Button>
-        </Flex>
-      </Verdict>
-      <Verdict ok why="One main action. The other stays easy to find.">
-        <Flex gap="3">
-          <Button emphasis="medium">Save draft</Button>
-          <Button tone="accent" emphasis="loud">Publish</Button>
-        </Flex>
-      </Verdict>
-    </Grid>
-  );
-}
+*Figure.* A post editor on two phones. Wrong: Save and Publish are both loud, so neither stands out. Right: Save draft is medium and Publish is the one loud action.
 
-// A large mark, then the thing being judged, then why.
-function Verdict({ ok, why, children }: { ok: boolean; why: string; children: React.ReactNode }) {
-  return (
-    <Stack gap="3">
-      <Text tone={ok ? "success" : "destructive"} render={<Flex />}>
-        <HugeiconsIcon
-          icon={ok ? Tick02Icon : Cancel01Icon}
-          size={28}
-          strokeWidth={iconStroke}
-          aria-label={ok ? "Right" : "Wrong"}
-        />
-      </Text>
-      {children}
-      <Text size="2" emphasis="medium">
-        {why}
-      </Text>
-    </Stack>
-  );
-}
-```
 `Button` defaults to medium, so a loud button is almost always one you asked for. The two
 exceptions are `AlertDialogAction` and the send button in a `Composer`, which default to loud
 because each is the only action in its component.
@@ -81,59 +41,9 @@ when spacing is not enough.
 Make the gap inside a group at least two steps smaller than the gap around it. Compare only gaps that
 run the same way: a row's gap inside a column does not compete with the column's gap. When a screen
 uses the same gap from top to bottom, it shows no structure.
-```tsx
-import type * as React from "react";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Cancel01Icon, Tick02Icon } from "@hugeicons/core-free-icons";
-import { Flex, Grid, Heading, Stack, Text, iconStroke } from "@kushagradhawan/kookie-ui-react";
 
-export default function Grouping() {
-  return (
-    <Grid columns={{ initial: "1", sm: "2" }} gap="7">
-      <Verdict ok={false} why="One gap everywhere, so nothing reads as a group.">
-        <Stack gap="4">
-          <Heading size="6">Notifications</Heading>
-          <Text emphasis="medium">Choose what reaches you, and how.</Text>
-          <Heading size="6">Billing</Heading>
-          <Text emphasis="medium">Cards, invoices and the plan you are on.</Text>
-        </Stack>
-      </Verdict>
-      <Verdict ok why="Gap 2 inside each group, gap 6 between them.">
-        <Stack gap="6">
-          <Stack gap="2">
-            <Heading size="6">Notifications</Heading>
-            <Text emphasis="medium">Choose what reaches you, and how.</Text>
-          </Stack>
-          <Stack gap="2">
-            <Heading size="6">Billing</Heading>
-            <Text emphasis="medium">Cards, invoices and the plan you are on.</Text>
-          </Stack>
-        </Stack>
-      </Verdict>
-    </Grid>
-  );
-}
+*Figure.* An event on two phones. Wrong: every line sits the same distance apart, so nothing groups. Right: the title and date sit close, and the place and the notes sit apart as their own groups.
 
-// A large mark, then the thing being judged, then why.
-function Verdict({ ok, why, children }: { ok: boolean; why: string; children: React.ReactNode }) {
-  return (
-    <Stack gap="3">
-      <Text tone={ok ? "success" : "destructive"} render={<Flex />}>
-        <HugeiconsIcon
-          icon={ok ? Tick02Icon : Cancel01Icon}
-          size={28}
-          strokeWidth={iconStroke}
-          aria-label={ok ? "Right" : "Wrong"}
-        />
-      </Text>
-      {children}
-      <Text size="2" emphasis="medium">
-        {why}
-      </Text>
-    </Stack>
-  );
-}
-```
 Two levels that both separate groups can sit one step apart: a section at gap 6 can hold groups
 at gap 5.
 
@@ -143,6 +53,8 @@ To show that one piece of text ranks above another, move at least two steps on t
 A size 4 title over size 3 body text looks like an accident. [Typography](/foundations/typography#the-five-steps-for-a-screen)
 gives the five steps a screen uses.
 
+*Figure.* An event on two phones. Wrong: the title is one step above the text, so the rank looks like an accident. Right: the title is several steps above it.
+
 When something is less important, keep it at size 2 or 3 and use the muted colour with
 `emphasis="medium"`. Keep `emphasis="quiet"` for things a person can't use, such as a disabled
 option.
@@ -150,45 +62,9 @@ option.
 ## Use a tone for what it means
 
 Choose a tone because of what it means, not because a screen looks too grey.
-```tsx
-import type * as React from "react";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Cancel01Icon, Tick02Icon } from "@hugeicons/core-free-icons";
-import { Flex, Grid, Stack, Text, iconStroke } from "@kushagradhawan/kookie-ui-react";
 
-export default function Tone() {
-  return (
-    <Grid columns={{ initial: "1", sm: "2" }} gap="7">
-      <Verdict ok={false} why="Green chosen because it looks pleasant.">
-        <Text tone="green">Storage used</Text>
-      </Verdict>
-      <Verdict ok why="The tone that means success.">
-        <Text tone="success">Backup completed</Text>
-      </Verdict>
-    </Grid>
-  );
-}
+*Figure.* An event's actions on two phones. Wrong: blue, green and orange buttons chosen for colour. Right: neutral actions, and red only for Cancel event, which removes something.
 
-// A large mark, then the thing being judged, then why.
-function Verdict({ ok, why, children }: { ok: boolean; why: string; children: React.ReactNode }) {
-  return (
-    <Stack gap="3">
-      <Text tone={ok ? "success" : "destructive"} render={<Flex />}>
-        <HugeiconsIcon
-          icon={ok ? Tick02Icon : Cancel01Icon}
-          size={28}
-          strokeWidth={iconStroke}
-          aria-label={ok ? "Right" : "Wrong"}
-        />
-      </Text>
-      {children}
-      <Text size="2" emphasis="medium">
-        {why}
-      </Text>
-    </Stack>
-  );
-}
-```
 `success`, `warning`, `info` and `destructive` carry meanings. `blue`, `green`, `orange` and
 `amber` are for colour as data, such as a chart series or a category. Keep to three tones or
 fewer on one surface, which is a judgment. Never let colour carry the whole message: write the
@@ -200,13 +76,27 @@ Controls that do the same job on one surface should be the same size. A size 3 b
 size 2 button looks like two different kinds of control, and a person will look for a reason that
 isn't there.
 
+*Figure.* An invitation on two phones. Wrong: Decline is smaller than Accept. Right: both answers are the same size.
+
 Match controls to the surface that holds them. [Scale](/foundations/scale) explains which
 components pass their size down.
+
+## Use the component that owns the job
+
+When a component draws a band, a title, a close button or a footer, use it. A toolbar built by
+hand from a row of buttons misses the rules the real one carries: its inset, its glass and its
+spacing. Every dialog, sheet and titled popover has Close at the end of its band, and in a flow
+the main action is full width on every screen. [Modality](/patterns/modality#focus-and-closing)
+has the details.
+
+*Figure.* An event on two phones. Wrong: a header built by hand from a row of buttons, with no Close. Right: the pane's own toolbar, with Back, the title and Close.
 
 ## Write the real words
 
 Build a layout with real content. Placeholder text hides the problems you most need to see, such
 as a heading that wraps onto three lines in a narrow column.
+
+*Figure.* An event on two phones. Wrong: placeholder words and a Submit button. Right: the real title, details and an action that says what it does.
 
 ## Run the reviewer
 

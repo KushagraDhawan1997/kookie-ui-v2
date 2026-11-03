@@ -1,13 +1,16 @@
 import {
+  Flex,
   Toolbar,
   ToolbarButton,
   ToolbarGroup,
   ToolbarTitle,
-  Flex,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
 } from "@kushagradhawan/kookie-ui-react";
 import type { Size } from "@kushagradhawan/kookie-ui-react";
 
-import { CopyIcon, LockIcon, MoreIcon, PanelLeftIcon, SearchIcon } from "../app/icons";
+import { DuplicateIcon, LockIcon, MoreIcon, PanelLeftIcon, SearchIcon } from "../app/icons";
 
 /* Three, which is the component's own default. A band rests one step above the app's index,
    and an app resting at 2 puts its toolbar at 3. */
@@ -24,30 +27,65 @@ export default function Example({
        canvas looks like. */
     <Toolbar size={size} backdrop={backdrop} aria-label="Note tools">
       <Flex align="center" gap="2">
-        <ToolbarButton iconOnly aria-label="Toggle navigation">
-          <PanelLeftIcon />
-        </ToolbarButton>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <ToolbarButton iconOnly aria-label="Toggle navigation">
+                <PanelLeftIcon />
+              </ToolbarButton>
+            }
+          />
+          <TooltipContent>Toggle navigation</TooltipContent>
+        </Tooltip>
         <ToolbarTitle>Nature Walks</ToolbarTitle>
       </Flex>
       <Flex align="center" gap="2">
         <ToolbarGroup>
-          <ToolbarButton iconOnly aria-label="Lock note">
-            <LockIcon />
-          </ToolbarButton>
-          <ToolbarButton iconOnly aria-label="Duplicate note">
-            <CopyIcon />
-          </ToolbarButton>
-          <ToolbarButton iconOnly aria-label="More">
-            <MoreIcon />
-          </ToolbarButton>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <ToolbarButton iconOnly aria-label="Lock note">
+                  <LockIcon />
+                </ToolbarButton>
+              }
+            />
+            <TooltipContent>Lock note</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <ToolbarButton iconOnly aria-label="Duplicate note">
+                  <DuplicateIcon />
+                </ToolbarButton>
+              }
+            />
+            <TooltipContent>Duplicate note</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <ToolbarButton iconOnly aria-label="More">
+                  <MoreIcon />
+                </ToolbarButton>
+              }
+            />
+            <TooltipContent>More</TooltipContent>
+          </Tooltip>
         </ToolbarGroup>
         {/* No rule after the capsule. The group already draws the boundary — a hairline
             beside it says the same thing twice. A `ToolbarSeparator` earns its place BETWEEN
             loose controls, or inside a group, which is where the declaration above this
             specimen shows one. */}
-        <ToolbarButton iconOnly aria-label="Search">
-          <SearchIcon />
-        </ToolbarButton>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <ToolbarButton iconOnly aria-label="Search">
+                <SearchIcon />
+              </ToolbarButton>
+            }
+          />
+          <TooltipContent>Search</TooltipContent>
+        </Tooltip>
       </Flex>
     </Toolbar>
   );

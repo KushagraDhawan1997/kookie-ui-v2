@@ -12,12 +12,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ShellRailAction, ShellRailItem, ShellRailList, ShellTabBar } from "@kushagradhawan/kookie-ui-react";
 
-import { AllComponentsIcon, GridIcon, HomeIcon, IdeaIcon, SearchIcon } from "../icons";
+import { AllComponentsIcon, FoundationsIcon, HomeIcon, PatternsIcon, SearchIcon } from "../icons";
 
 const TABS = [
-  { label: "Start", href: "/", icon: HomeIcon, at: (p: string) => p === "/" || p.startsWith("/start") || p.startsWith("/concepts") },
-  { label: "Foundations", href: "/foundations/color", icon: IdeaIcon, at: (p: string) => p.startsWith("/foundations") },
-  { label: "Patterns", href: "/patterns/forms", icon: GridIcon, at: (p: string) => p.startsWith("/patterns") },
+  { label: "Start", href: "/", icon: HomeIcon, at: (p: string) => p === "/" || p.startsWith("/start") || p.startsWith("/build") || p.startsWith("/concepts") },
+  { label: "Foundations", href: "/foundations/color", icon: FoundationsIcon, at: (p: string) => p.startsWith("/foundations") || p.startsWith("/inputs") },
+  { label: "Patterns", href: "/patterns/forms", icon: PatternsIcon, at: (p: string) => p.startsWith("/patterns") },
   { label: "Components", href: "/components", icon: AllComponentsIcon, at: (p: string) => p.startsWith("/components") },
 ] as const;
 

@@ -60,7 +60,18 @@ export type ExampleProps = {
  * box that holds full-size controls is a Card), so wrapping one puts a pane in a pane.
  */
 export const rootsOwnPane = (source: string): boolean =>
-  /<(Card|Composer)\b/.test(source);
+  !opensAnOverlay(source) && /<(Card|Composer|RowGroup)\b/.test(source);
+
+/**
+ * AN EXAMPLE WHOSE ROOT IS AN OVERLAY draws only its trigger on the paper (2026-11-02, the
+ * Navigator's upgrade flow): its cards render in the overlay's portal, over a scrim, and only
+ * once opened, so they say nothing about the specimen's root. Read off what the default export
+ * returns first.
+ */
+const opensAnOverlay = (source: string): boolean => {
+  const main = /export default function[^]*$/.exec(source)?.[0] ?? "";
+  return /return\s*\(?\s*<(Dialog|Popover|Sheet)\b/.test(main);
+};
 
 export async function Example({ name, quiet }: ExampleProps) {
   const Component = EXAMPLES[name];

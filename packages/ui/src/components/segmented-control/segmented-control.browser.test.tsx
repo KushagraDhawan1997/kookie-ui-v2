@@ -1016,3 +1016,33 @@ describe("the grip sits on the chosen segment (§26)", () => {
     expect(computed(thumb, "display")).toBe("none");
   });
 });
+
+describe("hosted in another control's slot, it fits the box it was given (2026-11-02)", () => {
+  // Found building a settings figure: a SegmentedControl in a Row's trailing slot was squeezed to
+  // the hosted height (§4) while its segments kept their own size's height, so the chosen
+  // segment and its grip hung below the track and were cut off.
+  it("every segment, and the grip, stays inside the track", async () => {
+    const { Row } = await import("../row/row.tsx");
+    const root = mounted(
+      <Row
+        render={<div />}
+        trailing={
+          <SegmentedControl defaultValue="a" aria-label="Mode">
+            <SegmentedItem value="a">Light</SegmentedItem>
+            <SegmentedItem value="b">Dark</SegmentedItem>
+          </SegmentedControl>
+        }
+      >
+        Appearance
+      </Row>,
+      { theme: {} },
+    );
+    await until(() => root.querySelector(".kui-segment-thumb:not([hidden])") !== null);
+    const track = root.querySelector<HTMLElement>(".kui-segmented")!.getBoundingClientRect();
+    for (const el of root.querySelectorAll<HTMLElement>(".kui-segment, .kui-segment-thumb:not([hidden])")) {
+      const box = el.getBoundingClientRect();
+      expect(box.bottom, "a segment hangs below its track").toBeLessThanOrEqual(track.bottom + 0.5);
+      expect(box.top, "a segment rises above its track").toBeGreaterThanOrEqual(track.top - 0.5);
+    }
+  });
+});

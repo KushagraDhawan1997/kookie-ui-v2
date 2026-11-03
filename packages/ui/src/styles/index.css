@@ -30,6 +30,8 @@
 @import "../components/notice/notice.css";
 @import "../components/number-field/number-field.css";
 @import "../components/page/page.css";
+@import "../components/navigator/navigator.css";
+@import "../components/row-group/row-group.css";
 @import "../components/scroll-area/scroll-area.css";
 @import "../components/segmented-control/segmented-control.css";
 @import "../components/select/select.css";

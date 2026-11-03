@@ -3,6 +3,8 @@
 import type { ComponentRefusals } from "../../system/refused.ts";
 import * as React from "react";
 
+import { HostCloseContext, HostTitleContext } from "../../system/host-title.ts";
+
 import { Popover as BasePopover } from "@base-ui/react/popover";
 import { DirectionProvider } from "@base-ui/react/direction-provider";
 
@@ -276,7 +278,11 @@ function PopoverPopup({
           stated rather than copied. */}
       <ScrollArea>
         <FloatingBody>
-          <GlassScope material={material}>{children}</GlassScope>
+          <HostTitleContext.Provider value={PopoverTitle}>
+          <HostCloseContext.Provider value={PopoverClose as React.ComponentType<{ render: React.ReactElement }>}>
+            <GlassScope material={material}>{children}</GlassScope>
+          </HostCloseContext.Provider>
+        </HostTitleContext.Provider>
         </FloatingBody>
       </ScrollArea>
     </BasePopover.Popup>

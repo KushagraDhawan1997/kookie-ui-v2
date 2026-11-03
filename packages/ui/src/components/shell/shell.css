@@ -1431,6 +1431,9 @@
   position: absolute;
   inset-inline: 0;
   padding: calc(var(--kui-sf-p) + var(--kui-sf-band, 0px));
+  /* One step outside the content's edge (RULES.md 3, 2026-11-02): a band's controls sit closer
+     to the pane's edge than the words under them, as a panel's band does. */
+  padding-inline: calc(var(--kui-sf-p) + var(--kui-sf-band, 0px) - var(--layout-space-2));
   z-index: 1;
   /* A floating row paints nothing, so it must CATCH nothing (2026-08-30, found on the docs
      content pane): the part spans the pane's full inline axis, and without this the empty
@@ -1472,8 +1475,25 @@
    a padded band is not the row of dead page the 2026-08-30 finding names. */
 .kui-shell-content > .kui-pane-header[data-float],
 .kui-shell-content > .kui-pane-footer[data-float] {
-  padding-inline-start: calc(var(--kui-sf-p) + var(--kui-shell-inset-inline-start));
-  padding-inline-end: calc(var(--kui-sf-p) + var(--kui-shell-inset-inline-end));
+  padding-inline-start: calc(var(--kui-sf-p) + var(--kui-shell-inset-inline-start) - var(--layout-space-2));
+  padding-inline-end: calc(var(--kui-sf-p) + var(--kui-shell-inset-inline-end) - var(--layout-space-2));
+}
+
+/* A PINNED BAND STEPS OUT TOO (RULES.md 3, 2026-11-02). It sits in the pane's flow, inside the
+   pane's padding, so it reaches out by one step the way a floating band is placed one step out
+   and a panel's band is (the Navigator's). */
+.kui-pane-header:not([data-float]),
+.kui-pane-footer:not([data-float]) {
+  margin-inline: calc(-1 * var(--layout-space-2));
+}
+
+/* A title that leads its band, with no control before it, lines up with the content under it
+   rather than with the band's edge one step further out. */
+.kui-pane-header .kui-toolbar > .kui-toolbar-title:first-child,
+.kui-pane-header .kui-toolbar > :first-child > .kui-toolbar-title:first-child,
+.kui-pane-footer .kui-toolbar > .kui-toolbar-title:first-child,
+.kui-pane-footer .kui-toolbar > :first-child > .kui-toolbar-title:first-child {
+  padding-inline-start: var(--layout-space-2);
 }
 
 /* AND THE SCROLLER FADES ACROSS THE BAND IT PASSES UNDER (2026-09-06). The pane's own comment
@@ -1612,11 +1632,11 @@
 
 /* ── The rail's item (§27) ─────────────────────────────────────────────────────────────────
    A SQUARE, not a row. A row is icon-then-label with a height of one text line plus air; a
-   rail item has no label beside it, so it is an icon-only control whose box is square by
-   construction — and being square is what makes the rail's own width derivable. Icon-only is
-   the DEFAULT rather than an option because narrow is part of what a rail means: the moment
-   it carries words it is wide enough to read as a small sidebar, which is the confusion the
-   rail-is-not-a-thin-sidebar decision exists to end (LOG 2026-08-20). */
+   rail item has no label beside it, so without a `label` it is an icon-only control whose box
+   is square by construction — and being square is what makes the rail's own width derivable
+   (LOG 2026-08-20). Since 2026-11-01 an item WITH a `label` shows the word UNDER the icon, in
+   a column one fixed width wider than the square (the rule further down), so the rail stays a
+   column of places and never becomes a thin sidebar. */
 .kui-shell-rail-item {
   /* SQUARE by construction rather than by declaration: the control skeleton already sets
      `min-height: var(--kui-ct-h)`, so stating the same token on the inline axis is the whole
@@ -1641,10 +1661,32 @@
 /* The rail is a column of squares, and it owns the distance between them for the same reason
    the group owns the distance between its rows: this is INNER spacing, not the outer kind a
    component may never have. */
-/* THE LABEL IS THE BAR'S (2026-09-09): a rail square names itself to AT and shows an icon; the
-   same item in the tab bar shows the word under the icon. One element, shown by posture. */
+/* THE LABEL SHOWS IN BOTH POSTURES (2026-11-01, Kushagra: "Yes" to the icon audit, which
+   found the rail the one place a navigation icon stood without its word). It was the bar's only
+   from 2026-09-09: a rail square named itself to AT and showed an icon. An icon alone is
+   learned only by people who already know it, and the rail is the app's top-level places, so
+   it shows the word under the icon as the tab bar does. An item without a `label` stays the
+   bare square. The bar's own sizing for the word is further down, inside its media query. */
+.kui-shell-rail-item:has(> .kui-shell-rail-label) {
+  flex-direction: column;
+  gap: var(--layout-space-1);
+  /* Wide enough for a short word under the icon, and the same width for every item, so the
+     column stays straight. */
+  inline-size: calc(var(--kui-ct-h) + 2 * var(--layout-space-3));
+  block-size: auto;
+  padding-block: var(--layout-space-2);
+}
 .kui-shell-rail-label {
-  display: none;
+  display: block;
+  inline-size: 100%;
+  box-sizing: border-box;
+  padding-inline: var(--layout-space-1);
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: calc(var(--font-size-1) * 0.85);
+  line-height: var(--line-height-1);
 }
 
 /* A BAR-ONLY RAIL IS NOTHING ON A WIDE WINDOW (2026-09-09): the sidebar carries the navigation

@@ -327,3 +327,13 @@
     transparent
   );
 }
+
+/* HOSTED IN A SLOT, the track is the hosted box, and the segments are cut from THAT box
+   (2026-11-02). §4's rule shrinks a control placed in another control's slot to the hosted
+   height, and the track obeyed — but the segments read `--kui-ct-h` from the track's own size
+   join, which the hosted rule does not touch, so they stayed at their own size's height and
+   hung below the track: 5px at size 2 in a Row's trailing slot, with the chosen label and its
+   grip cut off. The grip is measured off the segment, so it follows. */
+.kui-control > [data-slot] > .kui-segmented .kui-segment {
+  min-height: calc(var(--kui-ct-hosted-height) - 2 * var(--segment-inset));
+}

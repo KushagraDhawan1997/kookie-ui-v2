@@ -156,6 +156,12 @@ import {
   SelectTrigger,
   SelectContent,
   SelectItem,
+  Navigator,
+  NavigatorBack,
+  NavigatorLink,
+  NavigatorOutlet,
+  NavigatorScreen,
+  RowGroup,
 } from "@kushagradhawan/kookie-ui-react";
 
 import {
@@ -1545,7 +1551,7 @@ function ProgressSection() {
                 <Text size="2" emphasis="medium">62%</Text>
               </Flex>
               <Progress value={62} aria-label="Uploading assets" />
-              <Text size="2" emphasis="medium">14 of 23 files · 2 min left</Text>
+              <Text size="2" emphasis="medium">14 of 23 files, 2 min left</Text>
             </Stack>
           </Card>
           <Card size="3">
@@ -2453,7 +2459,7 @@ function TextSection() {
           <Stack gap="4">
             <Stack gap="2">
               <Heading size="5">The one-hairline rule</Heading>
-              <Text size="2" emphasis="quiet">DECISIONS §7 · four minute read</Text>
+              <Text size="2" emphasis="quiet">DECISIONS §7, four minute read</Text>
             </Stack>
             <Text size="2" render={<p />}>
               Every rule on this page is <Code>--border-width</Code> thick. A separator, a
@@ -3385,6 +3391,80 @@ function ToolbarSection() {
    The demo IS the mechanism: scroll the frame and the large title goes behind the band while
    the band's own title arrives. Both postures are on the page, because the padding that clears
    the band is one declaration answering each of them with no branch. */
+function RowGroupSection() {
+  return (
+    <Demo label="A grouped list: label, card of rows, note">
+      <Box style={{ maxWidth: "26rem" }}>
+        <RowGroup label="Notifications" note="We only email you about your own projects.">
+          <Row render={<label />} trailing={<Switch defaultChecked />}>Email</Row>
+          <Row render={<label />} trailing={<Switch />}>Push</Row>
+        </RowGroup>
+      </Box>
+    </Demo>
+  );
+}
+
+function NavigatorSection() {
+  const levels = ["Settings", "Notifications", "Email", "Digest"];
+  const screen = (title: string) => (
+    <NavigatorScreen title={title}>
+      {levels.indexOf(title) < levels.length - 1 ? (
+        <NavigatorLink value={levels[levels.indexOf(title) + 1]!}>{levels[levels.indexOf(title) + 1]}</NavigatorLink>
+      ) : (
+        <Text size="2" emphasis="medium">
+          The deepest level. Back returns one screen at a time.
+        </Text>
+      )}
+    </NavigatorScreen>
+  );
+  return (
+    <Stack gap="6">
+      <Demo label="In a card: each screen shows Back and a small heading">
+        <Card style={{ inlineSize: 320 }}>
+          <Navigator root={screen("Settings")} screen={screen} />
+        </Card>
+      </Demo>
+      <Demo label="In a pane: Back and the title live in the pane's band">
+        <Box m="bleed" height="20rem">
+          <Shell contained>
+            <ShellContent>
+              <Text size="2" emphasis="medium">The work area.</Text>
+            </ShellContent>
+            <ShellInspector aria-label="Settings" defaultOpen presentation="fixed">
+              <Navigator root={screen("Settings")} screen={screen} />
+            </ShellInspector>
+          </Shell>
+        </Box>
+      </Demo>
+      <Demo label="Your own frame: the band with an action of its own">
+        <Box m="bleed" height="20rem">
+          <Shell contained>
+            <ShellContent>
+              <Text size="2" emphasis="medium">The work area.</Text>
+            </ShellContent>
+            <ShellInspector aria-label="Settings" defaultOpen presentation="fixed">
+              <Navigator root={screen("Settings")} screen={screen}>
+                <ShellPaneHeader>
+                  <Toolbar>
+                    <Flex align="center">
+                      <NavigatorBack />
+                      <ToolbarTitle />
+                    </Flex>
+                    <ToolbarButton>Reset</ToolbarButton>
+                  </Toolbar>
+                </ShellPaneHeader>
+                <ShellScroll>
+                  <NavigatorOutlet />
+                </ShellScroll>
+              </Navigator>
+            </ShellInspector>
+          </Shell>
+        </Box>
+      </Demo>
+    </Stack>
+  );
+}
+
 function PageSection() {
   const body = (
     <Stack gap="6">
@@ -3499,6 +3579,8 @@ export const SECTIONS: { id: string; name: string; body: React.ReactNode; standa
   { id: "command", name: "Command", body: <CommandSection /> },
   { id: "notice", name: "Notice", body: <NoticeSection /> },
   ported("number-field"),
+  { id: "navigator", name: "Navigator", body: <NavigatorSection /> },
+  { id: "row-group", name: "RowGroup", body: <RowGroupSection /> },
   { id: "page", name: "Page", body: <PageSection /> },
   ported("select"),
   { id: "layout", name: "Layout — Box, Flex, Grid, Stack", body: <LayoutSection /> },

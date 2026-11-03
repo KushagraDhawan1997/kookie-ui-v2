@@ -1,3 +1,5 @@
+# Installation
+
 Setting up takes three steps: adding the package, importing one stylesheet, and wrapping your
 app in a `Theme`. You need no config file or build plugin.
 
@@ -28,13 +30,13 @@ rest of this page stays the same. The package needs React 19 and React DOM 19.
 
 ## Import the stylesheet
 
-```tsx
-import "@kushagradhawan/kookie-ui-react/styles.css";
-```
-
 Import it once, at the root of your app. This one file contains every style the library uses:
 the colour and spacing values, the rules that all controls share, and the rules for each
 component.
+
+```tsx
+import "@kushagradhawan/kookie-ui-react/styles.css";
+```
 
 ## Wrap your app in a Theme
 
@@ -136,6 +138,9 @@ If you don't set them, they use the operating system's fonts.
 
 ## Check that it works
 
+If the card has rounded corners and a shadow, the stylesheet is loaded. The button should be
+near-black in light mode and near-white in dark mode, because the default accent colour is grey.
+
 ```tsx
 import { Button, Card, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
@@ -150,6 +155,3 @@ export function Smoke() {
   );
 }
 ```
-
-If the card has rounded corners and a shadow, the stylesheet is loaded. The button should be
-near-black in light mode and near-white in dark mode, because the default accent colour is grey.

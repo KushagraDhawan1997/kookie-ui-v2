@@ -558,6 +558,35 @@ describe("a ground, not an object (§10, 2026-08-20)", () => {
     );
   });
 
+  it("inside glass, the ground itself goes on-glass and lets the pane through (2026-11-02)", () => {
+    // Kushagra, on plan options inside a glass dialog: every control and Card read the glass and
+    // the ground alone painted opaque white. The ground now resolves `on-glass` in a glass pane
+    // and stays solid everywhere else, and its fill is measurably translucent there.
+    const onGlass = mounted(
+      <Theme material="3">
+        <Card backdrop>
+          <Surface data-testid="ground">x</Surface>
+        </Card>
+      </Theme>,
+      { select: "[data-testid='ground']" },
+    );
+    const plain = mounted(
+      <Theme material="3">
+        <Surface data-testid="ground">x</Surface>
+      </Theme>,
+      { select: "[data-testid='ground']" },
+    );
+    expect(onGlass.dataset["material"]).toBe("on-glass");
+    expect(plain.dataset["material"], "outside glass a ground states no material").toBeUndefined();
+    const alpha = (el: HTMLElement) => {
+      const bg = computed(el, "background-color");
+      const parts = /\/\s*([\d.]+)\)|rgba\([^)]*,\s*([\d.]+)\)/.exec(bg);
+      return parts ? Number(parts[1] ?? parts[2]) : 1;
+    };
+    expect(alpha(onGlass), "the ground inside glass is translucent").toBeLessThan(1);
+    expect(alpha(plain), "the ground outside glass is opaque").toBe(1);
+  });
+
   it("composes with a layout on ONE element, like every other surface", () => {
     const el = mounted(<Surface render={<Box display="flex" gap="3" />}>x</Surface>, {
       theme: {},

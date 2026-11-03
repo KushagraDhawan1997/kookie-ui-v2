@@ -3410,6 +3410,176 @@ export const API: Record<string, ApiEntry> = {
       }
     ]
   },
+  "NavigatorBack": {
+    "element": null,
+    "props": [
+      {
+        "name": "aria-label",
+        "type": "string",
+        "optional": true,
+        "doc": "The accessible name. The default is \"Back to\" and the previous screen's title."
+      }
+    ]
+  },
+  "NavigatorLink": {
+    "element": "button",
+    "props": [
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "current",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Marks the row as the current location, such as the page you are on or the open file. The row sets `aria-current`. It is not a selection or a form value. To let people pick one of several options, use a `RadioGroup`."
+      },
+      {
+        "name": "disabled",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Disables the row. The row stays in the list, so people can still see that the item exists."
+      },
+      {
+        "name": "highlighted",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Highlights the row from your code. Use it for a list that moves a highlight with the arrow keys while focus stays elsewhere, such as a command palette. When you set this prop, even to `false`, the row no longer highlights on hover. If you don't set it, the row highlights on hover."
+      },
+      {
+        "name": "leading",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "Content before the label, such as an icon, an avatar or a tick."
+      },
+      {
+        "name": "render",
+        "type": "RenderElement",
+        "optional": true,
+        "doc": "Renders the row as a different element. Use `<a>` for a row that goes to a page. Use `<div>` for a row in a read-only list. A `<div>` row doesn't highlight on hover."
+      },
+      {
+        "name": "size",
+        "type": "Size",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
+        "optional": true,
+        "doc": "Sets the height of the row. A row has the same height as a `Button` of the same size. If you don't set it, the row uses the size of the nearest `Theme`, which is `2` by default."
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "tone",
+        "type": "Tone",
+        "values": [
+          "neutral",
+          "accent",
+          "destructive",
+          "blue",
+          "green",
+          "orange",
+          "amber",
+          "success",
+          "warning",
+          "info"
+        ],
+        "optional": true,
+        "doc": "Sets the colour family of the row. Use it only when one row has a special meaning, such as `destructive` for a delete action in a list of commands."
+      },
+      {
+        "name": "value",
+        "type": "T",
+        "optional": false,
+        "doc": "The value pushed onto the path when the row is pressed."
+      }
+    ]
+  },
+  "Navigator": {
+    "element": null,
+    "props": [
+      {
+        "name": "children",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "The frame around the screens, when you need your own: a band with actions, and a scroller holding `NavigatorOutlet`. Leave it out and the navigator draws the frame for you: in a shell pane, the pane's band with Back and the title, and its scroller; anywhere else, the screens on their own."
+      },
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "defaultPath",
+        "type": "readonly T[]",
+        "optional": true,
+        "doc": "The path to start with when the navigator controls its own path."
+      },
+      {
+        "name": "onPathChange",
+        "type": "(path: T[]) => void",
+        "optional": true,
+        "doc": "Called with the new path whenever a screen opens or closes."
+      },
+      {
+        "name": "path",
+        "type": "readonly T[]",
+        "optional": true,
+        "doc": "The screens above the root, as values. Use it with `onPathChange` to control the path."
+      },
+      {
+        "name": "root",
+        "type": "React.ReactNode",
+        "optional": false,
+        "doc": "The root screen, usually a `NavigatorScreen`. It is always at the bottom and never closes."
+      },
+      {
+        "name": "screen",
+        "type": "(value: T) => React.ReactNode",
+        "optional": false,
+        "doc": "Turns a value from the path into its screen, usually a `NavigatorScreen`."
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": ""
+      }
+    ]
+  },
+  "NavigatorScreen": {
+    "element": null,
+    "props": [
+      {
+        "name": "children",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "The screen's content, under its title."
+      },
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "optional": false,
+        "doc": "The screen's title. In a pane it is the page's large title; elsewhere it names the region."
+      }
+    ]
+  },
   "NavTree": {
     "element": "div",
     "props": [
@@ -3500,7 +3670,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "icon",
         "type": "React.ReactNode",
         "optional": true,
-        "doc": "An icon shown before the message. The package has no icons, so bring one from your own icon set. The icon is hidden from assistive technology, so put the meaning in the words."
+        "doc": "An icon shown before the message. A `warning`, `destructive`, `info` or `success` notice shows its tone's mark by default, so the category never rests on colour alone. Pass your own icon to replace it, or `null` to show none. The icon is hidden from assistive technology, so put the meaning in the words."
       },
       {
         "name": "onDismiss",
@@ -3932,6 +4102,53 @@ export const API: Record<string, ApiEntry> = {
         ],
         "optional": true,
         "doc": "The size step of the radio, from `1` to `4`. The circle is one line of text tall at the same step, so it lines up with its label and matches a checkbox. The area that you can press is as large as a `Button` at the same step. Unset, it uses the `size` of the nearest `Field` or `Theme`."
+      }
+    ]
+  },
+  "RowGroup": {
+    "element": null,
+    "props": [
+      {
+        "name": "children",
+        "type": "React.ReactNode",
+        "optional": false,
+        "doc": "The rows, usually `Row`s. A divider is drawn between each pair."
+      },
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "label",
+        "type": "string",
+        "optional": true,
+        "doc": "A short label above the rows, such as \"Notifications\". It names the group for screen readers too."
+      },
+      {
+        "name": "note",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "A sentence under the rows that says something the rows can't: a consequence, a limit or who sees it. Leave it out if it would only restate the label."
+      },
+      {
+        "name": "size",
+        "type": "Size",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
+        "optional": true,
+        "doc": "Sets the size of the rows' box and dividers. If you don't set it, it uses the nearest `Theme`."
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": ""
       }
     ]
   },
@@ -4848,7 +5065,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "icon",
         "type": "React.ReactNode",
         "optional": true,
-        "doc": "An icon shown before the message. The package has no icons, so bring one from your own icon set. The icon is hidden from assistive technology, so put the meaning in the words."
+        "doc": "An icon shown before the message. A `warning`, `destructive`, `info` or `success` notice shows its tone's mark by default, so the category never rests on colour alone. Pass your own icon to replace it, or `null` to show none. The icon is hidden from assistive technology, so put the meaning in the words."
       },
       {
         "name": "onDismiss",
@@ -4946,7 +5163,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "label",
         "type": "string",
         "optional": false,
-        "doc": "Sets the button's name. Screen readers announce it, and the tab bar shows it under the icon."
+        "doc": "Sets the button's name. It shows under the icon in the rail and the tab bar, and screen readers announce it."
       },
       {
         "name": "render",
@@ -4975,7 +5192,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "label",
         "type": "string",
         "optional": true,
-        "doc": "Sets the item's name. In the rail, screen readers announce it, because the item shows only an icon. In the tab bar, it also shows under the icon."
+        "doc": "Sets the item's name. It shows under the icon, in the rail and in the tab bar, and screen readers announce it. Keep it to one short word."
       },
       {
         "name": "render",

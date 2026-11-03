@@ -64,6 +64,19 @@ export {
 } from "./components/notice/notice.tsx";
 export { NumberField, type NumberFieldProps } from "./components/number-field/number-field.tsx";
 export { Page, type PageProps } from "./components/page/page.tsx";
+export { RowGroup, type RowGroupProps } from "./components/row-group/row-group.tsx";
+export {
+  Navigator,
+  NavigatorBack,
+  NavigatorLink,
+  NavigatorOutlet,
+  NavigatorScreen,
+  useNavigator,
+  type NavigatorBackProps,
+  type NavigatorLinkProps,
+  type NavigatorProps,
+  type NavigatorScreenProps,
+} from "./components/navigator/navigator.tsx";
 export {
   Toolbar,
   ToolbarGroup,
@@ -177,6 +190,9 @@ export type { Responsive } from "./system/resolve.ts";
 // states the weight it draws at; the app passes it to its own set. `iconGrid` names the
 // viewBox that number is for, so a set drawn on a different grid can convert.
 export { iconStroke, iconGrid } from "./tokens/config.ts";
+// The icon box per size and pointer (2026-11-01), so the docs' Icons page renders its table
+// from the one home instead of retyping the eight numbers.
+export { iconSize } from "./tokens/config.ts";
 export { tiers, tierNames } from "./system/props.ts";
 export type { Tier } from "./system/props.ts";
 // The lens bench's regeneration seam (2026-08-24), NOT API — the dunder is the fence. The

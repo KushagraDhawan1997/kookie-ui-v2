@@ -5,6 +5,8 @@ field values and code. You pick a step by number, and the theme decides the font
 height and letter spacing for it. Because the heaviest weight is semibold, you rank text with
 size and colour rather than with bold.
 
+*Figure.* An article in a reader app: a large title, a muted line of meta, body text, and a section heading two steps above the body.
+
 ## Text and Heading use the same steps
 
 `Text` and `Heading` use the same nine steps in two different fonts. A step sets the font size,

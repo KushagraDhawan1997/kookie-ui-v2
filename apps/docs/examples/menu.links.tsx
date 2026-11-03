@@ -1,5 +1,5 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import { CreditCardIcon, Logout01Icon, Settings01Icon, UserIcon } from "@hugeicons/core-free-icons";
+import { CreditCardIcon, Logout01Icon, Settings02Icon, UserIcon } from "@hugeicons/core-free-icons";
 import {
   Button,
   Menu,
@@ -24,7 +24,7 @@ export default function Example() {
         <MenuItem leading={icon(UserIcon)} render={<a href="#profile" />}>
           Profile
         </MenuItem>
-        <MenuItem leading={icon(Settings01Icon)} render={<a href="#settings" />}>
+        <MenuItem leading={icon(Settings02Icon)} render={<a href="#settings" />}>
           Settings
         </MenuItem>
         <MenuItem leading={icon(CreditCardIcon)} render={<a href="#billing" />}>

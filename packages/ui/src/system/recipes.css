@@ -563,8 +563,54 @@
      `anywhere` rather than `break-word` because only `anywhere` also shrinks the row's
      min-content contribution, which is what keeps the PANEL from being widened by the same
      string before the cap can bite. Lossless: the text still reads, on as many lines as it
-     needs, which is what a row that does not ride the height ladder can afford. */
-  overflow-wrap: anywhere;
+     needs, which is what a row that does not ride the height ladder can afford.
+
+     A STANDING ROW BREAKS BETWEEN WORDS (2026-11-02). `anywhere` also lets a squeezed label
+     break INSIDE a word, and a row whose trailing slot held a control broke "Mode" into four
+     lines of letters. The panel-widening case above is a floating panel's, so `anywhere` stays
+     on floating rows (the rule keyed on `.kui-floating-rows`), and a standing row takes
+     `break-word`: its smallest width is its longest word, so the control beside it cannot
+     squeeze a word apart, and an unbreakable run still wraps rather than overflowing. */
+  overflow-wrap: break-word;
+}
+
+/* THE FILL HANGS, THE TEXT SITS ON THE AXIS (2026-11-02, Kushagra: "Shouldn't Travel set the
+   left alignment for all text below ... The selection/hover area should be outside the visual
+   axis"). RULES.md 15. A standing row padded its words inward by its own inline padding so its
+   fill had room, which put every row's text one padding right of the pane's axis — the edge a
+   group label, a ToolbarTitle and a divider all sit on. The row now reaches OUT by exactly that
+   padding (and its hairline), so the first thing in it — the text, or the leading icon — lands
+   on the axis and the fill bleeds past it into the container's own padding, the way a macOS
+   sidebar draws it. Nothing moves for a row in a floating panel: a menu row hugs its panel, and
+   the panel's own padding is its axis. Only the start side hangs (below). A tree's rows don't hang yet: a tree sits in a scroller
+   with no padding of its own to bleed into, so the fill would scroll sideways; its axis is
+   still open. The width is the container's plus the same reach, so the box widens rather than
+   shifting. Not `auto`: a pressable row is a <button>, and a button at `auto` width shrinks to
+   its label (the 2026-11-03 audit). */
+.kui-row:not(.kui-floating-rows .kui-row, .kui-tree-item) {
+  --kui-row-reach: calc(var(--kui-ct-px-pill) + var(--border-width));
+  inline-size: calc(100% + var(--kui-row-reach));
+  margin-inline-start: calc(-1 * var(--kui-row-reach));
+}
+.kui-row:not(.kui-floating-rows .kui-row, .kui-tree-item):has(> [data-slot="leading"]) {
+  --kui-row-reach: calc(var(--kui-ct-px) + var(--border-width));
+}
+/* ONLY THE START HANGS (2026-11-02, Kushagra: a horizontal scrollbar in the docs sidebar, then
+   counts cut in half). The axis is a START edge, so only that side needs to reach out. A row
+   that also reached past its END made every scroll box holding it wider than itself, because a
+   scroll box counts its inline-end padding after its widest child; clipping the container to
+   stop that cut the trailing slot and the fill instead. Overflow toward the start is never
+   scrollable, so the start hang costs nothing, and the end stays inside the content box where
+   a count or a chevron lines up with the band's controls. */
+
+/* A GROUPED ROW IS AN ITEM, NOT A CONTROL — RowGroup's rows, stated here because the row box lives in this layer (2026-11-02, Kushagra: "Why does the row group
+   example feel so dense?"). A Row rides the button's height, which is right for a row of
+   controls and cramped for a list read one item at a time between hairlines: 32px rows stacked
+   flush at size 2. In a group every row is one height, the row's own box plus a step: 44px at
+   size 2, the height a settings list's rows have on every platform. */
+.kui-row-group-rows > .kui-row {
+  /* A switch must not make its row taller than a row of words, so it's a height, not padding. */
+  min-height: calc(var(--kui-ct-h) + var(--layout-space-3));
 }
 
 /* The floating row's NOTCH — height and corner together — lives in one rule after the size
@@ -875,6 +921,9 @@
    so nothing but `full` moves in either direction. Stated after the join at the join's
    own (0,2,0), winning the tie on source order. */
 .kui-floating-rows .kui-row {
+  /* A floating panel hugs its rows, so a row there keeps `anywhere`: it is what stops one long
+     unbreakable run from widening the panel itself (the row box's audit sentence). */
+  overflow-wrap: anywhere;
   /* NOT `auto` (2026-08-26 audit). Standing the skeleton's height down is the point of the
      notch — a menu row wears the designed row inset, not a control height — but `auto` stood
      the §16 FLOOR down with it, and at fine + compact + size 1 the sum is 16 + 2 + 2 = 20px:

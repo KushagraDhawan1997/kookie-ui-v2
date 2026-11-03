@@ -13,6 +13,9 @@ import {
   ToolbarGroup,
   ToolbarSeparator,
   ToolbarTitle,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
   iconStroke,
 } from "@kushagradhawan/kookie-ui-react";
 
@@ -25,23 +28,58 @@ export default function Example() {
     <Toolbar aria-label="Editor tools" style={{ minWidth: "30rem" }}>
       <ToolbarTitle>Release notes</ToolbarTitle>
       <Flex align="center" gap="2">
-        <ToolbarButton iconOnly aria-label="Undo">
-          {icon(Undo02Icon)}
-        </ToolbarButton>
-        <ToolbarButton iconOnly aria-label="Redo">
-          {icon(Redo02Icon)}
-        </ToolbarButton>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <ToolbarButton iconOnly aria-label="Undo">
+                {icon(Undo02Icon)}
+              </ToolbarButton>
+            }
+          />
+          <TooltipContent>Undo</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <ToolbarButton iconOnly aria-label="Redo">
+                {icon(Redo02Icon)}
+              </ToolbarButton>
+            }
+          />
+          <TooltipContent>Redo</TooltipContent>
+        </Tooltip>
         <ToolbarSeparator />
         <ToolbarGroup>
-          <ToolbarButton iconOnly aria-label="Bold">
-            {icon(TextBoldIcon)}
-          </ToolbarButton>
-          <ToolbarButton iconOnly aria-label="Italic">
-            {icon(TextItalicIcon)}
-          </ToolbarButton>
-          <ToolbarButton iconOnly aria-label="Underline">
-            {icon(TextUnderlineIcon)}
-          </ToolbarButton>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <ToolbarButton iconOnly aria-label="Bold">
+                  {icon(TextBoldIcon)}
+                </ToolbarButton>
+              }
+            />
+            <TooltipContent>Bold</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <ToolbarButton iconOnly aria-label="Italic">
+                  {icon(TextItalicIcon)}
+                </ToolbarButton>
+              }
+            />
+            <TooltipContent>Italic</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <ToolbarButton iconOnly aria-label="Underline">
+                  {icon(TextUnderlineIcon)}
+                </ToolbarButton>
+              }
+            />
+            <TooltipContent>Underline</TooltipContent>
+          </Tooltip>
         </ToolbarGroup>
       </Flex>
     </Toolbar>

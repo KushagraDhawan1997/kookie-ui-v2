@@ -75,8 +75,8 @@ function Plain({ placeholder = "Describe what you need", backdrop }: { placehold
 function ContextRow() {
   return (
     <Flex justify="space-between" align="center" gap="3">
-      <Text size="1" emphasis="medium">Opus 5 · Plan mode</Text>
-      <Text size="1" emphasis="medium">42% of context · $0.08 today</Text>
+      <Text size="1" emphasis="medium">Opus 5, Plan mode</Text>
+      <Text size="1" emphasis="medium">42% of context, $0.08 today</Text>
     </Flex>
   );
 }

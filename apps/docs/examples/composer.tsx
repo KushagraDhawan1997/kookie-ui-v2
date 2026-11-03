@@ -16,6 +16,9 @@ import {
   ComposerRow,
   ComposerSend,
   Flex,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
   iconStroke,
   type ComposerStatus,
   type Size,
@@ -53,13 +56,27 @@ export default function Example({ size = "2", backdrop = false }: { size?: Size;
         <Flex gap="2">
           {/* The attach button is yours, because the files are. Drops and pastes still reach
               the composer's own onFiles. */}
-          <Button iconOnly aria-label="Add attachment">
-            {icon(Attachment01Icon)}
-          </Button>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button iconOnly aria-label="Add attachment">
+                  {icon(Attachment01Icon)}
+                </Button>
+              }
+            />
+            <TooltipContent>Add attachment</TooltipContent>
+          </Tooltip>
           <Button>Opus 5</Button>
         </Flex>
         <Flex gap="2">
-          <Button iconOnly aria-label="Dictate">{icon(Mic01Icon)}</Button>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button iconOnly aria-label="Dictate">{icon(Mic01Icon)}</Button>
+              }
+            />
+            <TooltipContent>Dictate</TooltipContent>
+          </Tooltip>
           <ComposerSend
             status={status}
             onStop={() => setStatus("ready")}

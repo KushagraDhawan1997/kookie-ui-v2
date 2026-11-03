@@ -1,7 +1,7 @@
 "use client";
 
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Copy01Icon, Delete02Icon, PencilEdit02Icon } from "@hugeicons/core-free-icons";
+import { CopyPlusIcon, Delete02Icon, PencilEdit02Icon } from "@hugeicons/core-free-icons";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -15,7 +15,7 @@ import type { Size } from "@kushagradhawan/kookie-ui-react";
 
 // The package ships no icon set, so the glyphs are yours. `iconStroke` is the weight the system
 // draws its own chevrons at, so your set matches them. No size: the row sizes the slot's svg.
-const icon = (glyph: typeof Copy01Icon) => (
+const icon = (glyph: typeof CopyPlusIcon) => (
   <HugeiconsIcon icon={glyph} strokeWidth={iconStroke} aria-hidden />
 );
 
@@ -32,7 +32,7 @@ export default function Example({ size = "2" }: { size?: Size }) {
       <ContextMenuContent>
         {/* The glyph is the `leading` slot's, never part of the label — the row reserves one
             gutter and every set of words starts on the same line. */}
-        <MenuItem leading={icon(Copy01Icon)}>Duplicate</MenuItem>
+        <MenuItem leading={icon(CopyPlusIcon)}>Duplicate</MenuItem>
         <MenuItem leading={icon(PencilEdit02Icon)}>Rename</MenuItem>
         <MenuItem leading={icon(Delete02Icon)} tone="destructive">
           Delete

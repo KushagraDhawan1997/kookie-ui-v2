@@ -1,11 +1,11 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Add01Icon, ArrowDown01Icon, Download01Icon } from "@hugeicons/core-free-icons";
+import { PlusSignIcon, ArrowDown01Icon, Download01Icon } from "@hugeicons/core-free-icons";
 import { Button, Flex, iconStroke } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
   return (
     <Flex gap="3" align="center" wrap="wrap">
-      <Button emphasis="loud" leading={<HugeiconsIcon icon={Add01Icon} strokeWidth={iconStroke} aria-hidden />}>
+      <Button emphasis="loud" leading={<HugeiconsIcon icon={PlusSignIcon} strokeWidth={iconStroke} aria-hidden />}>
         New project
       </Button>
       <Button leading={<HugeiconsIcon icon={Download01Icon} strokeWidth={iconStroke} aria-hidden />}>

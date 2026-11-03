@@ -48,9 +48,12 @@ import {
   Toolbar,
   ToolbarButton,
   ToolbarTitle,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
 } from "@kushagradhawan/kookie-ui-react";
 
-import { CopyIcon, MoreIcon, PanelLeftIcon, SearchIcon } from "../app/icons";
+import { DuplicateIcon, MoreIcon, PanelLeftIcon, SearchIcon } from "../app/icons";
 
 /** One entry in the walk. A local shape, because the specimen's subject is the page around
     these and not the list — the sections exist so there is enough document to scroll. */
@@ -108,23 +111,51 @@ export default function Example() {
                 glass material, which is what selectivity means: expression is placement. */}
             <Toolbar backdrop>
               <Flex align="center" gap="2">
-                <ToolbarButton iconOnly aria-label="Toggle navigation">
-                  <PanelLeftIcon />
-                </ToolbarButton>
+                <Tooltip>
+                  <TooltipTrigger
+                    render={
+                      <ToolbarButton iconOnly aria-label="Toggle navigation">
+                        <PanelLeftIcon />
+                      </ToolbarButton>
+                    }
+                  />
+                  <TooltipContent>Toggle navigation</TooltipContent>
+                </Tooltip>
                 {/* No words of its own: it says the page's title, once the page's own has
                     scrolled up behind this band. The row states the air around it. */}
                 <ToolbarTitle />
               </Flex>
               <Flex align="center" gap="2">
-                <ToolbarButton iconOnly aria-label="Find in note">
-                  <SearchIcon />
-                </ToolbarButton>
-                <ToolbarButton iconOnly aria-label="Duplicate">
-                  <CopyIcon />
-                </ToolbarButton>
-                <ToolbarButton iconOnly aria-label="More">
-                  <MoreIcon />
-                </ToolbarButton>
+                <Tooltip>
+                  <TooltipTrigger
+                    render={
+                      <ToolbarButton iconOnly aria-label="Find in note">
+                        <SearchIcon />
+                      </ToolbarButton>
+                    }
+                  />
+                  <TooltipContent>Find in note</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger
+                    render={
+                      <ToolbarButton iconOnly aria-label="Duplicate">
+                        <DuplicateIcon />
+                      </ToolbarButton>
+                    }
+                  />
+                  <TooltipContent>Duplicate</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger
+                    render={
+                      <ToolbarButton iconOnly aria-label="More">
+                        <MoreIcon />
+                      </ToolbarButton>
+                    }
+                  />
+                  <TooltipContent>More</TooltipContent>
+                </Tooltip>
               </Flex>
             </Toolbar>
           </ShellPaneHeader>
@@ -260,6 +291,9 @@ import {
   Toolbar,
   ToolbarButton,
   ToolbarTitle,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
   iconStroke,
 } from "@kushagradhawan/kookie-ui-react";
 
@@ -283,14 +317,28 @@ export default function Example() {
           <ShellPaneHeader>
             <Toolbar>
               <Flex align="center" gap="2">
-                <ToolbarButton iconOnly aria-label="Back to projects">
-                  {icon(ArrowLeft01Icon)}
-                </ToolbarButton>
+                <Tooltip>
+                  <TooltipTrigger
+                    render={
+                      <ToolbarButton iconOnly aria-label="Back to projects">
+                        {icon(ArrowLeft01Icon)}
+                      </ToolbarButton>
+                    }
+                  />
+                  <TooltipContent>Back to projects</TooltipContent>
+                </Tooltip>
                 <ToolbarTitle />
               </Flex>
-              <ToolbarButton iconOnly aria-label="Share report">
-                {icon(Share08Icon)}
-              </ToolbarButton>
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <ToolbarButton iconOnly aria-label="Share report">
+                      {icon(Share08Icon)}
+                    </ToolbarButton>
+                  }
+                />
+                <TooltipContent>Share report</TooltipContent>
+              </Tooltip>
             </Toolbar>
           </ShellPaneHeader>
           <ShellScroll>

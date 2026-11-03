@@ -1,5 +1,5 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import { CreditCardIcon, Home01Icon, Settings01Icon, UserIcon } from "@hugeicons/core-free-icons";
+import { CreditCardIcon, Home01Icon, Settings02Icon, UserIcon } from "@hugeicons/core-free-icons";
 import { Row, Stack, iconStroke } from "@kushagradhawan/kookie-ui-react";
 
 const icon = (glyph: typeof Home01Icon) => (
@@ -10,7 +10,7 @@ const LINKS = [
   { href: "#overview", label: "Overview", glyph: Home01Icon },
   { href: "#members", label: "Members", glyph: UserIcon },
   { href: "#billing", label: "Billing", glyph: CreditCardIcon },
-  { href: "#settings", label: "Settings", glyph: Settings01Icon },
+  { href: "#settings", label: "Settings", glyph: Settings02Icon },
 ];
 
 export default function Example() {
