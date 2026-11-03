@@ -271,7 +271,6 @@
 /* The field whose edge says something rises over the shared border: focused, hovered or
    invalid, or its neighbour paints over that side of the edge (audit). */
 .kui-number-field-group > .kui-number-field:focus-within,
-.kui-number-field-group > .kui-number-field:hover,
 .kui-number-field-group > .kui-number-field[data-invalid],
 .kui-number-field-group > .kui-number-field[aria-invalid="true"] {
   position: relative;
@@ -288,4 +287,12 @@
 .kui-number-field-group > .kui-number-field ~ .kui-number-field > [data-step="decrement"] {
   border-start-start-radius: var(--radius-0);
   border-end-start-radius: var(--radius-0);
+}
+
+/* Hover only where there is hover, as every hover rule in this system (ENGINEERING §1.5). */
+@media (hover: hover) {
+  .kui-number-field-group > .kui-number-field:hover {
+    position: relative;
+    z-index: 1;
+  }
 }
