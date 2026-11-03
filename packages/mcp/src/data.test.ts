@@ -160,6 +160,9 @@ describe("the closed unions", () => {
       // rest of this list exists: they are per-component, not axes.
       "ShellRailPresentation",
       "TextFieldType",
+      // A type parameter, not a vocabulary (2026-11-02): NavigatorLink's `value` is whatever the
+      // app keeps in its path, so there is nothing to close.
+      "T",
     ];
     const named = new Set<string>();
     for (const entry of Object.values(shipped.api)) {
