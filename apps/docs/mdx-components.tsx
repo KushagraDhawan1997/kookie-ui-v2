@@ -75,7 +75,6 @@ import { ReviewRules } from "./app/(docs)/review-rules";
 import { ColorGrounds, ColorInks, ColorScales } from "./app/(docs)/color-figures";
 import { IconSizes } from "./app/(docs)/icon-sizes";
 import {
-  ControlFigure,
   FitFigure,
   AppearanceFigure,
   OneActionFigure,
@@ -92,7 +91,6 @@ import {
   IconsFigure,
   InteractionFigure,
   OneFormFigure,
-  PrinciplesFigure,
   CompositionFigure,
 } from "./app/(docs)/principle-figures";
 import { nodeText, slugify } from "./app/(docs)/slug";
@@ -334,11 +332,6 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
         <CompositionFigure />
       </Figure>
     ),
-    PrinciplesFigure: () => (
-      <Figure>
-        <PrinciplesFigure />
-      </Figure>
-    ),
     ColourFigure: () => (
       <Figure>
         <ColourFigure />
@@ -417,11 +410,6 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     OneFormFigure: () => (
       <Figure>
         <OneFormFigure />
-      </Figure>
-    ),
-    ControlFigure: () => (
-      <Figure>
-        <ControlFigure />
       </Figure>
     ),
 

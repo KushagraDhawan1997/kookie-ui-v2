@@ -6,7 +6,6 @@ import {
   Box,
   Button,
   Card,
-  Chip,
   Field,
   FieldLabel,
   Flex,
@@ -14,7 +13,6 @@ import {
   Heading,
   iconStroke,
   Link,
-  Notice,
   Progress,
   Row,
   RowGroup,
@@ -28,12 +26,10 @@ import {
   Shell,
   ShellContent,
   ShellInspector,
-  ShellNavGroup,
   ShellNavItem,
   ShellPaneHeader,
   ShellScroll,
   ShellSidebar,
-  Spinner,
   Stack,
   Switch,
   Tabs,
@@ -52,21 +48,10 @@ import {
   ArrowLeftIcon,
   ChartIcon,
   ChevronRightIcon,
-  CheckIcon,
-  FileIcon,
   FolderIcon,
   TrashIcon,
-  HomeIcon,
-  MailIcon,
-  MoreIcon,
-  PanelLeftIcon,
-  PlusIcon,
-  ProgressIcon,
-  RadioIcon,
-  RedoIcon,
   SearchIcon,
   SettingsIcon,
-  UndoIcon,
   UsersIcon,
 } from "../icons";
 import { Measures } from "./measures";
@@ -109,14 +94,10 @@ export const PRINCIPLE_FIGURES = {
     "A notes app's appearance settings on two phones, one in light mode and one in dark. One screen, two modes, nothing written twice.",
   CompositionFigure:
     "A builder's property panel for a selected button: content and appearance in two groups spaced apart, the labels at the controls' size, and one size throughout.",
-  PrinciplesFigure:
-    "An issue tracker: the work in the middle, navigation to the side, one action that stands out.",
   FitFigure:
     "The same settings screen on a desktop with a mouse and on a phone. Under touch, every row grows to 44 pixels.",
   OneFormFigure:
     "A billing screen with tabs that switch the view below them, and a segmented control that sets the date range in place.",
-  ControlFigure:
-    "An assistant renaming photos. The work in progress is visible and can be stopped, every change can be undone, and each row has a visible button for what a swipe would do.",
 } as const;
 
 type FigureName = keyof typeof PRINCIPLE_FIGURES;
@@ -138,117 +119,6 @@ function Band({ name, measured, children }: { name: FigureName; measured?: boole
 /** The side panes' widths go on the Shell, as in the hero, so the floating toolbars clear the
  *  pane's real width. */
 const PANE_WIDTHS = { "--shell-sidebar-w": "232px" } as React.CSSProperties;
-
-/* ── The hero: an issue tracker ─────────────────────────────────────────────────────────────── */
-
-function Issue({ title, id, status, current }: { title: string; id: string; status: "doing" | "todo" | "done"; current?: boolean }) {
-  const leading = status === "doing" ? <ProgressIcon /> : status === "done" ? <CheckIcon /> : <RadioIcon />;
-  return (
-    <Row
-      render={<div />}
-      leading={leading}
-      trailing={
-        <Text size="2" emphasis="quiet">
-          {id}
-        </Text>
-      }
-      {...(current ? { current: true } : {})}
-    >
-      {title}
-    </Row>
-  );
-}
-
-function IssueGroup({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <Stack gap="2">
-      <Text size="2" emphasis="medium">
-        {label}
-      </Text>
-      <Stack gap="1">{children}</Stack>
-    </Stack>
-  );
-}
-
-/** The chapter's hero. A product built on Kookie, laid out the way the principles below ask: the
- *  person's work in front, everything else one step away, one loud action. The window starts two
- *  cells into the column and runs off its end, so the part that matters sits on the left. */
-export function PrinciplesFigure() {
-  return (
-    <Band name="PrinciplesFigure">
-      <div className="kd-device">
-        <Theme size="1" className="kd-band-window">
-          <Shell contained size="1" className="kd-band-shell" style={PANE_WIDTHS}>
-            <ShellSidebar aria-label="Sections" defaultOpen presentation="fixed" flush>
-              <ShellPaneHeader>
-                <Toolbar backdrop>
-                  <ToolbarTitle>Kookie Studio</ToolbarTitle>
-                  <ToolbarButton iconOnly emphasis="loud" aria-label="New issue">
-                    <PlusIcon />
-                  </ToolbarButton>
-                </Toolbar>
-              </ShellPaneHeader>
-              <ShellScroll fade>
-                <Stack gap="4">
-                  <Stack gap="1">
-                    <ShellNavItem leading={<MailIcon />} trailing={<Chip>3</Chip>}>
-                      Inbox
-                    </ShellNavItem>
-                    <ShellNavItem leading={<HomeIcon />} current>
-                      My issues
-                    </ShellNavItem>
-                    <ShellNavItem leading={<ChartIcon />}>Insights</ShellNavItem>
-                  </Stack>
-                  <ShellNavGroup label="Projects">
-                    <ShellNavItem leading={<FolderIcon />}>Website</ShellNavItem>
-                    <ShellNavItem leading={<FolderIcon />}>Mobile app</ShellNavItem>
-                    <ShellNavItem leading={<FolderIcon />}>Docs</ShellNavItem>
-                  </ShellNavGroup>
-                </Stack>
-              </ShellScroll>
-            </ShellSidebar>
-            <ShellContent>
-              <ShellPaneHeader>
-                <Toolbar backdrop>
-                  <Flex align="center" gap="2">
-                    <ToolbarButton iconOnly aria-label="Sections">
-                      <PanelLeftIcon />
-                    </ToolbarButton>
-                    <ToolbarTitle>My issues</ToolbarTitle>
-                  </Flex>
-                  <Flex align="center" gap="2">
-                    <ToolbarButton iconOnly aria-label="Search">
-                      <SearchIcon />
-                    </ToolbarButton>
-                    <ToolbarButton iconOnly aria-label="More">
-                      <MoreIcon />
-                    </ToolbarButton>
-                  </Flex>
-                </Toolbar>
-              </ShellPaneHeader>
-              <ShellScroll>
-                <Stack gap="5">
-                  <IssueGroup label="In progress">
-                    <Issue status="doing" id="KUI-212" title="Sheet keeps focus on close" current />
-                    <Issue status="doing" id="KUI-208" title="Tabs overflow on narrow windows" />
-                  </IssueGroup>
-                  <IssueGroup label="Todo">
-                    <Issue status="todo" id="KUI-219" title="Field error under a select" />
-                    <Issue status="todo" id="KUI-217" title="Menu groups in right-to-left" />
-                    <Issue status="todo" id="KUI-214" title="Export a block as a file" />
-                  </IssueGroup>
-                  <IssueGroup label="Done">
-                    <Issue status="done" id="KUI-205" title="Switch track in high contrast" />
-                  </IssueGroup>
-                </Stack>
-              </ShellScroll>
-            </ShellContent>
-          </Shell>
-        </Theme>
-      </div>
-    </Band>
-  );
-}
 
 /* ── Fit the person: one settings screen, mouse and touch ──────────────────────────────────── */
 
@@ -388,106 +258,6 @@ export function OneFormFigure() {
                       <Progress value={37} aria-label="Storage used" />
                     </Stack>
                   </Card>
-                </Stack>
-              </ShellScroll>
-            </ShellContent>
-          </Shell>
-        </Theme>
-      </div>
-    </Band>
-  );
-}
-
-/* ── People stay in control: a handover you can see, stop and undo ─────────────────────────── */
-
-function Photo({ name, meta }: { name: string; meta: string }) {
-  return (
-    <Row
-      render={<div />}
-      leading={<FileIcon />}
-      trailing={
-        <Flex align="center" gap="3">
-          <Text size="2" emphasis="quiet">
-            {meta}
-          </Text>
-          <Button iconOnly emphasis="quiet" aria-label={`More for ${name}`}>
-            <MoreIcon />
-          </Button>
-        </Flex>
-      }
-    >
-      {name}
-    </Row>
-  );
-}
-
-/** An assistant at work on the person's files. The handover is on screen while it runs, it has a
- *  Stop, the toolbar's undo reaches what it already changed, and every row's swipe has a button. */
-export function ControlFigure() {
-  return (
-    <Band name="ControlFigure">
-      <div className="kd-device">
-        <Theme size="1" className="kd-band-window">
-          <Shell contained size="1" className="kd-band-shell" style={PANE_WIDTHS}>
-            <ShellSidebar aria-label="Library" defaultOpen presentation="fixed" flush>
-              <ShellPaneHeader>
-                <Toolbar backdrop>
-                  <ToolbarTitle>Photos</ToolbarTitle>
-                </Toolbar>
-              </ShellPaneHeader>
-              <ShellScroll fade>
-                <Stack gap="4">
-                  <Stack gap="1">
-                    <ShellNavItem leading={<HomeIcon />}>Library</ShellNavItem>
-                    <ShellNavItem leading={<UsersIcon />}>People</ShellNavItem>
-                  </Stack>
-                  <ShellNavGroup label="Albums">
-                    <ShellNavItem leading={<FolderIcon />} current>
-                      Lisbon, May
-                    </ShellNavItem>
-                    <ShellNavItem leading={<FolderIcon />}>Studio</ShellNavItem>
-                    <ShellNavItem leading={<FolderIcon />}>Family</ShellNavItem>
-                  </ShellNavGroup>
-                </Stack>
-              </ShellScroll>
-            </ShellSidebar>
-            <ShellContent>
-              <ShellPaneHeader>
-                <Toolbar backdrop>
-                  <Flex align="center" gap="2">
-                    <ToolbarTitle>Lisbon, May</ToolbarTitle>
-                    <ToolbarGroup>
-                      <ToolbarButton iconOnly aria-label="Undo">
-                        <UndoIcon />
-                      </ToolbarButton>
-                      <ToolbarButton iconOnly aria-label="Redo">
-                        <RedoIcon />
-                      </ToolbarButton>
-                    </ToolbarGroup>
-                  </Flex>
-                  <ToolbarButton iconOnly aria-label="Search">
-                    <SearchIcon />
-                  </ToolbarButton>
-                </Toolbar>
-              </ShellPaneHeader>
-              <ShellScroll>
-                <Stack gap="5" className="kd-band-column">
-                  <Notice icon={<Spinner />} action={<Button>Stop</Button>}>
-                    Renaming photos by date, 8 of 12
-                  </Notice>
-                  <Stack gap="1">
-                    <Photo name="2026-05-14 Alfama 01.jpg" meta="4.2 MB" />
-                    <Separator />
-                    <Photo name="2026-05-14 Alfama 02.jpg" meta="3.8 MB" />
-                    <Separator />
-                    <Photo name="2026-05-15 Belém 01.jpg" meta="5.1 MB" />
-                    <Separator />
-                    <Photo name="2026-05-15 Belém 02.jpg" meta="4.7 MB" />
-                    <Separator />
-                    <Photo name="IMG_4471.jpg" meta="4.9 MB" />
-                    <Separator />
-                    <Photo name="IMG_4472.jpg" meta="5.3 MB" />
-                  </Stack>
                 </Stack>
               </ShellScroll>
             </ShellContent>

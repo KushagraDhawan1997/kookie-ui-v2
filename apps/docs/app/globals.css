@@ -556,15 +556,6 @@ body {
   }
 }
 
-/* A post's cover photo, cropped to a landscape frame with the card's corner. */
-.kd-band-cover {
-  display: block;
-  inline-size: 100%;
-  aspect-ratio: 3 / 2;
-  object-fit: cover;
-  border-radius: var(--radius-surface-1);
-}
-
 /* A LAPTOP LID FOR A DESKTOP WINDOW (2026-11-02, a trial on the front page; Kushagra: "Needs to
    look like a laptop"). The phone's bezel carried over, thinner: a surface-coloured rim with the
    window's hairline outside it, and a camera centred in the top rim. The base is
