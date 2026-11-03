@@ -1169,3 +1169,23 @@ describe("scrub and the group, the creative core (2026-11-03)", () => {
     expect(fields[2]!.getBoundingClientRect().right).toBeLessThanOrEqual(g.right + 1);
   });
 });
+
+describe("a tap on the scrub label focuses the field, on touch too (2026-11-03)", () => {
+  // Falsified: without the tap handler, a touch on the label leaves focus where it was.
+  it("a touch that lifts where it began focuses the input; one that moved does not", () => {
+    const root = mounted(<NumberField scrub="X" aria-label="X" defaultValue={1} />, { theme: {} });
+    const field = root.matches(".kui-number-field") ? root : root.querySelector(".kui-number-field")!;
+    const zone = field.querySelector<HTMLElement>(".kui-number-field-scrub")!;
+    const input = field.querySelector("input")!;
+    const touch = (type: string, x: number) =>
+      zone.dispatchEvent(new PointerEvent(type, { bubbles: true, pointerType: "touch", clientX: x, button: 0 }));
+
+    touch("pointerdown", 10);
+    touch("pointerup", 40);
+    expect(document.activeElement).not.toBe(input);
+
+    touch("pointerdown", 10);
+    touch("pointerup", 12);
+    expect(document.activeElement).toBe(input);
+  });
+});

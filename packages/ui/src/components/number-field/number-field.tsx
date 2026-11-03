@@ -199,6 +199,9 @@ function minusGlyph() {
   );
 }
 
+/** How far, in CSS pixels, a finger may wander and still have tapped rather than dragged. */
+const TAP_SLOP = 6;
+
 /** ↔, the cursor while a scrub drags: the two chevrons of the steppers' directions. */
 function scrubGlyph() {
   return (
@@ -306,6 +309,8 @@ export function NumberField({
   const lensRef = useLensRef<HTMLElement>(material, undefined);
 
   const inputRef = React.useRef<HTMLInputElement>(null);
+  /** Where a touch on the scrub label began, so lifting it can tell a tap from a drag. */
+  const tapStart = React.useRef<number | null>(null);
   const setInput = useMergedRefs(ref, inputRef);
 
   // TextField's first debt, paid the same way: a press on the padding lands the caret, and
@@ -430,7 +435,20 @@ export function NumberField({
            PREVIEW WHILE DRAGGING, COMMIT ON RELEASE: `onValueChange` runs on every step of the
            drag, `onValueCommitted` once when it ends, so an app's undo history takes one step
            per gesture. */
-        <BaseNumberField.ScrubArea className="kui-number-field-scrub">
+        <BaseNumberField.ScrubArea
+          className="kui-number-field-scrub"
+          // A TAP FOCUSES THE FIELD, ON TOUCH TOO (2026-11-03, Kushagra: "Ok"). Base UI focuses
+          // the input on a mouse press and cancels the touch, so a finger that tapped the label
+          // reached nothing. A touch that ends where it began is a tap; one that moved was a drag.
+          onPointerDown={(event) => {
+            tapStart.current = event.pointerType === "touch" ? event.clientX : null;
+          }}
+          onPointerUp={(event) => {
+            const start = tapStart.current;
+            tapStart.current = null;
+            if (start !== null && Math.abs(event.clientX - start) < TAP_SLOP) inputRef.current?.focus();
+          }}
+        >
           <span aria-hidden className="kui-number-field-scrub-label">
             {scrub}
           </span>
