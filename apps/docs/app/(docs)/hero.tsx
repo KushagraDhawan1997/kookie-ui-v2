@@ -154,7 +154,7 @@ function Builder() {
               </Flex>
             </Toolbar>
           </ShellPaneHeader>
-          <div className="kd-hero-canvas">
+          <div className="kd-hero-canvas" role="region" aria-label="Canvas">
             <Card size="3" className="kd-hero-composition">
               <Stack gap="5">
                 <Stack gap="2">
