@@ -514,7 +514,7 @@ export function CompositionFigure() {
   return (
     <Band name="CompositionFigure">
       <div className="kd-device">
-        <Theme size="2" className="kd-band-window kd-band-window-narrow">
+        <Theme size="2" className="kd-band-window">
           <Shell contained className="kd-band-shell" style={{ "--shell-inspector-w": "304px" } as React.CSSProperties}>
             <ShellContent>
               {/* THE CANVAS PANE'S BAND (2026-11-03, Kushagra: "Ok fix it"). FIGURES.md gives every
@@ -689,7 +689,7 @@ export function ColourFigure() {
   return (
     <Band name="ColourFigure">
       <div className="kd-device">
-        <Theme size="2" className="kd-band-window kd-band-window-narrow">
+        <Theme size="2" className="kd-band-window">
           <Shell contained className="kd-band-shell">
             <ShellContent>
               <ShellPaneHeader>
@@ -742,7 +742,7 @@ export function DepthFigure() {
   return (
     <Band name="DepthFigure">
       <div className="kd-device">
-        <Theme size="2" depth="elevated" className="kd-band-window kd-band-window-narrow">
+        <Theme size="2" depth="elevated" className="kd-band-window">
           <Shell contained className="kd-band-shell">
             <ShellContent>
               <ShellPaneHeader>
@@ -804,7 +804,7 @@ export function IconsFigure() {
   return (
     <Band name="IconsFigure">
       <div className="kd-device">
-        <Theme size="2" className="kd-band-window kd-band-window-narrow">
+        <Theme size="2" className="kd-band-window">
           <Shell contained className="kd-band-shell" style={{ "--shell-sidebar-w": "216px" } as React.CSSProperties}>
             <ShellSidebar aria-label="Folders" defaultOpen presentation="fixed" flush>
               <ShellPaneHeader>
@@ -875,7 +875,7 @@ export function InteractionFigure() {
   return (
     <Band name="InteractionFigure">
       <div className="kd-device">
-        <Theme size="2" className="kd-band-window kd-band-window-narrow">
+        <Theme size="2" className="kd-band-window">
           <Shell contained className="kd-band-shell">
             <ShellContent>
               <ShellPaneHeader>
@@ -933,7 +933,7 @@ export function MaterialsFigure() {
   return (
     <Band name="MaterialsFigure">
       <div className="kd-device">
-        <Theme size="2" material="6" className="kd-band-window kd-band-window-narrow">
+        <Theme size="2" material="6" className="kd-band-window">
           <Shell contained className="kd-band-shell">
             <ShellContent>
               <img src="/beds/birmingham-museums-trust-adudERb6uDM-unsplash.jpg" alt="" className="kd-band-photo" />
@@ -972,7 +972,7 @@ export function TypographyFigure() {
   return (
     <Band name="TypographyFigure">
       <div className="kd-device">
-        <Theme size="2" className="kd-band-window kd-band-window-narrow">
+        <Theme size="2" className="kd-band-window">
           <Shell contained className="kd-band-shell">
             <ShellContent>
               <ShellPaneHeader>

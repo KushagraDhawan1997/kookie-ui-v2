@@ -361,12 +361,6 @@ body {
   pointer-events: none;
 }
 
-/* A narrower window, for a figure whose whole subject fits the reading column (2026-11-02, the
-   Composition figure): 17 of the 32px steps, so with its laptop rim it sits inside the column with
-   room on both sides instead of running off. */
-.kd-band-window.kd-band-window-narrow {
-  inline-size: calc(17 * var(--layout-space-7));
-}
 
 
 /* The selected element's outline, in the measures' ink. */
@@ -413,24 +407,46 @@ body {
   object-position: 50% 75%;
 }
 
-/* A figure in the reading column is not edge to edge, so the band is a box: the same border and
-   corner as the examples' Surface, in place of the two hairlines an edge-to-edge band draws
-   (2026-11-02, Kushagra: "Since these figures arent edge to edge, no rounded corners look
-   weird"). The window inside is clipped by the corner. */
-.kd-figure > .kd-band {
-  border: var(--border-width) solid var(--color-border);
-  border-radius: var(--radius-surface-2);
+/* A CHAPTER'S FIGURE RUNS FULL WIDTH (2026-11-03, Kushagra: "make these images full width, like
+   it is on main page"). The reading column is narrower than a real 960px window, which squeezed
+   figures into narrow windows and tall strips. The band now leaves the column: out to the pane's
+   start edge, and to the table of contents' gutter on the end (the pane's end edge once the
+   contents column goes away), with the hairlines at its top and bottom like the hero. The window
+   inside keeps its real size, starts on the text's edge, and runs off the end of the band.
+   `--kd-out` is how far the column sits in from the chapter's content box; it is a registered
+   length so it is worked out against the chapter, then handed down unchanged. */
+@property --kd-out {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
 }
 
-.kd-figure > .kd-band::before,
-.kd-figure > .kd-band::after {
-  content: none;
+.kd-chapter {
+  container-type: inline-size;
 }
 
-@supports (corner-shape: squircle) {
-  .kd-figure > .kd-band {
-    border-radius: calc(var(--radius-surface-2) * 1.613);
-    corner-shape: squircle;
+.kd-figure:has(> .kd-band) {
+  --kd-out: calc((100cqi - min(var(--kd-measure), 100cqi)) / 2);
+  margin-inline-start: calc(-1 * (var(--kd-out) + var(--kui-sf-p)));
+  margin-inline-end: calc(-1 * var(--kd-out));
+}
+
+@media (max-width: 64rem) {
+  .kd-figure:has(> .kd-band) {
+    margin-inline-end: calc(-1 * (var(--kd-out) + var(--kui-sf-p)));
+  }
+}
+
+.kd-figure > .kd-band > .kd-band-stage:not(:has(> .kd-band-pair, > .kd-band-devices)) {
+  padding-inline-start: calc(var(--kd-out) + var(--kui-sf-p));
+}
+
+/* A band wide enough for the whole laptop centres it (Kushagra, 2026-11-02: "center them too,
+   they seem offset to left"): the lid, 960 plus its rim, and a step either side. */
+@container (min-width: calc(30 * 32px + 4 * 24px)) {
+  .kd-figure > .kd-band > .kd-band-stage:not(:has(> .kd-band-pair, > .kd-band-devices)) {
+    justify-items: center;
+    padding-inline-start: 0;
   }
 }
 
@@ -529,11 +545,7 @@ body {
 
 
 
-/* A chapter figure's laptop sits centred in the band when it fits the column (Kushagra,
-   2026-11-02: "center them too, they seem offset to left"). A full 960 window still starts at
-   the column's edge and runs off the right, so its sidebar stays in view. Two devices in a row
-   are centred the same way. */
-.kd-band-stage:has(> .kd-device > .kd-band-window-narrow),
+/* Two devices in a row sit centred in the band. */
 .kd-band-stage:has(> .kd-band-devices) {
   justify-items: center;
   padding-inline-start: 0;
