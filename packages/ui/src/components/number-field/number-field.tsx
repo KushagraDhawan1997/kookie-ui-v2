@@ -10,6 +10,7 @@ import { useMergedRefs } from "../../system/render.ts";
 import { useLensRef } from "../../system/refraction.tsx";
 import { SizeScopeContext, useSize } from "../../system/size.ts";
 import { GlassScope, useMaterial } from "../../theme/theme.tsx";
+import { PortalScope } from "../../system/floating.tsx";
 import { glyphStroke } from "../../tokens/config.ts";
 
 type RootProps = BaseNumberField.Root.Props;
@@ -433,8 +434,12 @@ export function NumberField({
           <span aria-hidden className="kui-number-field-scrub-label">
             {scrub}
           </span>
+          {/* Portalled to the body by Base UI, so it re-enters the app's Theme the way every
+              panel does, or a dark app drags a dark glyph over its own dark UI (audit). */}
           <BaseNumberField.ScrubAreaCursor className="kui-number-field-scrub-cursor">
-            {scrubGlyph()}
+            <PortalScope>
+              <span className="kui-number-field-scrub-glyph">{scrubGlyph()}</span>
+            </PortalScope>
           </BaseNumberField.ScrubAreaCursor>
         </BaseNumberField.ScrubArea>
       )}

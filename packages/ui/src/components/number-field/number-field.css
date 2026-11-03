@@ -220,15 +220,25 @@
 }
 
 .kui-number-field-scrub-label > svg,
-.kui-number-field-scrub-cursor > svg {
+.kui-number-field-scrub-glyph > svg {
   inline-size: 1em;
   block-size: 1em;
 }
 
 .kui-number-field-scrub-cursor {
+  pointer-events: none;
+}
+
+.kui-number-field-scrub-glyph {
   display: inline-flex;
   color: var(--color-text);
-  pointer-events: none;
+}
+
+/* A field that takes no input offers no drag (audit): the field's own disabled cursor, not the
+   sideways one. Base UI stamps both states on the scrub area. */
+.kui-number-field > .kui-number-field-scrub[data-disabled],
+.kui-number-field > .kui-number-field-scrub[data-readonly] {
+  cursor: inherit;
 }
 
 /* ── A group of fields (2026-11-03, the creative core) ────────────────────────────────────
@@ -244,20 +254,38 @@
   min-inline-size: 0;
 }
 
-/* `of-type`, because Base UI writes each field's hidden form input as the field's next sibling,
-   so no field is ever the group's last child. */
-.kui-number-field-group > .kui-number-field:not(:last-of-type) {
+/* By the fields' own class, because Base UI writes each field's hidden form input as the field's
+   next sibling, so no field is ever the group's last child; and not by element type, which a
+   span anywhere else in the group would count (audit). */
+.kui-number-field-group > .kui-number-field:has(~ .kui-number-field) {
   border-start-end-radius: var(--radius-0);
   border-end-end-radius: var(--radius-0);
 }
 
-.kui-number-field-group > .kui-number-field:not(:first-of-type) {
+.kui-number-field-group > .kui-number-field ~ .kui-number-field {
   border-start-start-radius: var(--radius-0);
   border-end-start-radius: var(--radius-0);
   margin-inline-start: calc(-1 * var(--border-width));
 }
 
-.kui-number-field-group > .kui-number-field:focus-within {
+/* The field whose edge says something rises over the shared border: focused, hovered or
+   invalid, or its neighbour paints over that side of the edge (audit). */
+.kui-number-field-group > .kui-number-field:focus-within,
+.kui-number-field-group > .kui-number-field:hover,
+.kui-number-field-group > .kui-number-field[data-invalid],
+.kui-number-field-group > .kui-number-field[aria-invalid="true"] {
   position: relative;
   z-index: 1;
+}
+
+/* A stepper field in a group squares its zones on the joined sides too, or a zone's hover fill
+   is a rounded patch in a square corner. */
+.kui-number-field-group > .kui-number-field:has(~ .kui-number-field) > [data-step="increment"] {
+  border-start-end-radius: var(--radius-0);
+  border-end-end-radius: var(--radius-0);
+}
+
+.kui-number-field-group > .kui-number-field ~ .kui-number-field > [data-step="decrement"] {
+  border-start-start-radius: var(--radius-0);
+  border-end-start-radius: var(--radius-0);
 }
