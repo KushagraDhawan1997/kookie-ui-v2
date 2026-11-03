@@ -326,8 +326,8 @@ export function OneFormFigure() {
   return (
     <Band name="OneFormFigure">
       <div className="kd-device">
-        <Theme size="1" className="kd-band-window">
-          <Shell contained size="1" className="kd-band-shell" style={PANE_WIDTHS}>
+        <Theme size="2" className="kd-band-window">
+          <Shell contained size="2" className="kd-band-shell" style={PANE_WIDTHS}>
             <ShellSidebar aria-label="Settings" defaultOpen presentation="fixed" flush>
               <ShellPaneHeader>
                 <Toolbar backdrop>
