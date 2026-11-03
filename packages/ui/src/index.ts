@@ -82,6 +82,7 @@ export {
   ToolbarGroup,
   ToolbarButton,
   ToolbarOverflow,
+  ToolbarOverflowItem,
   ToolbarSeparator,
   ToolbarTitle,
   useToolbarOverflow,
@@ -89,6 +90,7 @@ export {
   type ToolbarGroupProps,
   type ToolbarButtonProps,
   type ToolbarOverflowProps,
+  type ToolbarOverflowItemProps,
   type ToolbarSeparatorProps,
   type ToolbarTitleProps,
 } from "./components/toolbar/toolbar.tsx";
