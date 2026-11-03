@@ -3716,6 +3716,29 @@ export const API: Record<string, ApiEntry> = {
       }
     ]
   },
+  "NumberFieldGroup": {
+    "element": "div",
+    "props": [
+      {
+        "name": "label",
+        "type": "string",
+        "optional": false,
+        "doc": "The group's accessible name, such as `Position`. Screen readers say it before each field's own name, so the fields can be named `X`, `Y` and `Z`. Put a visible label beside the group yourself, or wrap it in a `Field` with a `FieldLabel`."
+      },
+      {
+        "name": "size",
+        "type": "Size",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
+        "optional": true,
+        "doc": "The size step of every field in the group. The default comes from the enclosing `Field`, then the theme."
+      }
+    ]
+  },
   "NumberField": {
     "element": "input",
     "props": [
@@ -3832,6 +3855,12 @@ export const API: Record<string, ApiEntry> = {
         "type": "boolean | undefined",
         "optional": true,
         "doc": "Prevents form submission while the field is empty."
+      },
+      {
+        "name": "scrub",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "Turns the field into a creative tool's field: a short label at the start, such as `X` or an icon, that a person drags sideways to change the value. The steppers go, and the arrow keys and typing still work. Use it in an inspector, where fields sit in tight columns. The label is not the field's accessible name, so give the field a `FieldLabel` or an `aria-label`."
       },
       {
         "name": "size",

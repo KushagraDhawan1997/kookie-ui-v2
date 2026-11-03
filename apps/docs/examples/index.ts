@@ -306,6 +306,7 @@ import NoticeAboveARegionExample from "./notice.above-a-region";
 import NumberFieldSizesExample from "./number-field.sizes";
 import NumberFieldFormatExample from "./number-field.format";
 import NumberFieldStepsExample from "./number-field.steps";
+import NumberFieldScrubExample from "./number-field.scrub";
 import NumberFieldControlledExample from "./number-field.controlled";
 import NumberFieldStatesExample from "./number-field.states";
 import NumberFieldInAFormExample from "./number-field.in-a-form";
@@ -749,6 +750,7 @@ export const EXAMPLES: Record<string, React.ComponentType> = {
   "number-field.sizes": NumberFieldSizesExample,
   "number-field.format": NumberFieldFormatExample,
   "number-field.steps": NumberFieldStepsExample,
+  "number-field.scrub": NumberFieldScrubExample,
   "number-field.controlled": NumberFieldControlledExample,
   "number-field.states": NumberFieldStatesExample,
   "number-field.in-a-form": NumberFieldInAFormExample,
