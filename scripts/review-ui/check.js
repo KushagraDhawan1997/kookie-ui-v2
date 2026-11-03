@@ -95,8 +95,16 @@
         const loud = own(scope, '.kui-control[data-emphasis="loud"]').filter(
           (el) => !el.matches(":disabled, [aria-disabled='true'], [data-disabled]"),
         );
-        if (loud.length > 1)
-          out(loud[1], `${loud.length} loud controls on one screen: ${loud.map(describe).join(", ")}. Keep one.`);
+        // Counted per pane (RULES.md 8, 2026-11-03): a Shell pane or any other region is its own
+        // count, so a sidebar's add button and the work area's Export don't compete.
+        const panes = new Map();
+        for (const b of loud) {
+          const pane = b.closest(".kui-shell-pane, [role=region]") ?? scope;
+          panes.set(pane, [...(panes.get(pane) ?? []), b]);
+        }
+        for (const group of panes.values())
+          if (group.length > 1)
+            out(group[1], `${group.length} loud controls in one pane: ${group.map(describe).join(", ")}. Keep one.`);
       },
     },
     {

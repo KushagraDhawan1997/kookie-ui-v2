@@ -14,12 +14,12 @@ while you work.
 
 ## One obvious action per screen
 
-Give each screen one loud control, and make it the action the screen exists for. Set it with
+Give each pane one loud control, and make it the action the pane exists for. Set it with
 `tone="accent"` and `emphasis="loud"`, and leave every other control at medium or quiet.
 
 One control stands out only when the controls around it are quieter. This is the isolation
 effect. When two controls are loud, neither one stands out, and a person can't tell which is the
-main action. One per screen is Kookie's judgment.
+main action. One per pane is Kookie's judgment.
 
 *Figure.* A post editor on two phones. Wrong: Save and Publish are both loud, so neither stands out. Right: Save draft is medium and Publish is the one loud action.
 
@@ -27,9 +27,9 @@ main action. One per screen is Kookie's judgment.
 exceptions are `AlertDialogAction` and the send button in a `Composer`, which default to loud
 because each is the only action in its component.
 
-Count loud controls across the whole screen, not inside the nearest card. A dialog counts as a
-screen of its own, because it covers the page. Two tab panels never compete either, because only
-one is visible at a time.
+Count loud controls per pane: the sidebar, the work area and the inspector each get their own.
+A dialog counts as a pane of its own, because it covers the page. Two tab panels never compete
+either, because only one is visible at a time.
 
 ## Let space do the grouping
 

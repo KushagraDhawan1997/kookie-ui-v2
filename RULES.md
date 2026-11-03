@@ -65,9 +65,10 @@ the disagreement is a bug to report.
 
 ## Focus and emphasis
 
-8. **One loud control per screen.** One `emphasis="loud"` action, the one the screen exists
-   for. A dialog counts as its own screen. A switch's on state doesn't count. Enforced by:
-   check (screen and builder `one-figure`).
+8. **One loud control per pane.** Each pane or region, such as a Shell pane, a dialog or a
+   sheet, gets at most one `emphasis="loud"` action: the one that pane exists for. A dialog
+   counts as its own pane. A switch's on state doesn't count (2026-11-03, Kushagra: "The rule
+   should be per pane or per region"). Enforced by: check (screen and builder `one-figure`).
 9. **The way back is quieter than the way forward.** Enforced by: check (builder
    `way-back-as-loud`).
 10. **Tone means something.** `destructive`, `success`, `warning`, `info` carry meaning; the

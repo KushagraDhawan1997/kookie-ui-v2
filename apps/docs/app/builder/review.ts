@@ -158,6 +158,9 @@ const nearest = (parents: BuilderNode[], set: Set<string>): BuilderNode | null =
 
 const surfaceOf = (parents: BuilderNode[]): BuilderNode | null => nearest(parents, SURFACES);
 const layerOf = (parents: BuilderNode[]): BuilderNode | null => nearest(parents, LAYERS);
+/** The Shell pane a node sits in. RULES.md 8 counts loud actions per pane (2026-11-03). */
+const PANES = new Set(["ShellSidebar", "ShellContent", "ShellInspector", "ShellRail", "ShellHeader", "ShellBottom"]);
+const paneOf = (parents: BuilderNode[]): BuilderNode | null => nearest(parents, PANES);
 /**
  * Which tab a node is behind, per Tabs group it sits inside — `{ tabsId: panelId }`.
  *
@@ -244,7 +247,9 @@ export const RULES: Rule[] = [
         // exactly one (§25). Its grammar refuses a plain Button, so this arm is about a
         // document arriving from elsewhere, not about anything the editor can build.
         if (parents.some((p) => p.type === "AlertDialogContent")) continue;
-        loud.push({ ...entry, at, layer: layerOf(parents)?.id ?? "·screen·", tabs: tabsPath(parents) });
+        // A dialog is its own layer; inside a layer each Shell pane is its own count.
+        const layer = `${layerOf(parents)?.id ?? "·screen·"}/${paneOf(parents)?.id ?? "·pane·"}`;
+        loud.push({ ...entry, at, layer, tabs: tabsPath(parents) });
       }
       const out: RawFinding[] = [];
       /* A loud action is the second one if ANY loud action earlier in the document can be on
@@ -259,7 +264,7 @@ export const RULES: Rule[] = [
           if (!here.slice(0, i).some((earlier) => bothVisible(earlier.tabs, tabs))) continue;
           out.push({
             nodeId: node.id,
-            message: `${label(node)} is a second loud action on this screen.`,
+            message: `${label(node)} is a second loud action in this pane.`,
             fix: {
               title: "Make it medium",
               apply: (roots) => writeProp(roots, node.id, "emphasis", "medium", node.type),

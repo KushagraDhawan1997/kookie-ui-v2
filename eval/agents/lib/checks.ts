@@ -140,11 +140,11 @@ function loudOnScreen(nodes: VNode[], ownScreens: El[]): number {
 export const CHECKS: Check[] = [
   {
     id: "one-loud-per-screen",
-    title: "At most one loud control on a screen",
+    title: "At most one loud control in a pane",
     cites: [
-      { page: "start/composition.md", line: 17, quote: "Give each screen one loud control, and make it the action the screen exists for." },
-      { page: "start/composition.md", line: 30, quote: "Count loud controls across the whole screen, not inside the nearest card." },
-      { page: "start/composition.md", line: 30, quote: "A dialog counts as a screen of its own, because it covers the page." },
+      { page: "start/composition.md", line: 17, quote: "Give each pane one loud control, and make it the action the pane exists for." },
+      { page: "start/composition.md", line: 30, quote: "Count loud controls per pane: the sidebar, the work area and the inspector each get their own." },
+      { page: "start/composition.md", line: 31, quote: "A dialog counts as a pane of its own, because it covers the page." },
       { page: "start/composition.md", line: 31, quote: "Two tab panels never compete either, because only one is visible at a time." },
       {
         page: "start/composition.md",

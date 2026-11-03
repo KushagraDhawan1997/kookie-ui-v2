@@ -1,9 +1,9 @@
 [
   {
     "id": "one-figure",
-    "title": "One focal action per screen",
+    "title": "One focal action per pane",
     "severity": "error",
-    "why": "Boldness is spent exactly once. Two loud actions on one screen means neither is the point. Make the second one medium and the composition still says which is which. A dialog or a menu is its own screen, and two tab panels are never on screen together.",
+    "why": "Boldness is spent once per pane. Two loud actions in one pane means neither is the point. Make the second one medium and the composition still says which is which. Each Shell pane, dialog, sheet or menu is its own pane, and two tab panels are never on screen together.",
     "rule": 8,
     "checkedBy": [
       "builder",
