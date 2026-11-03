@@ -27,12 +27,4 @@ export default tseslint.config(
     // The plugin's own fixtures exist to be wrong. Reporting them is the fixtures working.
     ignores: ["packages/ui/src/lint/__fixtures__/**"],
   },
-  {
-    // The screen check's sabotage laws break a page on purpose, and one sabotage is a
-    // `?.append() ?? append()` chain run for its effect. scripts/review-ui/ is locked by a
-    // hook until Kushagra unlocks it (2026-11-02), so the rule is lifted here for that file
-    // rather than rewritten there.
-    files: ["scripts/review-ui/check.test.mjs"],
-    rules: { "@typescript-eslint/no-unused-expressions": "off" },
-  },
 );

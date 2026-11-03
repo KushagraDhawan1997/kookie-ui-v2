@@ -24,7 +24,7 @@ import { SegmentedControl, SegmentedItem } from "../segmented-control/segmented-
 import { Separator } from "../separator/separator.tsx";
 import { Text } from "../text/text.tsx";
 import { BAND_TITLE_STEP, OWNED_BODY_STEP } from "../../system/type-steps.ts";
-import { Toolbar, ToolbarButton, ToolbarGroup, ToolbarSeparator, ToolbarTitle } from "./toolbar.tsx";
+import { Toolbar, ToolbarButton, ToolbarGroup, ToolbarOverflow, ToolbarOverflowItem, ToolbarSeparator, ToolbarTitle } from "./toolbar.tsx";
 
 /* THE INDEX A DEFAULT APP'S BAND RESTS AT, derived rather than written as `3` (2026-09-06).
    Three laws below compared an unsized toolbar against `--control-height-2` and against
@@ -742,5 +742,53 @@ describe("what the row refuses (§45)", () => {
     // @ts-expect-error — the group and its buttons both read the ROW's index.
     void (<ToolbarGroup size="3" />);
     expect(true).toBe(true);
+  });
+});
+
+describe("a cluster sheds by rank (2026-11-03)", () => {
+  const settle = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+  const shown = (root: Element) =>
+    Array.from(root.querySelectorAll(".kui-toolbar-overflow-seat")).map((s) => s.textContent);
+
+  it("with no ranks, the end of the cluster leaves first, as before", async () => {
+    const root = mounted(
+      <Box style={{ inlineSize: "220px" }}>
+        <Toolbar>
+          <ToolbarOverflow>
+            <ToolbarButton>Share</ToolbarButton>
+            <ToolbarButton>Download</ToolbarButton>
+            <ToolbarButton>Duplicate</ToolbarButton>
+            <ToolbarButton>Publish</ToolbarButton>
+          </ToolbarOverflow>
+        </Toolbar>
+      </Box>,
+      { theme: {} },
+    );
+    await settle();
+    const row = shown(root);
+    expect(row.length).toBeGreaterThan(0);
+    expect(row.length).toBeLessThan(4);
+    expect(row[0]).toBe("Share");
+  });
+
+  it("the highest rank stays in the row longest, and the row keeps the cluster's order", async () => {
+    const root = mounted(
+      <Box style={{ inlineSize: "220px" }}>
+        <Toolbar>
+          <ToolbarOverflow>
+            <ToolbarOverflowItem><ToolbarButton>Share</ToolbarButton></ToolbarOverflowItem>
+            <ToolbarOverflowItem><ToolbarButton>Download</ToolbarButton></ToolbarOverflowItem>
+            <ToolbarOverflowItem><ToolbarButton>Duplicate</ToolbarButton></ToolbarOverflowItem>
+            <ToolbarOverflowItem rank={1}><ToolbarButton>Publish</ToolbarButton></ToolbarOverflowItem>
+          </ToolbarOverflow>
+        </Toolbar>
+      </Box>,
+      { theme: {} },
+    );
+    await settle();
+    const row = shown(root);
+    expect(row.length).toBeLessThan(4);
+    expect(row).toContain("Publish");
+    expect(row.at(-1)).toBe("Publish");
   });
 });

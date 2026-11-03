@@ -39,7 +39,7 @@ import {
 import { Button } from "../button/button.tsx";
 import { Field, FieldLabel } from "../field/field.tsx";
 import { TextField } from "../text-field/text-field.tsx";
-import { NumberField } from "./number-field.tsx";
+import { NumberField, NumberFieldGroup } from "./number-field.tsx";
 
 /** Every token this file resolves through a scope is a colour; lengths are read off elements. */
 const tokenOn = (el: Element, name: string): string => colorOn(el, `var(${name})`);
@@ -1132,5 +1132,40 @@ describe("the API's closed edges (§3, §4, §11)", () => {
     void (<NumberField type="number" />);
     // @ts-expect-error — the keypad is derived from `format`, not stated
     void (<NumberField inputMode="text" />);
+  });
+});
+
+describe("scrub and the group, the creative core (2026-11-03)", () => {
+  it("a scrub field draws its label where the steppers were, and no steppers", () => {
+    const root = mounted(<NumberField scrub="X" aria-label="X" defaultValue={1} />, { theme: {} });
+    const field = root.matches(".kui-number-field") ? root : root.querySelector(".kui-number-field")!;
+    expect(field.querySelector(".kui-number-field-scrub")?.textContent).toBe("X");
+    expect(field.querySelectorAll(".kui-number-field-step").length).toBe(0);
+    expect(field.hasAttribute("data-scrub")).toBe(true);
+  });
+
+  it("a group is one named group, and its fields share their inner corners", () => {
+    const root = mounted(
+      <div style={{ inlineSize: "300px" }}>
+        <NumberFieldGroup label="Position">
+          <NumberField scrub="X" aria-label="X" defaultValue={1} />
+          <NumberField scrub="Y" aria-label="Y" defaultValue={2} />
+          <NumberField scrub="Z" aria-label="Z" defaultValue={3} />
+        </NumberFieldGroup>
+      </div>,
+      { theme: {} },
+    );
+    const group = root.querySelector('[role="group"]')!;
+    expect(group.getAttribute("aria-label")).toBe("Position");
+    const fields = Array.from(group.querySelectorAll<HTMLElement>(":scope > .kui-number-field"));
+    expect(fields.length).toBe(3);
+    const r = (el: Element, corner: string) => parseFloat(getComputedStyle(el).getPropertyValue(corner));
+    expect(r(fields[0]!, "border-start-start-radius")).toBeGreaterThan(0);
+    expect(r(fields[0]!, "border-start-end-radius")).toBe(0);
+    expect(r(fields[2]!, "border-start-end-radius")).toBeGreaterThan(0);
+    expect(r(fields[2]!, "border-start-start-radius")).toBe(0);
+    // Equal columns, and inside the group's box.
+    const g = group.getBoundingClientRect();
+    expect(fields[2]!.getBoundingClientRect().right).toBeLessThanOrEqual(g.right + 1);
   });
 });

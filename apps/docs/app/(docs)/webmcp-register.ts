@@ -1,4 +1,12 @@
-import type { AgentTool } from "./agent-tools";
+/** What a page hands over: the docs pages' four read-only tools, or the builder's three, one of
+    which writes. The wire format is the same for both. */
+export type WebTool = {
+  name: string;
+  description: string;
+  inputSchema: unknown;
+  annotations: { readOnlyHint: boolean };
+  execute: (input: Record<string, unknown>) => Promise<string>;
+};
 
 /**
  * WebMCP, and the honest state of it (§47).
@@ -74,7 +82,7 @@ type ProvideContextContainer = {
   provideContext: (context: { tools: unknown[] }) => unknown;
 };
 
-const wire = (tool: AgentTool) => ({
+const wire = (tool: WebTool) => ({
   name: tool.name,
   description: tool.description,
   inputSchema: tool.inputSchema,
@@ -92,7 +100,7 @@ const wire = (tool: AgentTool) => ({
  */
 export async function registerTools(
   scope: { document?: unknown; navigator?: unknown },
-  tools: readonly AgentTool[],
+  tools: readonly WebTool[],
   options?: { signal?: AbortSignal },
 ): Promise<Host | null> {
   for (const { surface, container } of candidatesIn(scope)) {

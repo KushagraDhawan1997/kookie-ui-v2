@@ -219,6 +219,39 @@ export type ToolbarOverflowProps = ComponentRefusals &
     ref?: React.Ref<HTMLDivElement>;
   };
 
+export type ToolbarOverflowItemProps = ComponentRefusals & {
+  /**
+   * How long this control stays in the row as it narrows. Higher stays longer. The default is
+   * `0`. Controls of equal rank move into the menu from the end of the cluster.
+   */
+  rank?: number;
+  /** The control. */
+  children?: React.ReactNode;
+};
+
+/**
+ * One control in a `ToolbarOverflow`, with a rank (2026-11-03, Kushagra: toolbars that shed by
+ * rank, "yes"). As the row narrows, the lowest rank moves into the `⋯` menu first, so the
+ * action the screen exists for is the last to go. It draws nothing of its own; the control
+ * inside it still answers whether it is in the row or the menu.
+ * Wrap one control in each: two inside one child share that child's seat, and the last to
+ * report sets its rank.
+ */
+export function ToolbarOverflowItem({ rank = 0, children }: ToolbarOverflowItemProps) {
+  const seat = React.use(OverflowSeat);
+  // THE RANK IS REPORTED FROM THE SEAT, NOT READ OFF THE ELEMENT (2026-11-03). A cluster written
+  // in a server component reaches this client component as elements whose `type` is a client
+  // reference, so comparing `type` against this function was false in the docs app while every
+  // test passed. The seat already knows its index, the way it knows its width.
+  React.useLayoutEffect(() => {
+    seat?.(rank);
+  }, [seat, rank]);
+  return <>{children}</>;
+}
+
+/** Set by each seat of a `ToolbarOverflow`: reports the rank of the item inside it. */
+const OverflowSeat = React.createContext<((rank: number) => void) | null>(null);
+
 /**
  * A cluster that collapses into a `⋯` menu when the row runs out of room.
  *
@@ -235,6 +268,18 @@ export function ToolbarOverflow({
 }: ToolbarOverflowProps) {
   const items = React.Children.toArray(children);
   const count = items.length;
+  /* Each seat's rank, reported by a `ToolbarOverflowItem` inside it while it is in the row, and
+     kept, like its width, while it is in the menu. A child with no item has rank 0. */
+  const ranks = React.useRef<number[]>([]);
+  const reporters = React.useMemo(
+    () =>
+      Array.from({ length: count }, (_, i) => (rank: number) => {
+        if (ranks.current[i] === rank) return;
+        ranks.current[i] = rank;
+        setTick((n) => n + 1);
+      }),
+    [count],
+  );
 
   const rootRef = React.useRef<HTMLDivElement | null>(null);
   /* One natural width per child, measured while that child was in the row. Hiding a child
@@ -242,79 +287,90 @@ export function ToolbarOverflow({
      mechanism rather than an optimisation. */
   const widths = React.useRef<number[]>([]);
   const triggerWidth = React.useRef(0);
-  const [shown, setShown] = React.useState(count);
+  /* Which children are in the menu, as a sorted list of indices. A string, so an unchanged set
+     is an unchanged state and the effect settles. */
+  const [hiddenKey, setHiddenKey] = React.useState("");
+  const hidden = React.useMemo(
+    () => new Set(hiddenKey === "" ? [] : hiddenKey.split(",").map(Number)),
+    [hiddenKey],
+  );
   /* Bumped by the resize observer. State rather than a direct call so the measurement stays in
      one place — the layout effect below — instead of existing twice. */
   const [tick, setTick] = React.useState(0);
 
   /* A different set of children is a different set of widths. Measured lengths keyed by index
-     would otherwise survive a navigation that changed what the band holds. */
-  const previousCount = React.useRef(count);
-  if (previousCount.current !== count) {
-    previousCount.current = count;
+     would otherwise survive a navigation that changed what the band holds. KEYED BY THE
+     CHILDREN'S KEYS, not their count (2026-11-03 audit): a reorder kept the count, so index 1
+     kept the old child's width and rank. And everything comes back into the row to be measured
+     again, since a child still in the menu has no width and the effect waits for one. */
+  const keys = items.map((item) => (React.isValidElement(item) ? String(item.key) : "")).join("\u0000");
+  const previousKeys = React.useRef(keys);
+  if (previousKeys.current !== keys) {
+    previousKeys.current = keys;
     widths.current = [];
+    ranks.current = [];
+    if (hiddenKey !== "") setHiddenKey("");
   }
 
   React.useLayoutEffect(() => {
     const root = rootRef.current;
     if (!root) return;
 
-    /* The row's children, in order, are the visible SEATS followed by the trigger — one seat per
-       child, drawn or not, so position identifies a child exactly and nothing has to carry a
-       marker for the measurement to find. */
+    /* The row's children are the visible SEATS, in the cluster's order, followed by the
+       trigger. Each seat names its child's index, so a measurement lands on the right child
+       whichever children are in the menu. */
     const kids = Array.from(root.children) as HTMLElement[];
-    const visible = Math.min(shown, count);
-    for (let i = 0; i < visible; i++) {
-      const el = kids[i];
-      if (el) widths.current[i] = el.offsetWidth;
+    for (const el of kids) {
+      const seat = el.dataset.seat;
+      if (seat !== undefined) widths.current[Number(seat)] = el.offsetWidth;
     }
-    const trigger = kids[visible];
+    const trigger = kids.find((el) => el.dataset.seat === undefined);
     if (trigger) triggerWidth.current = trigger.offsetWidth;
 
     const gap = Number.parseFloat(getComputedStyle(root).columnGap) || 0;
     const available = root.clientWidth;
 
-    let total = 0;
-    let counted = 0;
-    for (let i = 0; i < count; i++) {
-      const width = widths.current[i];
-      /* A child nobody has ever seen in the row has no width, and guessing one would be a
-         decision made out of nothing. It cannot happen after the first pass, where everything
-         starts visible. */
-      if (width === undefined) return;
-      /* A seat that drew nothing is out of the flex layout entirely, so it spends no gap either.
-         Counting one for it would reserve room for a control that does not exist. */
-      if (width === 0) continue;
-      total += width + (counted > 0 ? gap : 0);
-      counted += 1;
-    }
+    /* A child nobody has ever seen in the row has no width, and guessing one would be a
+       decision made out of nothing. It cannot happen after the first pass, where everything
+       starts visible. A seat that drew nothing is out of the flex layout entirely, so it spends
+       no gap either: counting one for it would reserve room for a control that does not exist. */
+    for (let i = 0; i < count; i++) if (widths.current[i] === undefined) return;
+    const rowWidth = (out: Set<number>) => {
+      let total = 0;
+      let drawn = 0;
+      for (let i = 0; i < count; i++) {
+        const width = widths.current[i]!;
+        if (out.has(i) || width === 0) continue;
+        total += width + (drawn > 0 ? gap : 0);
+        drawn += 1;
+      }
+      return total;
+    };
 
-    let next = count;
-    if (total > available) {
+    const out = new Set<number>();
+    if (rowWidth(out) > available) {
       /* The trigger only exists once something is hidden, so the first pass into this branch has
          no measurement of it. The row's own height is the estimate — an icon-only control is
          about as wide as the row is tall — and the pass that follows this state change corrects
          it exactly, before paint. Nothing oscillates: whether the trigger exists at all is
-         decided by `total`, which is arithmetic over widths that never move. */
+         decided by the full row's width, which is arithmetic over widths that never move. */
       const budget = available - (triggerWidth.current || root.clientHeight) - gap;
-      let used = 0;
-      let drawn = 0;
-      next = 0;
-      for (let i = 0; i < count; i++) {
-        const own = widths.current[i]!;
-        /* An empty seat is always "shown": it costs nothing and hiding it would put a child that
-           draws nothing into the menu, where it would draw nothing either. */
-        if (own > 0) {
-          const width = own + (drawn > 0 ? gap : 0);
-          if (used + width > budget) break;
-          used += width;
-          drawn += 1;
-        }
-        next += 1;
+      /* THE ORDER CONTROLS LEAVE IN: lowest rank first, and the end of the cluster first among
+         equals, which is the order every cluster shed in before ranks existed. */
+      const rank = (i: number) => ranks.current[i] ?? 0;
+      const shedOrder = Array.from({ length: count }, (_, i) => i).sort(
+        (a, b) => rank(a) - rank(b) || b - a,
+      );
+      for (const i of shedOrder) {
+        if (rowWidth(out) <= budget) break;
+        /* An empty seat costs nothing, and hiding it would put a child that draws nothing into
+           the menu, where it would draw nothing either. */
+        if (widths.current[i]! > 0) out.add(i);
       }
     }
-    if (next !== shown) setShown(next);
-  }, [shown, count, tick]);
+    const next = [...out].sort((a, b) => a - b).join(",");
+    if (next !== hiddenKey) setHiddenKey(next);
+  }, [hiddenKey, count, tick]);
 
   React.useEffect(() => {
     const root = rootRef.current;
@@ -339,16 +395,19 @@ export function ToolbarOverflow({
       className={className ? `kui-toolbar-overflow ${className}` : "kui-toolbar-overflow"}
       {...props}
     >
-      {items.slice(0, shown).map((item, i) => (
-        // THE SEAT IS THE INDEX, not an identity: it is a position in the row, and it must stay
-        // put when the child inside it draws nothing. (No disable comment, because this config
-        // ships no `react/no-array-index-key` rule to disable — an unknown rule name is itself
-        // a lint error, which is how the comment came to fail the build it was meant to quiet.)
-        <div key={i} className="kui-toolbar-overflow-seat">
-          {item}
-        </div>
-      ))}
-      {shown < count ? (
+      {items.map((item, i) =>
+        hidden.has(i) ? null : (
+          // THE SEAT IS THE INDEX, not an identity: it is a position in the row, and it must
+          // stay put when the child inside it draws nothing. (No disable comment, because this
+          // config ships no `react/no-array-index-key` rule to disable — an unknown rule name is
+          // itself a lint error, which is how the comment came to fail the build it was meant to
+          // quiet.)
+          <div key={i} className="kui-toolbar-overflow-seat" data-seat={i}>
+            <OverflowSeat.Provider value={reporters[i] ?? null}>{item}</OverflowSeat.Provider>
+          </div>
+        ),
+      )}
+      {hidden.size > 0 ? (
         <Menu>
           <MenuTrigger
             render={
@@ -365,7 +424,18 @@ export function ToolbarOverflow({
             }
           />
           <MenuContent align="end">
-            <InOverflow.Provider value>{items.slice(shown)}</InOverflow.Provider>
+            {/* Each item in the menu keeps its seat's reporter, so a rank that changes while the
+                menu is open still reaches the row, and an inner overflow's items never report to
+                this one's seats. */}
+            <InOverflow.Provider value>
+              {items.map((item, i) =>
+                hidden.has(i) ? (
+                  <OverflowSeat.Provider key={i} value={reporters[i] ?? null}>
+                    {item}
+                  </OverflowSeat.Provider>
+                ) : null,
+              )}
+            </InOverflow.Provider>
           </MenuContent>
         </Menu>
       ) : null}

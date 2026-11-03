@@ -3,13 +3,7 @@
 import type { ComponentRefusals } from "../../system/refused.ts";
 import * as React from "react";
 
-import { DISMISS_PATH, GLYPH_VIEWBOX } from "../../system/glyphs.ts";
-
-/* The chevron that points the way you came, on the tick's grid, stroke and caps. It points to
-   the inline START, and a right-to-left page mirrors it in CSS; a link draws it mirrored,
-   pointing on. One component draws it, so it lives here until a second one does (glyphs.ts's
-   rule). */
-const CHEVRON_BACK_PATH = "M10 4 6 8l4 4";
+import { CHEVRON_BACK_PATH, DISMISS_PATH, GLYPH_VIEWBOX } from "../../system/glyphs.ts";
 import { glyphStroke } from "../../tokens/config.ts";
 import { setPageCollapsed, useClaimPage, usePageScope } from "../../system/page.tsx";
 import { ShellPaneHeader, ShellScroll, useInWorkArea } from "../shell/shell.tsx";

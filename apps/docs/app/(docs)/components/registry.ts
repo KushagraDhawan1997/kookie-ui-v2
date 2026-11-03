@@ -1525,9 +1525,17 @@ const DECLARED: Entry[] = [
       {"name":"controlled","title":"Controlled","why":"Pass `value` and `onValueChange` when other parts of the screen depend on the number, here a monthly price. The value is `null` when the field is empty, so check for it."},
       {"name":"states","title":"Read-only, disabled and invalid","why":"A read-only value can still be selected and is still sent with the form. A disabled field takes no input. An invalid field shows the error from the `Field` around it."},
       {"name":"in-a-form","title":"In a form","why":"Set `name`, and a hidden input sends the number when the form submits. `required` stops the form from submitting while the field is empty."},
+      {"name":"scrub","title":"Scrub and group, for an inspector","why":"`scrub` puts a short label at the start that people drag sideways to change the value, in place of the two buttons. `NumberFieldGroup` joins fields that edit one value, such as a position's X, Y and Z, and names them as one group."},
     ],
     abstract: "NumberField is a field for entering a number, with buttons on each side that decrease and increase it.",
     overview: ["Use a NumberField when the value is a number, such as a count of seats, an amount of money or a timeout. It shows the value between a decrease button and an increase button. Use a `Slider` when an approximate value in a range is enough, and a `TextField` when the value only looks like a number, such as a postcode.","It matches a `TextField` in height, border, focus ring and material, so the two line up in one form. Set `min` and `max` to keep the value in a range, and `step` to set how far each press or arrow key moves it. A button becomes disabled when the value reaches a limit, and both are disabled in a read-only field.","Pass `format` to show the value as a currency, a percentage or a unit. The field formats the number and reads typed text in the user's locale, so someone in Germany can type `1.234,5`, and `locale` sets a different one. Put a unit in `format` rather than beside the field, so screen readers announce it as part of the value.","The value is a number, or `null` when the field is empty, which is different from zero. Use `value` and `onValueChange` to keep it in your own state, or `defaultValue` to let the field keep it. Set `name`, and a hidden input sends the number with the form.","Put it in a `Field` to give it a label, a description and an error message. Inside a `Field` it uses that field's size, and a `size` set on the NumberField itself still wins.","The arrow keys change the value by `step`, Alt with an arrow key uses `smallStep`, and Shift with an arrow key uses `largeStep`. The two buttons aren't in the tab order, because the keyboard already changes the value from the field itself. Set `decrementLabel` and `incrementLabel` to name the buttons in your app's language."],
+    topics: [
+      { title: "One number", symbols: ["NumberField"] },
+      { title: "Numbers that go together", symbols: ["NumberFieldGroup"] },
+    ],
+    parts: [
+      { part: "NumberFieldGroup", blurb: "Number fields that edit one value, such as X, Y and Z, joined edge to edge in equal columns under one accessible name" },
+    ],
     refusals: [
       {
         name: "`leading` and `trailing`",
@@ -1667,6 +1675,7 @@ const DECLARED: Entry[] = [
       {"name":"sizes","title":"Sizes","why":"`size` on the row sets the height of the row and of every control in it, and the title text grows with it. A Toolbar with no `size` is one step above the app's size."},
       {"name":"vertical","title":"Vertical","why":"Set `orientation=\"vertical\"` for a column of tools along the edge of a canvas. The up and down arrow keys then move between the controls, and a separator becomes a horizontal line."},
       {"name":"overflow","title":"Overflow","why":"Put controls in a `ToolbarOverflow` when the row can get too narrow. The controls that don't fit move into a menu behind a ⋯ button, starting from the end of the row. Give that button a `label`, because it has no visible text."},
+      {"name":"overflow-rank","title":"Overflow by rank","why":"Wrap a control in a `ToolbarOverflowItem` with a `rank` to choose when it leaves. The lowest rank moves into the menu first, so Publish, the action this band exists for, stays in the row longest."},
       {"name":"with-menu","title":"Links and menus","why":"Pass an anchor to `render` to make a `ToolbarButton` into a link. To open a menu, pass a `ToolbarButton` to the `render` prop of `MenuTrigger`. Both keep their place in the row's keyboard order."},
       {"name":"disabled","title":"Disabled","why":"Set `disabled` on one `ToolbarButton` to turn it off. Set `disabled` on a `ToolbarGroup` to turn off every control in the capsule at once, for example when nothing is selected."},
     ],
@@ -1674,7 +1683,7 @@ const DECLARED: Entry[] = [
       { title: "The row", symbols: ["Toolbar"] },
       { title: "What goes in it", symbols: ["ToolbarButton", "ToolbarGroup", "ToolbarSeparator"] },
       { title: "Naming it", symbols: ["ToolbarTitle"] },
-      { title: "When the row runs out of room", symbols: ["ToolbarOverflow"] },
+      { title: "When the row runs out of room", symbols: ["ToolbarOverflow", "ToolbarOverflowItem"] },
     ],
     parts: [
       {
@@ -1689,6 +1698,10 @@ const DECLARED: Entry[] = [
         part: "ToolbarOverflow",
         blurb:
           "A group of controls that collapses into a ⋯ menu when the row runs out of room. It measures the space left in the row instead of using a breakpoint, because each toolbar holds different controls. A `ToolbarButton` that moves into the menu shows as a menu row, and your own components can call `useToolbarOverflow()` to render a different form there",
+      },
+      {
+        part: "ToolbarOverflowItem",
+        blurb: "One control in a `ToolbarOverflow`, with a `rank`. Higher ranks stay in the row longer, and equal ranks leave from the end of the cluster",
       },
       {
         part: "ToolbarSeparator",
@@ -2173,6 +2186,7 @@ const DECLARED: Entry[] = [
       {"name":"grounded","title":"Content as its own panel","why":"Only `ShellContent` has `flush={false}`. The work area becomes a separate panel set in from the frame, while the header and sidebar stay joined to it."},
       {"name":"resizable","title":"A resizable sidebar","why":"With `resizable`, people can drag the sidebar's edge or move it with the arrow keys. `minWidth` and `maxWidth` limit the width, and `onResize` reports the new width so you can store it."},
       {"name":"controlled","title":"Controlled","why":"The sidebar's `open` state lives in the example's own state, so a Switch in the content can show and hide it. `onOpenChange` fires only when a person opens or closes the pane."},
+      {"name":"collapse-stack","title":"A sidebar that collapses into a stack","why":"When the sidebar is the list people browse, `collapse=\"stack\"` makes it the first screen on a narrow window. Picking a message shows the message, and `ShellBack` in its band goes back to the list. The open message lives in the example's state, as it would in your router's URL. Narrow the window to see it."},
     ],
     topics: [
       { title: "The frame", symbols: ["Shell"] },
@@ -2183,7 +2197,7 @@ const DECLARED: Entry[] = [
       },
       { title: "Inside a pane", symbols: ["ShellScroll", "ShellPaneHeader", "ShellPaneFooter"] },
       { title: "Navigation rows", symbols: ["ShellNavGroup", "ShellNavItem"] },
-      { title: "Opening and closing a pane", symbols: ["ShellTrigger"] },
+      { title: "Opening and closing a pane", symbols: ["ShellTrigger", "ShellBack"] },
     ],
     refusals: [
       { name: "A `gap` prop", why: "The space around floating panes is one step of the theme's layout spacing, so it tightens and loosens with density. A custom number would fall out of step with the rest of the app." },
@@ -2225,6 +2239,7 @@ const DECLARED: Entry[] = [
           "A tab bar for an app without a rail. On a narrow window it shows three to five places along the bottom, and on a wide window it shows nothing, because the sidebar holds the navigation. It is optional: without it, the sidebar opens as a drawer at every width",
       },
       { part: "ShellTrigger", blurb: "A button that opens, closes or toggles a pane by name, from anywhere in the frame" },
+      { part: "ShellBack", blurb: "Back, for the content's band when the sidebar collapses into a stack. It shows only on a narrow window while the content is showing" },
     ],
   },
   {

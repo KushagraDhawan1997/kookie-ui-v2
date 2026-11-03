@@ -306,6 +306,7 @@ import NoticeAboveARegionExample from "./notice.above-a-region";
 import NumberFieldSizesExample from "./number-field.sizes";
 import NumberFieldFormatExample from "./number-field.format";
 import NumberFieldStepsExample from "./number-field.steps";
+import NumberFieldScrubExample from "./number-field.scrub";
 import NumberFieldControlledExample from "./number-field.controlled";
 import NumberFieldStatesExample from "./number-field.states";
 import NumberFieldInAFormExample from "./number-field.in-a-form";
@@ -370,6 +371,7 @@ import ShellResizableExample from "./shell.resizable";
 import ShellControlledExample from "./shell.controlled";
 import AiChatAppExample from "./ai.chat-app";
 import AiAssistantExample from "./ai.assistant";
+import ShellCollapseStackExample from "./shell.collapse-stack";
 import SliderRangeExample from "./slider.range";
 import SliderControlledExample from "./slider.controlled";
 import SliderStepsExample from "./slider.steps";
@@ -453,6 +455,7 @@ import ToolbarGroupsExample from "./toolbar.groups";
 import ToolbarSizesExample from "./toolbar.sizes";
 import ToolbarVerticalExample from "./toolbar.vertical";
 import ToolbarOverflowExample from "./toolbar.overflow";
+import ToolbarOverflowRankExample from "./toolbar.overflow-rank";
 import ToolbarWithMenuExample from "./toolbar.with-menu";
 import ToolbarDisabledExample from "./toolbar.disabled";
 import TooltipIconButtonsExample from "./tooltip.icon-buttons";
@@ -751,6 +754,7 @@ export const EXAMPLES: Record<string, React.ComponentType> = {
   "number-field.sizes": NumberFieldSizesExample,
   "number-field.format": NumberFieldFormatExample,
   "number-field.steps": NumberFieldStepsExample,
+  "number-field.scrub": NumberFieldScrubExample,
   "number-field.controlled": NumberFieldControlledExample,
   "number-field.states": NumberFieldStatesExample,
   "number-field.in-a-form": NumberFieldInAFormExample,
@@ -815,6 +819,7 @@ export const EXAMPLES: Record<string, React.ComponentType> = {
   "shell.controlled": ShellControlledExample,
   "ai.chat-app": AiChatAppExample,
   "ai.assistant": AiAssistantExample,
+  "shell.collapse-stack": ShellCollapseStackExample,
   "slider.range": SliderRangeExample,
   "slider.controlled": SliderControlledExample,
   "slider.steps": SliderStepsExample,
@@ -898,6 +903,7 @@ export const EXAMPLES: Record<string, React.ComponentType> = {
   "toolbar.sizes": ToolbarSizesExample,
   "toolbar.vertical": ToolbarVerticalExample,
   "toolbar.overflow": ToolbarOverflowExample,
+  "toolbar.overflow-rank": ToolbarOverflowRankExample,
   "toolbar.with-menu": ToolbarWithMenuExample,
   "toolbar.disabled": ToolbarDisabledExample,
   "tooltip.icon-buttons": TooltipIconButtonsExample,

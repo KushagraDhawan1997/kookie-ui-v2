@@ -62,7 +62,7 @@ export {
   type ConfirmationProps,
   type NoticeProps,
 } from "./components/notice/notice.tsx";
-export { NumberField, type NumberFieldProps } from "./components/number-field/number-field.tsx";
+export { NumberField, NumberFieldGroup, type NumberFieldProps, type NumberFieldGroupProps } from "./components/number-field/number-field.tsx";
 export { Page, type PageProps } from "./components/page/page.tsx";
 export { RowGroup, type RowGroupProps } from "./components/row-group/row-group.tsx";
 export {
@@ -82,6 +82,7 @@ export {
   ToolbarGroup,
   ToolbarButton,
   ToolbarOverflow,
+  ToolbarOverflowItem,
   ToolbarSeparator,
   ToolbarTitle,
   useToolbarOverflow,
@@ -89,6 +90,7 @@ export {
   type ToolbarGroupProps,
   type ToolbarButtonProps,
   type ToolbarOverflowProps,
+  type ToolbarOverflowItemProps,
   type ToolbarSeparatorProps,
   type ToolbarTitleProps,
 } from "./components/toolbar/toolbar.tsx";
@@ -133,6 +135,7 @@ export {
   ShellNavGroup,
   ShellNavItem,
   ShellTrigger,
+  ShellBack,
   type ShellProps,
   type ShellNoticeProps,
   type ShellHeaderProps,
@@ -150,6 +153,8 @@ export {
   type ShellNavGroupProps,
   type ShellNavItemProps,
   type ShellTriggerProps,
+  type ShellBackProps,
+  type ShellStackView,
   type ShellPaneTarget,
   type ShellPresentation,
 } from "./components/shell/shell.tsx";

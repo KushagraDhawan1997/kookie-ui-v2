@@ -185,3 +185,114 @@
 .kui-number-field > .kui-number-field-step:disabled {
   cursor: default;
 }
+
+/* ── Scrub (2026-11-03, the creative core) ────────────────────────────────────────────────
+   The label a person drags, a zone at the start like the decrease zone it replaces: the field's
+   height square, muted ink, and the sideways cursor. The number reads from the start, next to
+   its label, the way every inspector writes it. */
+.kui-number-field > .kui-number-field-scrub {
+  order: -1;
+  align-self: stretch;
+  flex: none;
+  inline-size: var(--kui-ct-h);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  cursor: ew-resize;
+  user-select: none;
+  touch-action: none;
+}
+
+/* The value takes the room the label leaves, down to nothing: in a group's equal columns the
+   input's own intrinsic width (the platform's 20 characters) would push the field out of its
+   cell. */
+.kui-number-field[data-scrub] > .kui-number-field-input {
+  text-align: start;
+  padding-inline-start: 0;
+  flex: 1 1 0%;
+  min-inline-size: 0;
+}
+
+.kui-number-field-scrub-label {
+  display: inline-flex;
+  align-items: center;
+}
+
+.kui-number-field-scrub-label > svg,
+.kui-number-field-scrub-glyph > svg {
+  inline-size: 1em;
+  block-size: 1em;
+}
+
+.kui-number-field-scrub-cursor {
+  pointer-events: none;
+}
+
+.kui-number-field-scrub-glyph {
+  display: inline-flex;
+  color: var(--color-text);
+}
+
+/* A field that takes no input offers no drag (audit): the field's own disabled cursor, not the
+   sideways one. Base UI stamps both states on the scrub area. */
+.kui-number-field > .kui-number-field-scrub[data-disabled],
+.kui-number-field > .kui-number-field-scrub[data-readonly] {
+  cursor: inherit;
+}
+
+/* ── A group of fields (2026-11-03, the creative core) ────────────────────────────────────
+   ButtonGroup's join on a field: equal columns, one shared border between neighbours, and the
+   inner corners square. A focused field rises above its neighbours so its ring is whole. */
+.kui-number-field-group {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+}
+
+.kui-number-field-group > .kui-number-field {
+  min-inline-size: 0;
+}
+
+/* By the fields' own class, because Base UI writes each field's hidden form input as the field's
+   next sibling, so no field is ever the group's last child; and not by element type, which a
+   span anywhere else in the group would count (audit). */
+.kui-number-field-group > .kui-number-field:has(~ .kui-number-field) {
+  border-start-end-radius: var(--radius-0);
+  border-end-end-radius: var(--radius-0);
+}
+
+.kui-number-field-group > .kui-number-field ~ .kui-number-field {
+  border-start-start-radius: var(--radius-0);
+  border-end-start-radius: var(--radius-0);
+  margin-inline-start: calc(-1 * var(--border-width));
+}
+
+/* The field whose edge says something rises over the shared border: focused, hovered or
+   invalid, or its neighbour paints over that side of the edge (audit). */
+.kui-number-field-group > .kui-number-field:focus-within,
+.kui-number-field-group > .kui-number-field[data-invalid],
+.kui-number-field-group > .kui-number-field[aria-invalid="true"] {
+  position: relative;
+  z-index: 1;
+}
+
+/* A stepper field in a group squares its zones on the joined sides too, or a zone's hover fill
+   is a rounded patch in a square corner. */
+.kui-number-field-group > .kui-number-field:has(~ .kui-number-field) > [data-step="increment"] {
+  border-start-end-radius: var(--radius-0);
+  border-end-end-radius: var(--radius-0);
+}
+
+.kui-number-field-group > .kui-number-field ~ .kui-number-field > [data-step="decrement"] {
+  border-start-start-radius: var(--radius-0);
+  border-end-start-radius: var(--radius-0);
+}
+
+/* Hover only where there is hover, as every hover rule in this system (ENGINEERING §1.5). */
+@media (hover: hover) {
+  .kui-number-field-group > .kui-number-field:hover {
+    position: relative;
+    z-index: 1;
+  }
+}

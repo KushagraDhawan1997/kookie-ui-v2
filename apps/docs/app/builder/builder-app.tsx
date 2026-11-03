@@ -140,6 +140,7 @@ import { CommandPalette } from "./command-palette";
 import { liveFix, reviewDocument, type Finding } from "./review";
 import { EmptyState } from "../../blocks/empty-state";
 import { ReviewPanel } from "./review-panel";
+import { useWebMcpHost } from "../(docs)/webmcp";
 import { CanvasBoundary, CanvasMenu, DocumentBar, JumpBar, ShortcutSheet, TemplatePicker, Toast } from "./chrome";
 
 /** The rungs the magnifier steps through — a closed list, like everything else here. */
@@ -339,6 +340,25 @@ export function BuilderApp() {
   const [exportBlock, setExportBlock] = React.useState<number | null>(null);
   const [toast, setToast] = React.useState<string | null>(null);
   /** Where a right-click landed, and therefore where the context menu anchors. */
+
+  /* AN AGENT CAN BUILD HERE (2026-11-03). On a browser with WebMCP, or with `?webmcp=1`, the
+     builder offers three tools: read the screen, write it, and look up the catalog. A write is
+     one `edit`, so it shares a person's undo history and the review panel judges it the same.
+     The tools read the live state through the ref, never a render's stale copy. */
+  useWebMcpHost(async () => {
+    const { builderTools } = await import("./agent");
+    return builderTools({
+      doc: () => activeDoc(stateRef.current),
+      name: () => activeDoc(stateRef.current).name,
+      write: (roots) => {
+        const action: Parameters<typeof reducer>[1] = { type: "edit", roots, selection: [] };
+        // Ahead of React's render, so a read in the same turn sees the write. The reducer is
+        // pure, so React reaching the same state from the same action is the same state.
+        stateRef.current = reducer(stateRef.current, action);
+        dispatch(action);
+      },
+    });
+  });
 
   const doc = activeDoc(state);
   /* Layers shows no filter over an empty document; Add always has something to filter. */

@@ -255,9 +255,64 @@ export default function Example() {
 }
 ```
 
-## Props
+### Scrub and group, for an inspector
 
-Generated from the types. It lists what this component DECLARES: a prop that arrives from a shared type or from the platform is real and is not repeated here.
+`scrub` puts a short label at the start that people drag sideways to change the value, in place of the two buttons. `NumberFieldGroup` joins fields that edit one value, such as a position's X, Y and Z, and names them as one group.
+
+```tsx
+"use client";
+
+import { Box, Card, NumberField, NumberFieldGroup, Stack, Text } from "@kushagradhawan/kookie-ui-react";
+
+const TRANSFORM = [
+  { label: "Position", unit: { style: "unit", unit: "centimeter", unitDisplay: "narrow" }, values: [12, 0, -4] },
+  { label: "Rotation", unit: { style: "unit", unit: "degree", unitDisplay: "narrow" }, values: [0, 45, 0] },
+  { label: "Scale", unit: undefined, values: [1, 1, 1] },
+] as const;
+
+// A 3D editor's transform: drag a letter sideways to change its value, or type. The values
+// update while you drag, and `onValueCommitted` fires once when you let go, so an undo history
+// takes one step per drag. Each group is one thing to read, so its three fields share borders.
+export default function Example() {
+  return (
+    <Box maxWidth="20rem">
+      <Card size="2">
+        <Stack gap="5">
+          {TRANSFORM.map((row) => (
+            <Stack key={row.label} gap="3">
+              <Text size="2" emphasis="medium">
+                {row.label}
+              </Text>
+              <NumberFieldGroup label={row.label}>
+                {(["X", "Y", "Z"] as const).map((axis, i) => (
+                  <NumberField
+                    key={axis}
+                    scrub={axis}
+                    aria-label={axis}
+                    defaultValue={row.values[i]}
+                    step={row.label === "Scale" ? 0.1 : 1}
+                    {...(row.unit ? { format: row.unit } : {})}
+                  />
+                ))}
+              </NumberFieldGroup>
+            </Stack>
+          ))}
+        </Stack>
+      </Card>
+    </Box>
+  );
+}
+```
+
+## Topics
+
+Every symbol this component exports, grouped by the job it does. Each one carries the props it declares.
+
+### One number
+
+#### NumberField
+
+NumberField is a field for entering a number, with buttons on each side that decrease and increase it.
 
 | Prop | Type | What it does |
 | --- | --- | --- |
@@ -280,6 +335,7 @@ Generated from the types. It lists what this component DECLARES: a prop that arr
 | `onValueCommitted?` | `\| ((value: number \| null, eventDetails: BaseNumberField.Root.CommitEventDetails) => void) \| undefined` | Called when the value is final: on blur after typing, or when a press is released. |
 | `readOnly?` | `boolean \| undefined` | Prevents changes to the value. |
 | `required?` | `boolean \| undefined` | Prevents form submission while the field is empty. |
+| `scrub?` | `React.ReactNode` | Turns the field into a creative tool's field: a short label at the start, such as `X` or an icon, that a person drags sideways to change the value. |
 | `size?` | `"1" \| "2" \| "3" \| "4"` | The size step of the field, from `"1"` to `"4"`. |
 | `smallStep?` | `number \| undefined` | The amount that Alt + an arrow key adds or removes. |
 | `snapOnStep?` | `boolean \| undefined` | Rounds the value to a multiple of `step` when it steps. |
@@ -288,3 +344,16 @@ Generated from the types. It lists what this component DECLARES: a prop that arr
 | `value?` | `number \| null \| undefined` | The value of a controlled field. |
 
 It also takes every prop of a `<input>`.
+
+### Numbers that go together
+
+#### NumberFieldGroup
+
+Number fields that edit one value, such as X, Y and Z, joined edge to edge in equal columns under one accessible name
+
+| Prop | Type | What it does |
+| --- | --- | --- |
+| `label` | `string` | The group's accessible name, such as `Position`. |
+| `size?` | `"1" \| "2" \| "3" \| "4"` | The size step of every field in the group. |
+
+It also takes every prop of a `<div>`.

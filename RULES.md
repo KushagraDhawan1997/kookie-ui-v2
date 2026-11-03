@@ -84,9 +84,8 @@ the disagreement is a bug to report.
 12. **Space around a heading is asymmetric.** A heading sits closer to what follows it than to
     what comes before. Enforced by: check (builder `heading-space`).
 13. **Space groups first; a border only when space can't.** Never both a container and a rule
-    around the same group. No card inside a card. A list with separators shows no selected or
-    hover fill on its rows, because the fill and the lines fight (2026-11-02). Enforced by: check (builder `nested-card`),
-    review.
+    around the same group. No card inside a card. (Lines and hover on one list: rule 28.) Enforced by: check (builder
+    `nested-card`), review.
 14. **Every gap is a step on the scale.** No invented lengths (`13px`, `1.35rem`). Enforced by:
     check (`checkUsage`, ESLint plugin).
 
@@ -116,9 +115,7 @@ the disagreement is a bug to report.
     one. Enforced by: review.
 21. **Say less.** Helper text carries a consequence, a scope or a limit, never a definition of
     the control. Option cards hold a name, a price or value, and one short line, no more.
-    Enforced by: check (builder `filler-text`), review.
-    Never join two values with a middle dot (`Friday · Flights land at 9:40`). Kushagra hates it:
-    it reads as filler. Show one value, or give each its own line (2026-11-02).
+    (Dots between facts: rule 27.) Enforced by: check (builder `filler-text`), review.
 22. **No eyebrows.** A title carries its own subject. Enforced by: check (builder `eyebrow`).
 23. **An action says what it does**, as a verb and its object, and keeps its name through the
     flow (Publish, then Published). Enforced by: check (builder `vague-action`,
@@ -127,12 +124,6 @@ the disagreement is a bug to report.
     instructions. Errors say how to fix it. Enforced by: check (builder `placeholder-as-label`,
     `instructions-in-placeholder`, `generic-error`).
 
-27. **No dot between facts.** Never join two facts with `·` or `•` ("Friday · Flights at
-    9:40"). Give each fact its own place, or cut one. Kushagra: "less is more". Enforced by:
-    check (screen `dot-separator`).
-28. **Lines or hover, never both.** A list divided by separators doesn't light its rows on
-    hover, and a list that lights its rows draws no lines between them. Enforced by: check
-    (screen `hover-with-separators`).
 
 ## Choices
 
@@ -149,3 +140,14 @@ the disagreement is a bug to report.
     A window may bleed off a figure's band, but words are never cut off. The wrong half of a
     do/don't figure carries the Wrong verdict glyph, and only that half may break a rule.
     Enforced by: check (screen `clipped-text`), review.
+
+## Added 2 and 3 November
+
+27. **No dot between facts.** Never join two facts with `·` or `•` ("Friday · Flights at
+    9:40"). Give each fact its own place, or cut one. Kushagra: "less is more". Enforced by:
+    check (screen `dot-separator`).
+28. **Lines or hover, never both.** A list divided by separators doesn't light its rows on
+    hover, and a list that lights its rows draws no lines between them. Enforced by: check
+    (screen `hover-with-separators`).
+29. **Every control has a name.** An icon-only button carries an `aria-label`, so a screen
+    reader says what it does. Enforced by: check (screen `accessible-name`).

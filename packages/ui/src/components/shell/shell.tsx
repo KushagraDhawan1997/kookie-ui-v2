@@ -53,6 +53,9 @@ import { GlassScope, useMaterial, themeDefaults, type SurfaceMaterial } from "..
 import { DEV } from "../../system/dev.ts";
 import { shellResize } from "../../tokens/config.ts";
 import { SizeScopeContext, useSize } from "../../system/size.ts";
+import { CHEVRON_BACK_PATH, GLYPH_VIEWBOX } from "../../system/glyphs.ts";
+import { glyphStroke } from "../../tokens/config.ts";
+import { ToolbarButton } from "../toolbar/toolbar.tsx";
 
 /** The room the ceiling reserves so a dragged-open pane never carries its own handle off
     the frame. Stated here rather than read off the token, because the clamp runs during a
@@ -87,6 +90,9 @@ type PaneEntry = {
 type ShellStore = {
   entries: Map<ShellPaneTarget, PaneEntry>;
   listeners: Set<() => void>;
+  /** The sidebar's stack, when it collapses into one: which side a narrow window shows, and how
+      to go back. `ShellBack` reads it; null for a sidebar that collapses into a sheet. */
+  stack: { view: ShellStackView; showSidebar: () => void } | null;
   /** A monotonic counter, not the Map, is what a subscriber reads: `useSyncExternalStore`
       re-invokes getSnapshot on every render and requires a stable value between
       notifications. A number is stable by construction; a derived array or object would be a
@@ -337,6 +343,7 @@ export function Shell({ size: sizeProp, contained, className, style, children, r
   const [store] = React.useState<ShellStore>(() => ({
     entries: new Map(),
     listeners: new Set(),
+    stack: null,
     version: 0,
   }));
 
@@ -950,6 +957,8 @@ function usePane(
     onOpenChange: ((open: boolean) => void) | undefined;
     presentation: ShellPresentation;
     id: string | undefined;
+    /** A sidebar that collapses into a stack never overlays: on a narrow window it is a screen. */
+    stacked?: boolean;
   },
 ) {
   const { store, rootRef } = useShellCtx(`Shell${name[0]!.toUpperCase()}${name.slice(1)}`);
@@ -988,7 +997,8 @@ function usePane(
   // measures 0x0 and mints no map — refraction.tsx's `< 8` floor — and re-measures through
   // its ResizeObserver the moment it is shown).
   const overlaying =
-    presentation === "overlay" || (presentation === "auto" && windowClass === "narrow");
+    presentation === "overlay" ||
+    (presentation === "auto" && windowClass === "narrow" && !props.stacked);
 
   const overlayLive = expanded === true && overlaying;
 
@@ -1457,11 +1467,14 @@ function SidePane({
      have been six rules each arguing with surfaces.css. The lens goes with them — a map built
      per resize for an element with no filter to put it in. */
   bare,
+  stackView,
 }: {
   name: ShellPaneTarget;
   element: "nav" | "aside";
   props: SidePaneProps;
   bare?: boolean;
+  /** Set for a sidebar that collapses into a stack: the side a narrow window shows. */
+  stackView?: ShellStackView | undefined;
 }) {
   const {
     open,
@@ -1489,7 +1502,15 @@ function SidePane({
   // Destructured out of `rest` under another name as well as resolved: `size` is not an
   // attribute of `<nav>` or `<aside>`, so leaving it in the spread writes invalid HTML.
   const size = usePaneSize(statedSize);
-  const pane = usePane(name, { open, defaultOpen, onOpenChange, presentation: presentation ?? "auto", id });
+  const stacked = stackView !== undefined && (presentation ?? "auto") === "auto";
+  const pane = usePane(name, {
+    open,
+    defaultOpen,
+    onOpenChange,
+    presentation: presentation ?? "auto",
+    id,
+    stacked,
+  });
   // The lens joins the ref chain rather than replacing it: the caller's ref and the registry's
   // both still land (the `render` escape's 2026-08-03 lesson — eight hand-rolled merges is how
   // one of them overwrites another).
@@ -1527,7 +1548,12 @@ function SidePane({
       // context alone reaches only React.
       data-size={size}
       data-state={pane.state}
-      data-presentation={pane.presentation}
+      // A STACK IS ITS OWN PRESENTATION ON THE ELEMENT (2026-11-03). `auto` would put the sidebar
+      // through every narrow drawer arm, each of which would then need standing back down; a
+      // stamp the drawer arms never name is one decision instead of a dozen. A wide window
+      // reads it as in flow, which is what `auto` resolves to there.
+      data-presentation={stacked ? "stack" : pane.presentation}
+      data-view={stacked ? stackView : undefined}
       // Focus lands here programmatically when the pane overlays — a mode, not a keyboard
       // affordance, the menu popup's sentence.
       tabIndex={-1}
@@ -1810,11 +1836,147 @@ export function ShellTabBar(props: ShellTabBarProps) {
   return <ShellRail {...props} presentation="bar" />;
 }
 
-export type ShellSidebarProps = ComponentRefusals & SidePaneProps;
+/** Which side of a sidebar that collapses into a stack a narrow window shows. */
+export type ShellStackView = "sidebar" | "content";
 
-/** The wide navigation column. Renders `<nav>`. */
-export function ShellSidebar(props: ShellSidebarProps) {
-  return <SidePane name="sidebar" element="nav" props={props} />;
+export type ShellSidebarProps = ComponentRefusals &
+  SidePaneProps & {
+    /**
+     * Sets what the sidebar becomes on a narrow window. The default is `sheet`.
+     *
+     * - `sheet`: a drawer over the content, opened with a `ShellTrigger`. Use it when the sidebar
+     *   is the app's navigation, which a person opens when they need it.
+     * - `stack`: the first screen. Picking an item shows the content, and `ShellBack` in the
+     *   content's band goes back to the sidebar. Use it when the sidebar is the list a person
+     *   browses, such as a mailbox or a list of settings.
+     *
+     * A wide window shows the sidebar beside the content either way.
+     */
+    collapse?: "sheet" | "stack";
+    /**
+     * Sets which side a sidebar that collapses into a stack shows on a narrow window. Use it with
+     * `onViewChange` when your router owns the selection: `"content"` while an item is open,
+     * `"sidebar"` when none is. The browser's Back then works through your URLs.
+     */
+    view?: ShellStackView;
+    /** Sets the side a stacked sidebar shows first, when you don't control `view`. The default is `sidebar`. */
+    defaultView?: ShellStackView;
+    /**
+     * Called when a stacked sidebar changes side: with `"content"` when a `ShellNavItem` in it is
+     * pressed, and with `"sidebar"` when `ShellBack` is pressed.
+     */
+    onViewChange?: (view: ShellStackView) => void;
+  };
+
+/** A stacked sidebar's push, for the rows inside it: pressing one shows the content. */
+const StackPushContext = React.createContext<(() => void) | null>(null);
+
+/**
+ * The wide navigation column. Renders `<nav>`.
+ *
+ * ON A NARROW WINDOW IT COLLAPSES INTO A SHEET OR A STACK (2026-11-03, Kushagra: "for me, list +
+ * detail is sidebar + content"). Apple's split view is the same three columns and collapses the
+ * same way; its words are sidebar, content and collapse. The stack is a two-screen navigator:
+ * the sidebar is the root, the content is the screen above it, and `ShellBack` is its Back. The
+ * one difference from a `Navigator` is who owns the path. A stack inside a pane never touches
+ * history; this one fills the window, so it is a page, and the app's router owns it through
+ * `view`. Kookie never pushes history.
+ */
+export function ShellSidebar({ collapse = "sheet", view: viewProp, defaultView, onViewChange, ...props }: ShellSidebarProps) {
+  const { store } = useShellCtx("ShellSidebar");
+  const windowClass = useWindowClass();
+  const [own, setOwn] = React.useState<ShellStackView>(defaultView ?? "sidebar");
+  const view = viewProp ?? own;
+  const stacked = collapse === "stack";
+
+  // The row that showed the content, so Back can return focus to it — Navigator's rule.
+  const opener = React.useRef<HTMLElement | null>(null);
+  const latest = React.useRef({ controlled: viewProp !== undefined, onViewChange });
+  React.useEffect(() => {
+    latest.current = { controlled: viewProp !== undefined, onViewChange };
+  });
+  const setView = React.useCallback((next: ShellStackView) => {
+    latest.current.onViewChange?.(next);
+    if (!latest.current.controlled) setOwn(next);
+  }, []);
+  // On a phone the PAGE scrolls (§27), so each side keeps its own place: the list's scroll is
+  // kept when the content opens and given back on Back, and the content opens at its top
+  // (audit 2026-11-03).
+  const listScroll = React.useRef(0);
+  const push = React.useCallback(() => {
+    opener.current = typeof document === "undefined" ? null : (document.activeElement as HTMLElement | null);
+    listScroll.current = typeof window === "undefined" ? 0 : window.scrollY;
+    setView("content");
+  }, [setView]);
+  const showSidebar = React.useCallback(() => setView("sidebar"), [setView]);
+
+  // Publish the stack so `ShellBack` can find it; a sheet sidebar publishes none.
+  React.useEffect(() => {
+    if (!stacked) return;
+    store.stack = { view, showSidebar };
+    notifyStore(store);
+    return () => {
+      store.stack = null;
+      notifyStore(store);
+    };
+  }, [store, stacked, view, showSidebar]);
+
+  // Focus follows the screen, on a narrow window only: there the other side is gone, so focus
+  // would be left on nothing. A wide window shows both sides and focus stays where it was.
+  const previous = React.useRef(view);
+  React.useEffect(() => {
+    const before = previous.current;
+    previous.current = view;
+    if (!stacked || windowClass !== "narrow" || before === view) return;
+    const root = store.entries.get("sidebar")?.el?.closest(".kui-shell");
+    window.scrollTo(0, view === "content" ? 0 : listScroll.current);
+    if (view === "content") {
+      const content = root?.querySelector<HTMLElement>(":scope > .kui-shell-content");
+      const target = content?.querySelector<HTMLElement>("h1") ?? content;
+      if (target) {
+        if (!target.hasAttribute("tabindex")) target.tabIndex = -1;
+        target.focus({ preventScroll: true });
+      }
+    } else if (opener.current?.isConnected) {
+      opener.current.focus();
+    }
+  }, [view, stacked, windowClass, store]);
+
+  const pane = <SidePane name="sidebar" element="nav" props={props} stackView={stacked ? view : undefined} />;
+  return stacked ? <StackPushContext.Provider value={push}>{pane}</StackPushContext.Provider> : pane;
+}
+
+export type ShellBackProps = ComponentRefusals & {
+  /** The accessible name. The default is `Back`. */
+  "aria-label"?: string;
+};
+
+/**
+ * Back, for the content's band, when the sidebar collapses into a stack. It shows only on a
+ * narrow window while the content is showing, and returns to the sidebar. Everywhere else it
+ * renders nothing, so it can sit in the band at every width.
+ */
+export function ShellBack(props: ShellBackProps) {
+  const ctx = useShellCtx("ShellBack");
+  // ALWAYS RENDERED, and the stylesheet decides (audit 2026-11-03): whether the window is narrow
+  // and the content is showing are both CSS's answers, so a server-rendered deep link paints
+  // Back before any script runs. The wrapper is how it hides; `display: contents` when shown, so
+  // the button is the toolbar's own item. The stack is read at the press, never at render.
+  return (
+    <span className="kui-shell-back">
+      <ToolbarButton iconOnly aria-label={props["aria-label"] ?? "Back"} onClick={() => ctx.store.stack?.showSidebar()}>
+        <svg className="kui-shell-back-glyph" viewBox={GLYPH_VIEWBOX} fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+          <path
+            d={CHEVRON_BACK_PATH}
+            stroke="currentColor"
+            strokeWidth={glyphStroke}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </ToolbarButton>
+    </span>
+  );
 }
 
 export type ShellInspectorProps = ComponentRefusals & SidePaneProps;
@@ -2423,8 +2585,16 @@ export function ShellNavItem({
   ...props
 }: ShellNavItemProps) {
   const size = React.use(ShellSizeContext);
+  const push = React.use(StackPushContext);
   const merged = {
     ...props,
+    // In a sidebar that collapses into a stack, a pick shows the content.
+    onClick: push
+      ? (event: React.MouseEvent<HTMLButtonElement>) => {
+          props.onClick?.(event);
+          if (!event.defaultPrevented) push();
+        }
+      : props.onClick,
     "data-size": size,
     // ACCENT IS STAMPED ALWAYS (2026-08-23; still right after the 2026-08-26 icon reversal).
     // The family is what the CURRENT row's icon and label read, and current is decided per
