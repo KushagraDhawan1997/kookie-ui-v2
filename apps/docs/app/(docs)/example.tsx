@@ -63,6 +63,22 @@ export const rootsOwnPane = (source: string): boolean =>
   !opensAnOverlay(source) && /<(Card|Composer|RowGroup)\b/.test(source);
 
 /**
+ * AN EXAMPLE THAT PAINTS A PICTURE BEHIND ITS CONTROLS hands the picture to the figure
+ * (2026-11-03, Kushagra: "why the bg image appears like this instead of taking over entire card").
+ * The stage centres its subject and shrink-wraps it, so a picture painted on the example's own box
+ * covered only the toolbars' width. The figure paints it across the whole stage instead, and the
+ * example keeps its own line, which is what a reader copies into an app.
+ */
+const stagePicture = (source: string): string | undefined => {
+  const url = /backgroundImage:\s*"url\(([^)"]+)\)"/.exec(source)?.[1];
+  return url ? `url(${url}) center / cover` : undefined;
+};
+const picture = (source: string) => {
+  const background = stagePicture(source);
+  return background ? { stageBackground: background } : {};
+};
+
+/**
  * AN EXAMPLE WHOSE ROOT IS AN OVERLAY draws only its trigger on the paper (2026-11-02, the
  * Navigator's upgrade flow): its cards render in the overlay's portal, over a scrim, and only
  * once opened, so they say nothing about the specimen's root. Read off what the default export
@@ -113,7 +129,7 @@ export async function Example({ name, quiet }: ExampleProps) {
      reads as a stray component rather than as the thing the page is about. */
   if (quiet) {
     return (
-      <Specimen sources={[]} pane={!rootsOwnPane(source)}>
+      <Specimen sources={[]} pane={!rootsOwnPane(source)} {...picture(source)}>
         {specimen}
       </Specimen>
     );
@@ -160,7 +176,7 @@ export async function Example({ name, quiet }: ExampleProps) {
   }
 
   return (
-    <Specimen sources={[{ code: source, lang: "tsx" }]} pane={!rootsOwnPane(source)}>
+    <Specimen sources={[{ code: source, lang: "tsx" }]} pane={!rootsOwnPane(source)} {...picture(source)}>
       {specimen}
     </Specimen>
   );

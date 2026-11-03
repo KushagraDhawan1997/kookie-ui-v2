@@ -644,3 +644,10 @@ body {
   outline-offset: var(--layout-space-2);
   border-radius: var(--space-2);
 }
+
+/* A stage that paints the picture itself (see `stagePicture` in example.tsx) takes the subject's
+   own copy of it away, or the subject's box would show a second, differently cropped picture
+   over the first. The example's source still paints it, which is what a reader copies. */
+.kd-figure-stage-picture > * {
+  background-image: none !important;
+}
