@@ -1667,6 +1667,7 @@ const DECLARED: Entry[] = [
       {"name":"sizes","title":"Sizes","why":"`size` on the row sets the height of the row and of every control in it, and the title text grows with it. A Toolbar with no `size` is one step above the app's size."},
       {"name":"vertical","title":"Vertical","why":"Set `orientation=\"vertical\"` for a column of tools along the edge of a canvas. The up and down arrow keys then move between the controls, and a separator becomes a horizontal line."},
       {"name":"overflow","title":"Overflow","why":"Put controls in a `ToolbarOverflow` when the row can get too narrow. The controls that don't fit move into a menu behind a ⋯ button, starting from the end of the row. Give that button a `label`, because it has no visible text."},
+      {"name":"overflow-rank","title":"Overflow by rank","why":"Wrap a control in a `ToolbarOverflowItem` with a `rank` to choose when it leaves. The lowest rank moves into the menu first, so Publish, the action this band exists for, stays in the row longest."},
       {"name":"with-menu","title":"Links and menus","why":"Pass an anchor to `render` to make a `ToolbarButton` into a link. To open a menu, pass a `ToolbarButton` to the `render` prop of `MenuTrigger`. Both keep their place in the row's keyboard order."},
       {"name":"disabled","title":"Disabled","why":"Set `disabled` on one `ToolbarButton` to turn it off. Set `disabled` on a `ToolbarGroup` to turn off every control in the capsule at once, for example when nothing is selected."},
     ],
@@ -1674,7 +1675,7 @@ const DECLARED: Entry[] = [
       { title: "The row", symbols: ["Toolbar"] },
       { title: "What goes in it", symbols: ["ToolbarButton", "ToolbarGroup", "ToolbarSeparator"] },
       { title: "Naming it", symbols: ["ToolbarTitle"] },
-      { title: "When the row runs out of room", symbols: ["ToolbarOverflow"] },
+      { title: "When the row runs out of room", symbols: ["ToolbarOverflow", "ToolbarOverflowItem"] },
     ],
     parts: [
       {
@@ -1689,6 +1690,10 @@ const DECLARED: Entry[] = [
         part: "ToolbarOverflow",
         blurb:
           "A group of controls that collapses into a ⋯ menu when the row runs out of room. It measures the space left in the row instead of using a breakpoint, because each toolbar holds different controls. A `ToolbarButton` that moves into the menu shows as a menu row, and your own components can call `useToolbarOverflow()` to render a different form there",
+      },
+      {
+        part: "ToolbarOverflowItem",
+        blurb: "One control in a `ToolbarOverflow`, with a `rank`. Higher ranks stay in the row longer, and equal ranks leave from the end of the cluster",
       },
       {
         part: "ToolbarSeparator",

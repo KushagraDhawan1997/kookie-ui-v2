@@ -1657,6 +1657,10 @@ export const EXCLUDED: { name: string; why: string }[] = [
     why: "It measures the room a row has left and moves what does not fit into a menu, so what it draws depends on the width the app is being used at. On this canvas that makes its contents appear and disappear as the width handle moves, and the exported JSX would describe a row whose visible controls are not the ones the document states. The row itself is placeable; deciding what collapses is a runtime question.",
   },
   {
+    name: "ToolbarOverflowItem",
+    why: "A part of ToolbarOverflow, which the builder excludes: its rank only decides when a control leaves a row that measures its own room.",
+  },
+  {
     name: "ShellTabBar",
     why: "A part of the Shell, which the builder excludes, and the one part that renders nothing at all on a wide window: it is the rail's bar-only posture, so it appears only on a narrow one. A tab bar on this canvas would be an invisible drop on every screen the editor is used at, holding links to routes a composed document does not have.",
   },
@@ -1812,7 +1816,7 @@ export const sanitizeNode = (n: BuilderNode, parentType?: string): BuilderNode |
   if (!entry) return null;
   const props: BuilderNode["props"] = {};
   for (const [k, v] of Object.entries(n.props ?? {})) {
-    if (k in entry.props) props[k] = v;
+    if (Object.hasOwn(entry.props, k)) props[k] = v;
   }
   const children = n.children
     ?.map((c) => sanitizeNode(c, n.type))
