@@ -96,7 +96,7 @@ export const PRINCIPLE_FIGURES = {
   AppearanceFigure:
     "A notes app's appearance settings on two phones, one in light mode and one in dark. One screen, two modes, nothing written twice.",
   CompositionFigure:
-    "A builder's property panel for a selected button: content and appearance in two groups spaced apart, the labels at the controls' size, and one size throughout.",
+    "A builder composing a 3D app's Export render dialog, its Export button selected, with the button's property panel beside it: content and appearance in two groups spaced apart, the labels at the controls' size, and one size throughout.",
   FitFigure:
     "The same settings screen on a desktop with a mouse and on a phone. Under touch, every row grows to 44 pixels.",
   OneFormFigure:
@@ -288,7 +288,7 @@ export function CompositionFigure() {
     <Band name="CompositionFigure">
       <div className="kd-device">
         <Theme size="2" className="kd-band-window">
-          <Shell contained className="kd-band-shell" style={{ "--shell-inspector-w": "304px" } as React.CSSProperties}>
+          <Shell contained className="kd-band-shell" style={{ "--shell-inspector-w": "248px" } as React.CSSProperties}>
             <ShellContent>
               {/* THE CANVAS PANE'S BANDS ARE THE BUILDER'S (2026-11-03, Kushagra: "Definitely match!").
                   The same tools as the front page's hero (hero.tsx), in the same places: Layers and
@@ -301,7 +301,7 @@ export function CompositionFigure() {
                     <ToolbarButton iconOnly aria-label="Layers">
                       <HugeiconsIcon icon={SidebarLeftIcon} strokeWidth={iconStroke} aria-hidden />
                     </ToolbarButton>
-                    <ToolbarTitle>Pay</ToolbarTitle>
+                    <ToolbarTitle>Render</ToolbarTitle>
                   </Flex>
                   <ToolbarOverflow label="More tools">
                     <ToolbarGroup>
@@ -316,7 +316,7 @@ export function CompositionFigure() {
                       <HugeiconsIcon icon={PlayIcon} strokeWidth={iconStroke} aria-hidden />
                     </ToolbarButton>
                     {/* Medium here, where the hero's is loud: this chapter's figure shows one loud
-                        thing, and it is the Continue on the canvas (RULES.md 8). */}
+                        thing, and it is the Export on the canvas (RULES.md 8). */}
                     <ToolbarOverflowItem rank={1}>
                       <ToolbarButton>Export</ToolbarButton>
                     </ToolbarOverflowItem>
@@ -326,10 +326,50 @@ export function CompositionFigure() {
                   </ToolbarOverflow>
                 </Toolbar>
               </ShellPaneHeader>
-              <div className="kd-band-canvas">
-                <Button size="2" emphasis="loud" className="kd-band-selected">
-                  Continue
-                </Button>
+              {/* Something to compose (2026-11-04, Kushagra: "Shouldnt the composition figure actually
+                  have something to compose?"): the export dialog of a 3D app, with its Export button
+                  selected. A different screen from the hero's sign-in card, made the same way. */}
+              <div className="kd-band-canvas kd-band-canvas-compose">
+                <Card size="2" className="kd-band-compose">
+                  <Stack gap="5">
+                    <Stack gap="2">
+                      <Heading size="5">Export render</Heading>
+                      <Text size="2" emphasis="medium">
+                        Render the scene at full quality.
+                      </Text>
+                    </Stack>
+                    <Stack gap="4">
+                      <Field>
+                        <FieldLabel>File name</FieldLabel>
+                        <TextField defaultValue="Living room" />
+                      </Field>
+                      <Field>
+                        <FieldLabel>Format</FieldLabel>
+                        <SegmentedControl defaultValue="png" aria-label="Format">
+                          <SegmentedItem value="png">PNG</SegmentedItem>
+                          <SegmentedItem value="jpeg">JPEG</SegmentedItem>
+                          <SegmentedItem value="exr">EXR</SegmentedItem>
+                        </SegmentedControl>
+                      </Field>
+                      <Field>
+                        <FieldLabel>Resolution</FieldLabel>
+                        <Select defaultValue="4k" items={{ hd: "1920 × 1080", "4k": "3840 × 2160" }}>
+                          <SelectTrigger />
+                          <SelectContent>
+                            <SelectItem value="hd">1920 × 1080</SelectItem>
+                            <SelectItem value="4k">3840 × 2160</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </Field>
+                    </Stack>
+                    <Flex gap="2" justify="end">
+                      <Button emphasis="quiet">Cancel</Button>
+                      <Button emphasis="loud" className="kd-band-selected">
+                        Export
+                      </Button>
+                    </Flex>
+                  </Stack>
+                </Card>
               </div>
               <ShellPaneFooter float>
                 <Toolbar backdrop>
@@ -361,7 +401,7 @@ export function CompositionFigure() {
                   <PanelGroup>
                     <Field>
                       <FieldLabel>Label</FieldLabel>
-                      <TextField defaultValue="Continue" />
+                      <TextField defaultValue="Export" />
                     </Field>
                   </PanelGroup>
                   <PanelGroup>
