@@ -1177,15 +1177,24 @@ describe("a tap on the scrub label focuses the field, on touch too (2026-11-03)"
     const field = root.matches(".kui-number-field") ? root : root.querySelector(".kui-number-field")!;
     const zone = field.querySelector<HTMLElement>(".kui-number-field-scrub")!;
     const input = field.querySelector("input")!;
-    const touch = (type: string, x: number) =>
-      zone.dispatchEvent(new PointerEvent(type, { bubbles: true, pointerType: "touch", clientX: x, button: 0 }));
+    const touch = (type: string, x: number) => {
+      const point = new Touch({ identifier: 1, target: zone, clientX: x, clientY: 0 });
+      zone.dispatchEvent(
+        new TouchEvent(type, {
+          bubbles: true,
+          cancelable: true,
+          touches: type === "touchend" ? [] : [point],
+          changedTouches: [point],
+        }),
+      );
+    };
 
-    touch("pointerdown", 10);
-    touch("pointerup", 40);
+    touch("touchstart", 10);
+    touch("touchend", 40);
     expect(document.activeElement).not.toBe(input);
 
-    touch("pointerdown", 10);
-    touch("pointerup", 12);
+    touch("touchstart", 10);
+    touch("touchend", 12);
     expect(document.activeElement).toBe(input);
   });
 });

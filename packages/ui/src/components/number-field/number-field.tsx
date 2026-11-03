@@ -440,13 +440,17 @@ export function NumberField({
           // A TAP FOCUSES THE FIELD, ON TOUCH TOO (2026-11-03, Kushagra: "Ok"). Base UI focuses
           // the input on a mouse press and cancels the touch, so a finger that tapped the label
           // reached nothing. A touch that ends where it began is a tap; one that moved was a drag.
-          onPointerDown={(event) => {
-            tapStart.current = event.pointerType === "touch" ? event.clientX : null;
+          // TOUCH EVENTS, NOT POINTER EVENTS (checked in iOS Safari, 2026-11-04): Safari opens
+          // the keyboard only for a focus inside `touchend`, and focus from `pointerup` landed
+          // with no keyboard.
+          onTouchStart={(event) => {
+            tapStart.current = event.touches.length === 1 ? event.touches[0]!.clientX : null;
           }}
-          onPointerUp={(event) => {
+          onTouchEnd={(event) => {
             const start = tapStart.current;
             tapStart.current = null;
-            if (start !== null && Math.abs(event.clientX - start) < TAP_SLOP) inputRef.current?.focus();
+            const end = event.changedTouches[0]?.clientX;
+            if (start !== null && end !== undefined && Math.abs(end - start) < TAP_SLOP) inputRef.current?.focus();
           }}
         >
           <span aria-hidden className="kui-number-field-scrub-label">
