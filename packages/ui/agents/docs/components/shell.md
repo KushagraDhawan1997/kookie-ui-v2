@@ -821,7 +821,7 @@ export default function Example() {
 
 ### A sidebar that collapses into a stack
 
-When the sidebar is the list people browse, `collapse="stack"` makes it the first screen on a narrow window. Picking a message shows the message, and `ShellBack` in its band goes back to the list. The open message lives in the example's state, as it would in your router's URL. Narrow the window to see it.
+When the sidebar is the list people browse, `collapse="stack"` makes it the first screen on a narrow window. Picking a message shows it, and `ShellBack` goes back to the list. Pass `view` when your router owns the open message. Narrow the window to see it.
 
 ```tsx
 "use client";
@@ -1194,7 +1194,7 @@ It also takes every prop of a `<button>`.
 
 #### ShellBack
 
-Back, for the content's band when the sidebar collapses into a stack. It shows only on a narrow window while the content is showing
+Goes back to the sidebar when it collapses into a stack. Put it in the content's band; it shows only on a narrow window, while the content is showing
 
 | Prop | Type | What it does |
 | --- | --- | --- |

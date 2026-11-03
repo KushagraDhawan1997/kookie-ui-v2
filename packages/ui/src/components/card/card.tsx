@@ -9,6 +9,7 @@ import { useLensRef } from "../../system/refraction.tsx";
 import { useClipWarning } from "../../system/clip.tsx";
 import { CardScope, useInsideCard, useNestedCardWarning } from "../../system/nesting.tsx";
 import { GlassScope, useMaterial } from "../../theme/theme.tsx";
+import { NoPageScope } from "../../system/page.tsx";
 import { useSize } from "../../system/size.ts";
 
 export type CardProps = ComponentRefusals & Omit<
@@ -131,9 +132,14 @@ export function Card({
     <div {...(merged as React.ComponentPropsWithRef<"div">)}>{children}</div>
   );
 
+  // A CARD IS ITS OWN REGION, NOT PART OF THE PANE'S PAGE (2026-11-03, Kushagra: "lets do
+  // it"). What is inside cannot claim the pane's title, so a Navigator in a card draws its own
+  // band in the card, the way it does in a dialog, instead of taking the pane's.
   return (
     <GlassScope material={material}>
-      <CardScope>{content}</CardScope>
+      <CardScope>
+        <NoPageScope>{content}</NoPageScope>
+      </CardScope>
     </GlassScope>
   );
 }

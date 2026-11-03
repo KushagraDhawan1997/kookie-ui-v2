@@ -132,6 +132,32 @@ describe("in a pane with no frame passed, the navigator draws the band itself (2
   });
 });
 
+describe("in a card, the navigator keeps to the card (2026-11-03)", () => {
+  it("draws its own band in the card and leaves the pane's title alone", async () => {
+    const { Card } = await import("../card/card.tsx");
+    const { Page } = await import("../page/page.tsx");
+    const root = mounted(
+      <Shell contained style={{ blockSize: "500px" }}>
+        <ShellContent>
+          <Page title="Billing">
+            <Card>
+              <Navigator root={screen("Settings")} screen={screen} />
+            </Card>
+          </Page>
+        </ShellContent>
+      </Shell>,
+      { theme: {} },
+    );
+    const card = root.querySelector(".kui-card")!;
+    await until(() => card.querySelector(".kui-navigator-bar h2")?.textContent === "Settings");
+    card.querySelector<HTMLButtonElement>(".kui-navigator-level button")!.click();
+    await until(() => card.querySelector(".kui-navigator-bar h2")?.textContent === "Notifications");
+    expect(card.querySelector("[aria-label='Back to Settings']")).not.toBeNull();
+    // The pane still belongs to its page: one large title, the page's.
+    expect([...root.querySelectorAll("h1")].map((h) => h.textContent)).toEqual(["Billing"]);
+  });
+});
+
 describe("in a dialog, only the top screen names the panel (2026-11-03)", () => {
   it("push and pop move the dialog's name, and no id is shared with a hidden screen", async () => {
     mounted(

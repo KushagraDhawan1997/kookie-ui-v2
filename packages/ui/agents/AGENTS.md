@@ -144,7 +144,7 @@ system wrong. The reason each one was refused is on the component's own page —
 - **List** — A custom marker; `render`; A `gap` or density prop; A description list
 - **Menu** — `emphasis` on rows; A Shortcut part; `MenuSeparator`; An `inset` prop; `modal` and `openOnHover`; An arrow, a backdrop, a scroll viewport and collision settings
 - **MessageScroller** — `size`; A viewport of its own; A default label for the jump button
-- **Navigator** — A Navigator inside a Page; A Navigator inside another Navigator in the same region; Escape to go back; A disabled Back on the root; A URL; A Navigator in a Card inside a Shell pane
+- **Navigator** — A Navigator inside a Page; A Navigator inside another Navigator in the same region; Escape to go back; A disabled Back on the root; A URL
 - **NavTree** — `role="tree"`; Selection; Arrow-key navigation; An `indent` prop
 - **Notice** — A position, and a Banner component; A toast, or any Notice that disappears on its own; A title and description; More than one action; Remembering its own dismissal; A shadow; Built-in icons; A ✕ on a Confirmation
 - **NumberField** — `leading` and `trailing`; `emphasis` and `tone`; `render`; The browser's number input; Dragging or scrolling to change the value

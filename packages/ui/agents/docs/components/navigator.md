@@ -30,7 +30,6 @@ When a screen opens, focus moves to its title. When you go back, focus returns t
 - Escape to go back — Escape closes the dialog or sheet that holds the Navigator. Going back is the Back button.
 - A disabled Back on the root — There is nowhere to go back to, so the button isn't shown.
 - A URL — Kookie has no router. Keep the path in your URL yourself with `path` and `onPathChange`.
-- A Navigator in a Card inside a Shell pane — In a pane the Navigator takes the pane's header and title, even from inside a Card. Put it straight in the pane, or in a dialog or a sheet.
 
 ## Examples
 
