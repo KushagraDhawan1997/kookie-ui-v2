@@ -588,6 +588,19 @@ body {
   zoom: 0.72;
 }
 
+/* A taller band for a pair, so the zoomed phones show whole (2026-11-04, Kushagra: cut, "the
+   phones look too long"; only Appearance's run off the band). */
+.kd-band:has(> .kd-band-stage > .kd-band-pair) {
+  block-size: calc(68 * var(--layout-space-4));
+}
+
+/* On a phone the pair draws at 0.4, so the band shrinks with it. */
+@media (max-width: 40rem) {
+  .kd-band:has(> .kd-band-stage > .kd-band-pair) {
+    block-size: calc(40 * var(--layout-space-4));
+  }
+}
+
 .kd-band-stage:has(> .kd-band-pair) {
   padding-inline-start: 0;
   inset-block-start: var(--layout-space-9);
