@@ -2526,6 +2526,9 @@
   > :is(.kui-toolbar, .kui-navigator-bar):first-child {
   margin-block-start: calc(-1 * var(--layout-space-2));
   margin-inline: calc(-1 * var(--layout-space-2));
+  /* A Toolbar grows to fill a band row (toolbar.css); a sheet's body is a flex column, where
+     that growth went downward and pushed the content half a panel away (review 2026-11-03). */
+  flex: none;
 }
 
 /* And the content starts a section's distance under it, as it does under a Navigator's band. */

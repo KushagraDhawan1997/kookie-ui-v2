@@ -42,19 +42,16 @@ export default function Example() {
             }
           />
         </Toolbar>
-        <Stack gap="5">
-          <Stack gap="1">
-            <Row current leading={icon(Home01Icon)} render={<a href="#overview" />}>
-              Overview
-            </Row>
-            <Row leading={icon(Folder01Icon)} render={<a href="#projects" />}>
-              Projects
-            </Row>
-            <Row leading={icon(Settings02Icon)} render={<a href="#settings" />}>
-              Settings
-            </Row>
-          </Stack>
-          <SheetClose render={<Button emphasis="quiet" bordered>Close</Button>} />
+        <Stack gap="1">
+          <Row current leading={icon(Home01Icon)} render={<a href="#overview" />}>
+            Overview
+          </Row>
+          <Row leading={icon(Folder01Icon)} render={<a href="#projects" />}>
+            Projects
+          </Row>
+          <Row leading={icon(Settings02Icon)} render={<a href="#settings" />}>
+            Settings
+          </Row>
         </Stack>
       </SheetContent>
     </Sheet>

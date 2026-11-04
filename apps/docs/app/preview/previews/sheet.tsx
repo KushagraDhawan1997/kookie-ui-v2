@@ -16,6 +16,7 @@ import * as React from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import {
+  Box,
   Button,
   Card,
   Flex,
@@ -225,7 +226,9 @@ function States() {
                   }
                 />
               </Toolbar>
-              <SheetDescription>Newest first.</SheetDescription>
+              <Box mb="4">
+                <SheetDescription>Newest first.</SheetDescription>
+              </Box>
               <ScrollArea>
                 <Stack gap="4">
                   {[...ACTIVITY, ...ACTIVITY].map((line, i) => (
@@ -235,9 +238,6 @@ function States() {
                   ))}
                 </Stack>
               </ScrollArea>
-              <Flex justify="flex-end">
-                <SheetClose render={<Button emphasis="quiet" bordered>Close</Button>} />
-              </Flex>
             </SheetContent>
           </Sheet>
         </Flex>

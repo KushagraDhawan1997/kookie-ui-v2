@@ -1,6 +1,7 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import {
+  Box,
   Button,
   Dialog,
   DialogClose,
@@ -50,7 +51,9 @@ export default function Example() {
             }
           />
         </Toolbar>
-        <DialogDescription>Twelve changes shipped this month.</DialogDescription>
+        <Box mb="4">
+          <DialogDescription>Twelve changes shipped this month.</DialogDescription>
+        </Box>
         <ScrollArea>
           <Stack gap="3">
             {CHANGES.map((change) => (
