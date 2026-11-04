@@ -1,6 +1,6 @@
 import * as React from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { BookmarkAdd01Icon, Cancel01Icon, ComputerIcon, PlayIcon, Redo02Icon, SidebarLeftIcon, SidebarRightIcon, SmartPhone01Icon, SquareDashedIcon, Undo02Icon, Camera01Icon, Sun03Icon, BulbIcon, CubeIcon, Move01Icon, Rotate01Icon, ArrowExpand01Icon, FavouriteIcon, InformationCircleIcon, NoteEditIcon, Share08Icon, TextFontIcon, Tick02Icon } from "@hugeicons/core-free-icons";
+import { BookmarkAdd01Icon, Cancel01Icon, ComputerIcon, PlayIcon, Redo02Icon, SidebarLeftIcon, SidebarRightIcon, SmartPhone01Icon, SquareDashedIcon, Undo02Icon, Sofa01Icon, Camera01Icon, Sun03Icon, BulbIcon, CubeIcon, Move01Icon, Rotate01Icon, ArrowExpand01Icon, FavouriteIcon, InformationCircleIcon, NoteEditIcon, Share08Icon, TextFontIcon, Tick02Icon } from "@hugeicons/core-free-icons";
 import {
   Badge,
   Box,
@@ -99,7 +99,7 @@ export const PRINCIPLE_FIGURES = {
   AppearanceFigure:
     "A notes app's appearance settings on two phones, one in light mode and one in dark. One screen, two modes, nothing written twice.",
   CompositionFigure:
-    "A 3D editor: the scene's objects in the sidebar, the render filling the viewport with the selected pink sphere outlined, and its transform, material and shadows in the inspector, with one loud Render in the toolbar.",
+    "A 3D editor: the scene's objects in the sidebar, the render of a living room filling the viewport with the selected sofa outlined, and its transform, material and shadows in the inspector, with one loud Render in the toolbar.",
   FitFigure:
     "The same settings screen on a desktop with a mouse and on a phone. Under touch, every row grows to 44 pixels.",
   OneFormFigure:
@@ -287,7 +287,7 @@ function PanelGroup({ children }: { children: React.ReactNode }) {
 export function CompositionFigure() {
   /* A COMPLEX SCREEN, COMPOSED (2026-11-04, Kushagra: "why will someone use Kookie UI for such a
      simple UI, we should thrive in complex user interfaces"). A 3D editor: the scene in the
-     sidebar, the render filling the viewport with the selected object outlined, the selected object's properties in the inspector. Every
+     sidebar, the render filling the viewport with the selected sofa outlined, the selected object's properties in the inspector. Every
      rule on the page is in it: one loud Render for the window's job, groups set apart by space,
      titles a rank above their contents, and one size throughout. */
   return (
@@ -302,7 +302,7 @@ export function CompositionFigure() {
             <ShellSidebar aria-label="Scene" defaultOpen presentation="fixed" flush>
               <ShellPaneHeader>
                 <Toolbar backdrop>
-                  <ToolbarTitle>Soft bodies</ToolbarTitle>
+                  <ToolbarTitle>Living room</ToolbarTitle>
                 </Toolbar>
               </ShellPaneHeader>
               <ShellScroll fade>
@@ -313,12 +313,12 @@ export function CompositionFigure() {
                     <ShellNavItem leading={<HugeiconsIcon icon={BulbIcon} strokeWidth={iconStroke} aria-hidden />}>Fill light</ShellNavItem>
                   </Stack>
                   <Stack gap="1">
-                    <ShellNavItem leading={<HugeiconsIcon icon={CubeIcon} strokeWidth={iconStroke} aria-hidden />}>Large blob</ShellNavItem>
-                    <ShellNavItem leading={<HugeiconsIcon icon={CubeIcon} strokeWidth={iconStroke} aria-hidden />} current>
-                      Pink sphere
+                    <ShellNavItem leading={<HugeiconsIcon icon={Sofa01Icon} strokeWidth={iconStroke} aria-hidden />} current>
+                      Sofa
                     </ShellNavItem>
-                    <ShellNavItem leading={<HugeiconsIcon icon={CubeIcon} strokeWidth={iconStroke} aria-hidden />}>Dark blob</ShellNavItem>
-                    <ShellNavItem leading={<HugeiconsIcon icon={CubeIcon} strokeWidth={iconStroke} aria-hidden />}>Backdrop</ShellNavItem>
+                    <ShellNavItem leading={<HugeiconsIcon icon={CubeIcon} strokeWidth={iconStroke} aria-hidden />}>Coffee table</ShellNavItem>
+                    <ShellNavItem leading={<HugeiconsIcon icon={CubeIcon} strokeWidth={iconStroke} aria-hidden />}>Rug</ShellNavItem>
+                    <ShellNavItem leading={<HugeiconsIcon icon={CubeIcon} strokeWidth={iconStroke} aria-hidden />}>Media wall</ShellNavItem>
                   </Stack>
                 </Stack>
               </ShellScroll>
@@ -347,7 +347,7 @@ export function CompositionFigure() {
                 </Toolbar>
               </ShellPaneHeader>
               <div className="kd-band-viewport">
-                <img src="/backdrop.jpg" alt="" />
+                <img src="/living-room.jpg" alt="" />
                 <span className="kd-band-viewport-selection" />
               </div>
               <ShellPaneFooter float>
@@ -367,7 +367,7 @@ export function CompositionFigure() {
             <ShellInspector aria-label="Properties" defaultOpen presentation="fixed" flush>
               <ShellPaneHeader>
                 <Toolbar backdrop>
-                  <ToolbarTitle>Pink sphere</ToolbarTitle>
+                  <ToolbarTitle>Sofa</ToolbarTitle>
                 </Toolbar>
               </ShellPaneHeader>
               <ShellScroll fade>
@@ -377,9 +377,9 @@ export function CompositionFigure() {
                     <Stack gap="3">
                       <Text size="2">Position</Text>
                       <NumberFieldGroup label="Position">
-                        <NumberField scrub="X" aria-label="X" defaultValue={0.8} />
-                        <NumberField scrub="Y" aria-label="Y" defaultValue={1.4} />
-                        <NumberField scrub="Z" aria-label="Z" defaultValue={2.1} />
+                        <NumberField scrub="X" aria-label="X" defaultValue={1.2} />
+                        <NumberField scrub="Y" aria-label="Y" defaultValue={0} />
+                        <NumberField scrub="Z" aria-label="Z" defaultValue={2.4} />
                       </NumberFieldGroup>
                     </Stack>
                     <Stack gap="3">
@@ -394,13 +394,13 @@ export function CompositionFigure() {
                   <Stack gap="4">
                     <Heading size="4">Material</Heading>
                     <Field>
-                      <FieldLabel>Surface</FieldLabel>
-                      <Select defaultValue="glossy" items={{ glossy: "Glossy", matte: "Matte", glass: "Glass" }}>
+                      <FieldLabel>Fabric</FieldLabel>
+                      <Select defaultValue="boucle" items={{ boucle: "Bouclé", linen: "Linen", leather: "Leather" }}>
                         <SelectTrigger />
                         <SelectContent>
-                          <SelectItem value="glossy">Glossy</SelectItem>
-                          <SelectItem value="matte">Matte</SelectItem>
-                          <SelectItem value="glass">Glass</SelectItem>
+                          <SelectItem value="boucle">Bouclé</SelectItem>
+                          <SelectItem value="linen">Linen</SelectItem>
+                          <SelectItem value="leather">Leather</SelectItem>
                         </SelectContent>
                       </Select>
                     </Field>

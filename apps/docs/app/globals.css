@@ -404,46 +404,33 @@ body {
 }
 
 /* A form on a canvas sits nearer the top than a single control, so the whole card shows. */
-/* A 3D editor's viewport: a 2:3 crop of the render fills the pane's width from the top, under the
-   floating toolbars, past the band's cut. The fixed ratio keeps the crop fixed at every width, so
-   the selection outline stays on the pink sphere. */
+/* A 3D editor's viewport: the render (/living-room.jpg, Prydumano Design on Unsplash, 4:5) fills
+   the pane's width from the top, under the floating toolbars, and runs past the band's cut. Shown
+   whole at its own ratio, so the selection box stays on the sofa at every width. */
 .kd-band-viewport {
   position: absolute;
   inset: 0;
+  container-type: inline-size;
   background-color: var(--neutral-3);
 }
 
 .kd-band-viewport > img {
   display: block;
   inline-size: 100%;
-  aspect-ratio: 2 / 3;
+  aspect-ratio: 4 / 5;
   object-fit: cover;
 }
 
-/* Around the pink sphere in /backdrop.jpg: the 2:3 crop shows the image's middle 3/8 of its width. */
+/* The sofa's bounding box in the render, in the image's own proportions (margins resolve against
+   the width, so 0.54 of a 4:5 image's height is 0.675 of its width). */
 .kd-band-viewport-selection {
   position: absolute;
-  inset-inline-start: 47.8%;
+  inset-inline-start: 59%;
   inset-block-start: 0;
-  margin-block-start: 33.5%;
-  inline-size: 33%;
-  aspect-ratio: 1;
+  margin-block-start: 67.5%;
+  inline-size: 40%;
+  aspect-ratio: 40 / 30;
   border: var(--border-width) solid var(--kd-measure-ink);
-  border-radius: 50%;
-}
-
-/* On a band wide enough for the whole laptop the viewport is wider, so a square crop fills it
-   without blowing the render up: the image's middle 9/16 of its width. */
-@container (min-width: calc(30 * 32px + 4 * 24px)) {
-  .kd-band-viewport > img {
-    aspect-ratio: 1;
-  }
-
-  .kd-band-viewport-selection {
-    inset-inline-start: 48.5%;
-    margin-block-start: 22%;
-    inline-size: 22%;
-  }
 }
 
 /* When the window is narrow, the editor drops its scene list, as an editor does, so the viewport
@@ -455,6 +442,22 @@ body {
 
   .kd-band-editor > .kui-shell-sidebar {
     display: none !important;
+  }
+
+}
+
+/* A narrow viewport (the viewport is its own container) takes a 1:2 crop of the render's right
+   side, where the sofa is, so the render still reaches the band's cut. */
+@container (max-width: 22rem) {
+  .kd-band-viewport > img {
+    aspect-ratio: 1 / 2;
+    object-position: 100% 0;
+  }
+
+  .kd-band-viewport-selection {
+    inset-inline-start: 34%;
+    margin-block-start: 108%;
+    inline-size: 64%;
   }
 }
 
