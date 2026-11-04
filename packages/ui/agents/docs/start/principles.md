@@ -1,8 +1,10 @@
 # Principles
 
-An AI agent can make a screen look good. It cannot make fifty screens agree, because it answers
-every question again on every screen. Kookie is a system of patterns, carried by components, that
-answers those questions once and keeps the answers correct. Six principles decide those answers.
+Kookie is built on patterns. A pattern is a question every interface has to answer, with an
+answer that works: where can I go, and where am I now? How much should this interrupt me? What do
+I see while the app works? Kookie's components carry these answers, so you start from them
+instead of from scratch, whether you build by hand or with an AI agent. Six principles decide
+what the answers are.
 
 
 ## Fit the person, where they are
