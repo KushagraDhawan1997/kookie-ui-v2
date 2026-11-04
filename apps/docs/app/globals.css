@@ -404,9 +404,9 @@ body {
 }
 
 /* A form on a canvas sits nearer the top than a single control, so the whole card shows. */
-/* A 3D editor's viewport: a square crop of the render fills the pane's width from the top, under
-   the floating toolbars, about the window's visible height; the scene's ground runs on below it.
-   The square keeps the crop fixed, so the selection outline stays on the pink sphere. */
+/* A 3D editor's viewport: a 2:3 crop of the render fills the pane's width from the top, under the
+   floating toolbars, past the band's cut. The fixed ratio keeps the crop fixed at every width, so
+   the selection outline stays on the pink sphere. */
 .kd-band-viewport {
   position: absolute;
   inset: 0;
@@ -416,20 +416,34 @@ body {
 .kd-band-viewport > img {
   display: block;
   inline-size: 100%;
-  aspect-ratio: 1;
+  aspect-ratio: 2 / 3;
   object-fit: cover;
 }
 
-/* Around the pink sphere in /backdrop.jpg: the square shows the image's middle 9/16 of its width. */
+/* Around the pink sphere in /backdrop.jpg: the 2:3 crop shows the image's middle 3/8 of its width. */
 .kd-band-viewport-selection {
   position: absolute;
-  inset-inline-start: 48.5%;
+  inset-inline-start: 47.8%;
   inset-block-start: 0;
-  margin-block-start: 22%;
-  inline-size: 22%;
+  margin-block-start: 33.5%;
+  inline-size: 33%;
   aspect-ratio: 1;
   border: var(--border-width) solid var(--kd-measure-ink);
   border-radius: 50%;
+}
+
+/* On a band wide enough for the whole laptop the viewport is wider, so a square crop fills it
+   without blowing the render up: the image's middle 9/16 of its width. */
+@container (min-width: calc(30 * 32px + 4 * 24px)) {
+  .kd-band-viewport > img {
+    aspect-ratio: 1;
+  }
+
+  .kd-band-viewport-selection {
+    inset-inline-start: 48.5%;
+    margin-block-start: 22%;
+    inline-size: 22%;
+  }
 }
 
 /* When the window is narrow, the editor drops its scene list, as an editor does, so the viewport
@@ -599,6 +613,19 @@ body {
   .kd-figure > .kd-band > .kd-band-stage:has(> .kd-device) {
     justify-items: start;
     padding-inline-start: var(--layout-space-6);
+  }
+}
+
+/* The 3D editor (Composition) stays a whole tablet down to a 32rem band, rather than running off
+   at 600px, so its inspector never runs off the end. Narrower than that, the 600px rule holds. */
+@container (min-width: 32rem) and (max-width: calc(600px + 2 * 16px + 2 * 32px)) {
+  .kd-figure .kd-band-stage > .kd-device > .kd-band-window:has(> .kd-band-editor) {
+    inline-size: calc(100cqi - 2 * (var(--layout-space-5) + var(--border-width)) - 2 * var(--layout-space-6));
+  }
+
+  .kd-figure > .kd-band > .kd-band-stage:has(.kd-band-editor) {
+    justify-items: center;
+    padding-inline-start: 0;
   }
 }
 
