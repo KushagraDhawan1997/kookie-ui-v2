@@ -38,6 +38,7 @@ import Depth from "../../content/foundations/depth.mdx";
 import Motion from "../../content/foundations/motion.mdx";
 import States from "../../content/foundations/interaction.mdx";
 import Responsiveness from "../../content/patterns/responsiveness.mdx";
+import Ai from "../../content/patterns/ai.mdx";
 import Touch from "../../content/inputs/touch.mdx";
 import Pointer from "../../content/inputs/pointer.mdx";
 import Keyboard from "../../content/inputs/keyboard.mdx";
@@ -381,6 +382,18 @@ export const CHAPTERS: readonly Chapter[] = [
     source: "patterns/responsiveness.mdx",
     examples: ["responsiveness.container"],
     Content: Responsiveness,
+  },
+  {
+    slug: "patterns/ai",
+    title: "AI in the product",
+    section: "patterns",
+    blurb:
+      "Kookie decides where AI lives in your app, not what it says. Pick the chat app or the assistant layout by what the person came to do.",
+    task: "A chat, an assistant beside the work, or what an AI makes",
+    spec: ["§27"],
+    source: "patterns/ai.mdx",
+    examples: ["ai.chat-app", "ai.assistant"],
+    Content: Ai,
   },
 
   {

@@ -23,6 +23,7 @@ Open the page for your task by its path before you write code. File search skips
 - The app frame, page titles and tabs between pages: `patterns/navigation.md`
 - Loading, progress, success, error and empty states: `patterns/feedback.md`
 - A layout that changes with space, or a touch target: `patterns/responsiveness.md`
+- A chat, an assistant beside the work, or what an AI makes: `patterns/ai.md`
 - A screen people use on a phone or tablet: `inputs/touch.md`
 
 Every other page is in the same folder. A link to `/patterns/forms` inside a page is the
