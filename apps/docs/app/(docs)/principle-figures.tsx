@@ -1,6 +1,6 @@
 import * as React from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { BookmarkAdd01Icon, Cancel01Icon, ComputerIcon, PlayIcon, Redo02Icon, SidebarLeftIcon, SidebarRightIcon, SmartPhone01Icon, SquareDashedIcon, Undo02Icon, Sofa01Icon, Camera01Icon, Sun03Icon, BulbIcon, CubeIcon, Move01Icon, Rotate01Icon, ArrowExpand01Icon, FavouriteIcon, InformationCircleIcon, NoteEditIcon, Share08Icon, TextFontIcon, Tick02Icon } from "@hugeicons/core-free-icons";
+import { BookmarkAdd01Icon, PlusSignIcon, Cancel01Icon, ComputerIcon, PlayIcon, Redo02Icon, SidebarLeftIcon, SidebarRightIcon, SmartPhone01Icon, SquareDashedIcon, Undo02Icon, Sofa01Icon, Camera01Icon, Sun03Icon, BulbIcon, CubeIcon, Move01Icon, Rotate01Icon, ArrowExpand01Icon, FavouriteIcon, InformationCircleIcon, NoteEditIcon, Share08Icon, TextFontIcon, Tick02Icon } from "@hugeicons/core-free-icons";
 import {
   Badge,
   Box,
@@ -288,7 +288,7 @@ export function CompositionFigure() {
   /* A COMPLEX SCREEN, COMPOSED (2026-11-04, Kushagra: "why will someone use Kookie UI for such a
      simple UI, we should thrive in complex user interfaces"). A 3D editor: the scene in the
      sidebar, the render filling the viewport with the selected sofa outlined, the selected object's properties in the inspector. Every
-     rule on the page is in it: one loud Render for the window's job, groups set apart by space,
+     rule on the page is in it: one loud action per pane (add, Render, Export), groups set apart by space,
      titles a rank above their contents, and one size throughout. */
   return (
     <Band name="CompositionFigure">
@@ -302,7 +302,10 @@ export function CompositionFigure() {
             <ShellSidebar aria-label="Scene" defaultOpen presentation="fixed" flush>
               <ShellPaneHeader>
                 <Toolbar backdrop>
-                  <ToolbarTitle>Living room</ToolbarTitle>
+                  <ToolbarTitle>Scene</ToolbarTitle>
+                  <ToolbarButton emphasis="loud" iconOnly aria-label="Add object">
+                    <HugeiconsIcon icon={PlusSignIcon} strokeWidth={iconStroke} aria-hidden />
+                  </ToolbarButton>
                 </Toolbar>
               </ShellPaneHeader>
               <ShellScroll fade>
@@ -368,31 +371,32 @@ export function CompositionFigure() {
               <ShellPaneHeader>
                 <Toolbar backdrop>
                   <ToolbarTitle>Sofa</ToolbarTitle>
+                  <ToolbarButton emphasis="loud">Export</ToolbarButton>
                 </Toolbar>
               </ShellPaneHeader>
               <ShellScroll fade>
                 <Stack gap="6">
                   <Stack gap="4">
-                    <Heading size="4">Transform</Heading>
-                    <Stack gap="3">
-                      <Text size="2">Position</Text>
+                    <Heading size="3">Transform</Heading>
+                    <Field>
+                      <FieldLabel>Position</FieldLabel>
                       <NumberFieldGroup label="Position">
                         <NumberField scrub="X" aria-label="X" defaultValue={1.2} />
                         <NumberField scrub="Y" aria-label="Y" defaultValue={0} />
                         <NumberField scrub="Z" aria-label="Z" defaultValue={2.4} />
                       </NumberFieldGroup>
-                    </Stack>
-                    <Stack gap="3">
-                      <Text size="2">Rotation</Text>
+                    </Field>
+                    <Field>
+                      <FieldLabel>Rotation</FieldLabel>
                       <NumberFieldGroup label="Rotation">
                         <NumberField scrub="X" aria-label="X" defaultValue={0} format={{ style: "unit", unit: "degree", unitDisplay: "narrow" }} />
                         <NumberField scrub="Y" aria-label="Y" defaultValue={35} format={{ style: "unit", unit: "degree", unitDisplay: "narrow" }} />
                         <NumberField scrub="Z" aria-label="Z" defaultValue={0} format={{ style: "unit", unit: "degree", unitDisplay: "narrow" }} />
                       </NumberFieldGroup>
-                    </Stack>
+                    </Field>
                   </Stack>
                   <Stack gap="4">
-                    <Heading size="4">Material</Heading>
+                    <Heading size="3">Material</Heading>
                     <Field>
                       <FieldLabel>Fabric</FieldLabel>
                       <Select defaultValue="boucle" items={{ boucle: "Bouclé", linen: "Linen", leather: "Leather" }}>
@@ -410,7 +414,7 @@ export function CompositionFigure() {
                     </Field>
                   </Stack>
                   <Stack gap="4">
-                    <Heading size="4">Shadows</Heading>
+                    <Heading size="3">Shadows</Heading>
                     <Field>
                       <FieldLabel>Cast shadows</FieldLabel>
                       <Switch defaultChecked aria-label="Cast shadows" />
