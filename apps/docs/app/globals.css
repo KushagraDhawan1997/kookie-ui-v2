@@ -424,10 +424,6 @@ body {
   border-radius: var(--radius-surface-1);
 }
 
-/* The dialog's group outlines stand clear of what they hold and of the size measure. */
-.kd-band-compose .kd-band-group-outline {
-  outline-offset: var(--layout-space-3);
-}
 
 
 .kd-band-canvas.kd-band-canvas-form {

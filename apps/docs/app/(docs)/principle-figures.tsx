@@ -96,7 +96,7 @@ export const PRINCIPLE_FIGURES = {
   AppearanceFigure:
     "A notes app's appearance settings on two phones, one in light mode and one in dark. One screen, two modes, nothing written twice.",
   CompositionFigure:
-    "A builder composing a 3D app's Render image dialog: the render, its format and size, and Cancel and Render, each group outlined and a control measured at its height. The loud Render is selected, and the inspector beside it edits that button.",
+    "A builder composing a 3D app's Render image dialog: the render, its format and size, and Cancel and Render, The loud Render is selected, and the inspector beside it edits that button.",
   FitFigure:
     "The same settings screen on a desktop with a mouse and on a phone. Under touch, every row grows to 44 pixels.",
   OneFormFigure:
@@ -285,7 +285,7 @@ function PanelGroup({ children }: { children: React.ReactNode }) {
  *  by space, labels a step below the controls, one size, one loud thing on the canvas. */
 export function CompositionFigure() {
   return (
-    <Band name="CompositionFigure" measured>
+    <Band name="CompositionFigure">
       <div className="kd-device">
         <Theme size="2" className="kd-band-window">
           <Shell contained className="kd-band-shell" style={{ "--shell-inspector-w": "248px" } as React.CSSProperties}>
@@ -327,21 +327,21 @@ export function CompositionFigure() {
                 </Toolbar>
               </ShellPaneHeader>
               {/* Something to compose (2026-11-04, Kushagra: "shouldnt export render have a render
-                  too?"): a 3D app's export dialog, its render on top, and annotated with what this
-                  page teaches. The dashed outlines are the groups the spacing makes and the selected Render sits inside its own group, each control
-                  carries its one size, and the loud Render is the selection the inspector edits. */}
+                  too?"): a 3D app's export dialog, its render on top. No group outlines or measures here
+                  (2026-11-04, Kushagra: "what are those dotted lines for?"); the Grouping figure
+                  shows grouping. The loud Render is the selection the inspector edits. */}
               <div className="kd-band-canvas kd-band-canvas-compose">
                 <Card size="2" className="kd-band-compose">
                   <Stack gap="6">
-                    <Stack gap="3" className="kd-band-group-outline">
+                    <Stack gap="3">
                       <Heading size="6">Render image</Heading>
                       <img className="kd-band-render" src="/backdrop.jpg" alt="" />
                     </Stack>
-                    <Grid columns="repeat(2, minmax(0, 1fr))" gap="3" className="kd-band-group-outline">
+                    <Grid columns="repeat(2, minmax(0, 1fr))" gap="3">
                       <Field>
                         <FieldLabel>Format</FieldLabel>
                         <Select defaultValue="png" items={{ png: "PNG", jpeg: "JPEG", exr: "EXR" }}>
-                          <SelectTrigger data-measure="height" />
+                          <SelectTrigger />
                           <SelectContent>
                             <SelectItem value="png">PNG</SelectItem>
                             <SelectItem value="jpeg">JPEG</SelectItem>
@@ -360,7 +360,7 @@ export function CompositionFigure() {
                         </Select>
                       </Field>
                     </Grid>
-                    <Flex gap="2" justify="end" className="kd-band-group-outline">
+                    <Flex gap="2" justify="end">
                       <Button emphasis="quiet">Cancel</Button>
                       <Button emphasis="loud" className="kd-band-selected">
                         Render
