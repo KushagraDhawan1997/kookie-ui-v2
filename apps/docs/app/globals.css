@@ -404,6 +404,46 @@ body {
 }
 
 /* A form on a canvas sits nearer the top than a single control, so the whole card shows. */
+/* A 3D editor's viewport: a square crop of the render fills the pane's width from the top, under
+   the floating toolbars, about the window's visible height; the scene's ground runs on below it.
+   The square keeps the crop fixed, so the selection outline stays on the pink sphere. */
+.kd-band-viewport {
+  position: absolute;
+  inset: 0;
+  background-color: var(--neutral-3);
+}
+
+.kd-band-viewport > img {
+  display: block;
+  inline-size: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+}
+
+/* Around the pink sphere in /backdrop.jpg: the square shows the image's middle 9/16 of its width. */
+.kd-band-viewport-selection {
+  position: absolute;
+  inset-inline-start: 48.5%;
+  inset-block-start: 0;
+  margin-block-start: 22%;
+  inline-size: 22%;
+  aspect-ratio: 1;
+  border: var(--border-width) solid var(--kd-measure-ink);
+  border-radius: 50%;
+}
+
+/* When the window is narrow, the editor drops its scene list, as an editor does, so the viewport
+   keeps room for the render. */
+@container (max-width: 52rem) {
+  .kd-band-editor {
+    --shell-sidebar-w: 0px !important;
+  }
+
+  .kd-band-editor > .kui-shell-sidebar {
+    display: none !important;
+  }
+}
+
 /* A dialog composed on a builder canvas: one clear step below the floating toolbar, and as
    wide as the canvas lets it be, up to a dialog's width. */
 .kd-band-canvas.kd-band-canvas-compose {

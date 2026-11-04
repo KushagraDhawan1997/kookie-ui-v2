@@ -1,6 +1,6 @@
 import * as React from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { BookmarkAdd01Icon, Cancel01Icon, ComputerIcon, PlayIcon, Redo02Icon, SidebarLeftIcon, SidebarRightIcon, SmartPhone01Icon, SquareDashedIcon, Undo02Icon, FavouriteIcon, InformationCircleIcon, NoteEditIcon, Share08Icon, TextFontIcon, Tick02Icon } from "@hugeicons/core-free-icons";
+import { BookmarkAdd01Icon, Cancel01Icon, ComputerIcon, PlayIcon, Redo02Icon, SidebarLeftIcon, SidebarRightIcon, SmartPhone01Icon, SquareDashedIcon, Undo02Icon, Camera01Icon, Sun03Icon, BulbIcon, CubeIcon, Move01Icon, Rotate01Icon, ArrowExpand01Icon, FavouriteIcon, InformationCircleIcon, NoteEditIcon, Share08Icon, TextFontIcon, Tick02Icon } from "@hugeicons/core-free-icons";
 import {
   Badge,
   Box,
@@ -24,6 +24,7 @@ import {
   SelectTrigger,
   Separator,
   Shell,
+  Slider,
   ShellContent,
   ShellInspector,
   ShellNavItem,
@@ -96,7 +97,7 @@ export const PRINCIPLE_FIGURES = {
   AppearanceFigure:
     "A notes app's appearance settings on two phones, one in light mode and one in dark. One screen, two modes, nothing written twice.",
   CompositionFigure:
-    "A builder composing a 3D app's Render image dialog: the render, its format and size, and Cancel and Render, The loud Render is selected, and the inspector beside it edits that button.",
+    "A 3D editor: the scene's objects in the sidebar, the render filling the viewport with the selected pink sphere outlined, and its transform, material and shadows in the inspector, with one loud Render in the toolbar.",
   FitFigure:
     "The same settings screen on a desktop with a mouse and on a phone. Under touch, every row grows to 44 pixels.",
   OneFormFigure:
@@ -280,94 +281,72 @@ function PanelGroup({ children }: { children: React.ReactNode }) {
   return <Stack gap="5">{children}</Stack>;
 }
 
-/** The Composition chapter's figure. A good composition, not a busy one: a canvas holding the
- *  selected button, and the panel that edits it. The panel is what the chapter is about — groups
- *  by space, labels a step below the controls, one size, one loud thing on the canvas. */
+/** The Composition chapter's figure: a full, busy screen composed well. */
 export function CompositionFigure() {
+  /* A COMPLEX SCREEN, COMPOSED (2026-11-04, Kushagra: "why will someone use Kookie UI for such a
+     simple UI, we should thrive in complex user interfaces"). A 3D editor: the scene in the
+     sidebar, the render filling the viewport with the selected object outlined, the selected object's properties in the inspector. Every
+     rule on the page is in it: one loud Render for the window's job, groups set apart by space,
+     titles a rank above their contents, and one size throughout. */
   return (
     <Band name="CompositionFigure">
       <div className="kd-device">
         <Theme size="2" className="kd-band-window">
-          <Shell contained className="kd-band-shell" style={{ "--shell-inspector-w": "248px" } as React.CSSProperties}>
-            <ShellContent>
-              {/* THE CANVAS PANE'S BANDS ARE THE BUILDER'S (2026-11-03, Kushagra: "Definitely match!").
-                  The same tools as the front page's hero (hero.tsx), in the same places: Layers and
-                  the screen's name, the preview widths, Preview, Export and the inspector above;
-                  undo, outlines and zoom below. This canvas is narrower than the hero's, so the
-                  header's tools shed into ⋯ by rank and Export, the band's action, stays. */}
-              <ShellPaneHeader float>
+          <Shell
+            contained
+            className="kd-band-shell kd-band-editor"
+            style={{ "--shell-sidebar-w": "200px", "--shell-inspector-w": "248px" } as React.CSSProperties}
+          >
+            <ShellSidebar aria-label="Scene" defaultOpen presentation="fixed" flush>
+              <ShellPaneHeader>
                 <Toolbar backdrop>
-                  <Flex align="center" gap="2">
-                    <ToolbarButton iconOnly aria-label="Layers">
-                      <HugeiconsIcon icon={SidebarLeftIcon} strokeWidth={iconStroke} aria-hidden />
-                    </ToolbarButton>
-                    <ToolbarTitle>Render settings</ToolbarTitle>
-                  </Flex>
+                  <ToolbarTitle>Soft bodies</ToolbarTitle>
+                </Toolbar>
+              </ShellPaneHeader>
+              <ShellScroll fade>
+                <Stack gap="5">
+                  <Stack gap="1">
+                    <ShellNavItem leading={<HugeiconsIcon icon={Camera01Icon} strokeWidth={iconStroke} aria-hidden />}>Camera</ShellNavItem>
+                    <ShellNavItem leading={<HugeiconsIcon icon={Sun03Icon} strokeWidth={iconStroke} aria-hidden />}>Key light</ShellNavItem>
+                    <ShellNavItem leading={<HugeiconsIcon icon={BulbIcon} strokeWidth={iconStroke} aria-hidden />}>Fill light</ShellNavItem>
+                  </Stack>
+                  <Stack gap="1">
+                    <ShellNavItem leading={<HugeiconsIcon icon={CubeIcon} strokeWidth={iconStroke} aria-hidden />}>Large blob</ShellNavItem>
+                    <ShellNavItem leading={<HugeiconsIcon icon={CubeIcon} strokeWidth={iconStroke} aria-hidden />} current>
+                      Pink sphere
+                    </ShellNavItem>
+                    <ShellNavItem leading={<HugeiconsIcon icon={CubeIcon} strokeWidth={iconStroke} aria-hidden />}>Dark blob</ShellNavItem>
+                    <ShellNavItem leading={<HugeiconsIcon icon={CubeIcon} strokeWidth={iconStroke} aria-hidden />}>Backdrop</ShellNavItem>
+                  </Stack>
+                </Stack>
+              </ShellScroll>
+            </ShellSidebar>
+            <ShellContent>
+              <ShellPaneHeader float>
+                {/* No title over the render: on a light render a dark-mode title can't be read. The
+                    scene's name heads the sidebar instead. */}
+                <Toolbar backdrop>
                   <ToolbarOverflow label="More tools">
                     <ToolbarGroup>
-                      <ToolbarButton iconOnly aria-label="Desktop">
-                        <HugeiconsIcon icon={ComputerIcon} strokeWidth={iconStroke} aria-hidden />
+                      <ToolbarButton iconOnly aria-label="Move">
+                        <HugeiconsIcon icon={Move01Icon} strokeWidth={iconStroke} aria-hidden />
                       </ToolbarButton>
-                      <ToolbarButton iconOnly aria-label="Phone">
-                        <HugeiconsIcon icon={SmartPhone01Icon} strokeWidth={iconStroke} aria-hidden />
+                      <ToolbarButton iconOnly aria-label="Rotate">
+                        <HugeiconsIcon icon={Rotate01Icon} strokeWidth={iconStroke} aria-hidden />
+                      </ToolbarButton>
+                      <ToolbarButton iconOnly aria-label="Scale">
+                        <HugeiconsIcon icon={ArrowExpand01Icon} strokeWidth={iconStroke} aria-hidden />
                       </ToolbarButton>
                     </ToolbarGroup>
-                    <ToolbarButton iconOnly aria-label="Preview">
-                      <HugeiconsIcon icon={PlayIcon} strokeWidth={iconStroke} aria-hidden />
-                    </ToolbarButton>
-                    {/* Medium here, where the hero's is loud: this chapter's figure shows one loud
-                        thing, and it is the Render on the canvas (RULES.md 8). */}
                     <ToolbarOverflowItem rank={1}>
-                      <ToolbarButton>Export</ToolbarButton>
+                      <ToolbarButton emphasis="loud">Render</ToolbarButton>
                     </ToolbarOverflowItem>
-                    <ToolbarButton iconOnly aria-label="Inspector">
-                      <HugeiconsIcon icon={SidebarRightIcon} strokeWidth={iconStroke} aria-hidden />
-                    </ToolbarButton>
                   </ToolbarOverflow>
                 </Toolbar>
               </ShellPaneHeader>
-              {/* Something to compose (2026-11-04, Kushagra: "shouldnt export render have a render
-                  too?"): a 3D app's export dialog, its render on top. No group outlines or measures here
-                  (2026-11-04, Kushagra: "what are those dotted lines for?"); the Grouping figure
-                  shows grouping. The loud Render is the selection the inspector edits. */}
-              <div className="kd-band-canvas kd-band-canvas-compose">
-                <Card size="2" className="kd-band-compose">
-                  <Stack gap="6">
-                    <Stack gap="3">
-                      <Heading size="6">Render image</Heading>
-                      <img className="kd-band-render" src="/backdrop.jpg" alt="" />
-                    </Stack>
-                    <Grid columns="repeat(2, minmax(0, 1fr))" gap="3">
-                      <Field>
-                        <FieldLabel>Format</FieldLabel>
-                        <Select defaultValue="png" items={{ png: "PNG", jpeg: "JPEG", exr: "EXR" }}>
-                          <SelectTrigger />
-                          <SelectContent>
-                            <SelectItem value="png">PNG</SelectItem>
-                            <SelectItem value="jpeg">JPEG</SelectItem>
-                            <SelectItem value="exr">EXR</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </Field>
-                      <Field>
-                        <FieldLabel>Size</FieldLabel>
-                        <Select defaultValue="4k" items={{ hd: "1080p", "4k": "4K" }}>
-                          <SelectTrigger />
-                          <SelectContent>
-                            <SelectItem value="hd">1080p</SelectItem>
-                            <SelectItem value="4k">4K</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </Field>
-                    </Grid>
-                    <Flex gap="2" justify="end">
-                      <Button emphasis="quiet">Cancel</Button>
-                      <Button emphasis="loud" className="kd-band-selected">
-                        Render
-                      </Button>
-                    </Flex>
-                  </Stack>
-                </Card>
+              <div className="kd-band-viewport">
+                <img src="/backdrop.jpg" alt="" />
+                <span className="kd-band-viewport-selection" />
               </div>
               <ShellPaneFooter float>
                 <Toolbar backdrop>
@@ -379,59 +358,62 @@ export function CompositionFigure() {
                       <HugeiconsIcon icon={Redo02Icon} strokeWidth={iconStroke} aria-hidden />
                     </ToolbarButton>
                   </ToolbarGroup>
-                  <Flex align="center" gap="2">
-                    <ToolbarButton iconOnly aria-label="Show outlines">
-                      <HugeiconsIcon icon={SquareDashedIcon} strokeWidth={iconStroke} aria-hidden />
-                    </ToolbarButton>
-                    <ToolbarButton>100%</ToolbarButton>
-                  </Flex>
+                  <ToolbarButton>Camera</ToolbarButton>
                 </Toolbar>
               </ShellPaneFooter>
             </ShellContent>
             <ShellInspector aria-label="Properties" defaultOpen presentation="fixed" flush>
               <ShellPaneHeader>
-                <Toolbar>
-                  <ToolbarTitle>Button</ToolbarTitle>
+                <Toolbar backdrop>
+                  <ToolbarTitle>Pink sphere</ToolbarTitle>
                 </Toolbar>
               </ShellPaneHeader>
-              <ShellScroll>
-                <Stack gap="7">
-                  <PanelGroup>
+              <ShellScroll fade>
+                <Stack gap="6">
+                  <Stack gap="4">
+                    <Heading size="4">Transform</Heading>
                     <Field>
-                      <FieldLabel>Label</FieldLabel>
-                      <TextField defaultValue="Render" />
-                    </Field>
-                  </PanelGroup>
-                  <PanelGroup>
-                    <Field>
-                      <FieldLabel>Size</FieldLabel>
-                      <SegmentedControl defaultValue="2" aria-label="Size">
-                        <SegmentedItem value="1">1</SegmentedItem>
-                        <SegmentedItem value="2">2</SegmentedItem>
-                        <SegmentedItem value="3">3</SegmentedItem>
-                        <SegmentedItem value="4">4</SegmentedItem>
-                      </SegmentedControl>
+                      <FieldLabel>Position</FieldLabel>
+                      <Grid columns="repeat(3, minmax(0, 1fr))" gap="2">
+                        <TextField aria-label="X" leading="X" defaultValue="0.8" />
+                        <TextField aria-label="Y" leading="Y" defaultValue="1.4" />
+                        <TextField aria-label="Z" leading="Z" defaultValue="2.1" />
+                      </Grid>
                     </Field>
                     <Field>
-                      <FieldLabel>Emphasis</FieldLabel>
-                      <SegmentedControl defaultValue="loud" aria-label="Emphasis">
-                        <SegmentedItem value="quiet">Quiet</SegmentedItem>
-                        <SegmentedItem value="medium">Medium</SegmentedItem>
-                        <SegmentedItem value="loud">Loud</SegmentedItem>
-                      </SegmentedControl>
+                      <FieldLabel>Rotation</FieldLabel>
+                      <Grid columns="repeat(3, minmax(0, 1fr))" gap="2">
+                        <TextField aria-label="X" leading="X" defaultValue="0" />
+                        <TextField aria-label="Y" leading="Y" defaultValue="35" />
+                        <TextField aria-label="Z" leading="Z" defaultValue="0" />
+                      </Grid>
                     </Field>
+                  </Stack>
+                  <Stack gap="4">
+                    <Heading size="4">Material</Heading>
                     <Field>
-                      <FieldLabel>Tone</FieldLabel>
-                      <Select defaultValue="accent" items={{ accent: "Accent", neutral: "Neutral", destructive: "Destructive" }}>
+                      <FieldLabel>Surface</FieldLabel>
+                      <Select defaultValue="glossy" items={{ glossy: "Glossy", matte: "Matte", glass: "Glass" }}>
                         <SelectTrigger />
                         <SelectContent>
-                          <SelectItem value="accent">Accent</SelectItem>
-                          <SelectItem value="neutral">Neutral</SelectItem>
-                          <SelectItem value="destructive">Destructive</SelectItem>
+                          <SelectItem value="glossy">Glossy</SelectItem>
+                          <SelectItem value="matte">Matte</SelectItem>
+                          <SelectItem value="glass">Glass</SelectItem>
                         </SelectContent>
                       </Select>
                     </Field>
-                  </PanelGroup>
+                    <Field>
+                      <FieldLabel>Roughness</FieldLabel>
+                      <Slider defaultValue={60} aria-label="Roughness" />
+                    </Field>
+                  </Stack>
+                  <Stack gap="4">
+                    <Heading size="4">Shadows</Heading>
+                    <Field>
+                      <FieldLabel>Cast shadows</FieldLabel>
+                      <Switch defaultChecked aria-label="Cast shadows" />
+                    </Field>
+                  </Stack>
                 </Stack>
               </ShellScroll>
             </ShellInspector>
