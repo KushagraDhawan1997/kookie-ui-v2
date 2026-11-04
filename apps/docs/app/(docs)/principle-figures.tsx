@@ -23,6 +23,8 @@ import {
   SelectItem,
   SelectTrigger,
   Separator,
+  NumberField,
+  NumberFieldGroup,
   Shell,
   Slider,
   ShellContent,
@@ -295,7 +297,7 @@ export function CompositionFigure() {
           <Shell
             contained
             className="kd-band-shell kd-band-editor"
-            style={{ "--shell-sidebar-w": "200px", "--shell-inspector-w": "248px" } as React.CSSProperties}
+            style={{ "--shell-sidebar-w": "200px", "--shell-inspector-w": "280px" } as React.CSSProperties}
           >
             <ShellSidebar aria-label="Scene" defaultOpen presentation="fixed" flush>
               <ShellPaneHeader>
@@ -372,22 +374,22 @@ export function CompositionFigure() {
                 <Stack gap="6">
                   <Stack gap="4">
                     <Heading size="4">Transform</Heading>
-                    <Field>
-                      <FieldLabel>Position</FieldLabel>
-                      <Grid columns="repeat(3, minmax(0, 1fr))" gap="2">
-                        <TextField aria-label="X" leading="X" defaultValue="0.8" />
-                        <TextField aria-label="Y" leading="Y" defaultValue="1.4" />
-                        <TextField aria-label="Z" leading="Z" defaultValue="2.1" />
-                      </Grid>
-                    </Field>
-                    <Field>
-                      <FieldLabel>Rotation</FieldLabel>
-                      <Grid columns="repeat(3, minmax(0, 1fr))" gap="2">
-                        <TextField aria-label="X" leading="X" defaultValue="0" />
-                        <TextField aria-label="Y" leading="Y" defaultValue="35" />
-                        <TextField aria-label="Z" leading="Z" defaultValue="0" />
-                      </Grid>
-                    </Field>
+                    <Stack gap="3">
+                      <Text size="2">Position</Text>
+                      <NumberFieldGroup label="Position">
+                        <NumberField scrub="X" aria-label="X" defaultValue={0.8} />
+                        <NumberField scrub="Y" aria-label="Y" defaultValue={1.4} />
+                        <NumberField scrub="Z" aria-label="Z" defaultValue={2.1} />
+                      </NumberFieldGroup>
+                    </Stack>
+                    <Stack gap="3">
+                      <Text size="2">Rotation</Text>
+                      <NumberFieldGroup label="Rotation">
+                        <NumberField scrub="X" aria-label="X" defaultValue={0} format={{ style: "unit", unit: "degree", unitDisplay: "narrow" }} />
+                        <NumberField scrub="Y" aria-label="Y" defaultValue={35} format={{ style: "unit", unit: "degree", unitDisplay: "narrow" }} />
+                        <NumberField scrub="Z" aria-label="Z" defaultValue={0} format={{ style: "unit", unit: "degree", unitDisplay: "narrow" }} />
+                      </NumberFieldGroup>
+                    </Stack>
                   </Stack>
                   <Stack gap="4">
                     <Heading size="4">Material</Heading>
