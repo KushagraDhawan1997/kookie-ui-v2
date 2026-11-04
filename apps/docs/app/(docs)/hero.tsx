@@ -1,5 +1,6 @@
 import * as React from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { BrowserBar, FitToStage } from "./browser-chrome";
 import {
   ComputerIcon,
   PlayIcon,
@@ -102,6 +103,7 @@ const PANE_WIDTHS = { "--shell-sidebar-w": "232px", "--shell-inspector-w": "272p
 function Builder() {
   return (
     <Theme size="2" className="kd-hero-window">
+      <BrowserBar kind="desktop" url="kookie.studio/builder" />
       <Shell contained size="2" className="kd-hero-shell" style={PANE_WIDTHS}>
         <ShellSidebar aria-label="Layers" defaultOpen presentation="fixed" flush>
           <ShellPaneHeader>
@@ -267,9 +269,11 @@ export function Hero() {
   return (
     <Box mx="bleed" my="10" className="kd-hero" aria-hidden inert>
       <div className="kd-hero-stage">
-        <div className="kd-device">
-          <Builder />
-        </div>
+        <FitToStage>
+          <div className="kd-device">
+            <Builder />
+          </div>
+        </FitToStage>
       </div>
     </Box>
   );

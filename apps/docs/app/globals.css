@@ -187,6 +187,103 @@ body {
   block-size: calc(22 * var(--layout-space-7));
 }
 
+/* THE HERO IS A 14-INCH LAPTOP IN A BROWSER (2026-11-04, Kushagra: "maintain a 16" Mac
+   proportions ... we need browser chrome too", then "Try a 14" MBP display"). The screen is
+   drawn at its real size, 1512 by 982 points, the browser's bar included, and FitToStage scales the whole laptop down to the
+   page. The band shows the screen down to the cut, about nine tenths of it. */
+.kd-hero-window {
+  inline-size: 1512px;
+}
+
+.kd-hero-shell {
+  block-size: calc(982px - var(--kd-browser-h));
+}
+
+.kd-hero {
+  --kd-fit-zoom: 0.5;
+  block-size: calc(8 * var(--layout-space-4) + 910px * var(--kd-fit-zoom));
+}
+
+.kd-fit {
+  inline-size: max-content;
+}
+
+/* The browser's own marks, drawn in the theme's neutrals so they turn over with it. */
+.kd-hero-window,
+.kd-band-window,
+.kd-band-phone-screen {
+  --kd-browser-h: 48px;
+}
+
+.kd-browser-bar {
+  display: grid;
+  grid-template-columns: minmax(0, 36rem);
+  justify-content: center;
+  align-items: center;
+  block-size: var(--kd-browser-h);
+  padding-inline: 16px;
+  box-sizing: border-box;
+  background-color: var(--neutral-2);
+  border-block-end: var(--border-width) solid var(--color-border);
+  color: var(--neutral-11);
+  font: 400 13px/1 var(--font-body);
+}
+
+.kd-browser-start,
+.kd-browser-end {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.kd-browser-end {
+  justify-content: end;
+}
+
+.kd-browser-lights {
+  display: flex;
+  gap: 8px;
+  margin-inline-end: 8px;
+}
+
+.kd-browser-lights > i {
+  inline-size: 12px;
+  block-size: 12px;
+  border-radius: 50%;
+  background-color: var(--neutral-6);
+}
+
+.kd-browser-address {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  block-size: 32px;
+  border-radius: 10px;
+  background-color: var(--neutral-4);
+  color: var(--neutral-12);
+  white-space: nowrap;
+  overflow: clip;
+}
+
+.kd-browser-address > svg {
+  flex: none;
+  color: var(--neutral-10);
+}
+
+.kd-browser-phone-bar {
+  padding: 8px 16px 0;
+  background-color: var(--neutral-2);
+  border-block-start: var(--border-width) solid var(--color-border);
+  color: var(--neutral-11);
+  font: 400 15px/1 var(--font-body);
+}
+
+.kd-browser-phone-bar > .kd-browser-address {
+  block-size: 44px;
+  border-radius: 14px;
+}
+
 .kd-hero-canvas {
   display: grid;
   justify-items: center;
@@ -331,7 +428,15 @@ body {
 /* An app in a phone fills the phone's screen. The shell's 704px is a desktop window's height,
    and in a phone it cut the content off two thirds of the way down (2026-11-03). */
 .kd-band-phone-screen .kd-band-shell {
-  block-size: 100%;
+  flex: 1;
+  min-block-size: 0;
+  block-size: auto;
+}
+
+/* A phone's screen stacks the browser's status bar, the page and the address bar. */
+.kd-band-phone-screen {
+  display: flex;
+  flex-direction: column;
 }
 
 .kd-band-home-indicator {
@@ -404,33 +509,47 @@ body {
 }
 
 /* A form on a canvas sits nearer the top than a single control, so the whole card shows. */
-/* A 3D editor's viewport: the render (/living-room.jpg, Prydumano Design on Unsplash, 4:5) fills
-   the pane's width from the top, under the floating toolbars, and runs past the band's cut. Shown
-   whole at its own ratio, so the selection box stays on the sofa at every width. */
+/* A 3D editor's viewport: the render (/living-room.jpg, Prydumano Design on Unsplash, 4:5) covers
+   the pane under the floating toolbars, pinned to its right and top, where the sofa is. It is
+   drawn at the larger of the band's visible height (19 steps of 32px) and the pane's width, so it
+   always reaches the cut, and the sofa's box is drawn in the image's own coordinates. */
 .kd-band-viewport {
   position: absolute;
   inset: 0;
   container-type: inline-size;
   background-color: var(--neutral-3);
+  --kd-ih: max(calc(19 * var(--layout-space-7)), 125cqw);
+  --kd-iw: calc(0.8 * var(--kd-ih));
+  overflow: clip;
 }
 
 .kd-band-viewport > img {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-end: 0;
   display: block;
-  inline-size: 100%;
-  aspect-ratio: 4 / 5;
-  object-fit: cover;
+  inline-size: var(--kd-iw);
+  block-size: var(--kd-ih);
 }
 
-/* The sofa's bounding box in the render, in the image's own proportions (margins resolve against
-   the width, so 0.54 of a 4:5 image's height is 0.675 of its width). */
 .kd-band-viewport-selection {
   position: absolute;
-  inset-inline-start: 59%;
-  inset-block-start: 0;
-  margin-block-start: 67.5%;
-  inline-size: 40%;
-  aspect-ratio: 40 / 30;
-  border: var(--border-width) solid var(--kd-measure-ink);
+  inset-inline-end: calc(0.01 * var(--kd-iw));
+  inset-block-start: calc(0.545 * var(--kd-ih));
+  inline-size: calc(0.4 * var(--kd-iw));
+  block-size: calc(0.225 * var(--kd-ih));
+  outline: var(--border-width) solid var(--accent-solid);
+}
+
+/* A material's colour, inset in its row like a field's icon. */
+.kd-band-swatch {
+  display: block;
+  flex: none;
+  inline-size: 1em;
+  block-size: 1em;
+  border-radius: 50%;
+  background-color: var(--kd-swatch);
+  box-shadow: inset 0 0 0 var(--border-width) var(--color-border);
 }
 
 /* When the window is narrow, the editor drops its scene list, as an editor does, so the viewport
@@ -446,20 +565,6 @@ body {
 
 }
 
-/* A narrow viewport (the viewport is its own container) takes a 1:2 crop of the render's right
-   side, where the sofa is, so the render still reaches the band's cut. */
-@container (max-width: 22rem) {
-  .kd-band-viewport > img {
-    aspect-ratio: 1 / 2;
-    object-position: 100% 0;
-  }
-
-  .kd-band-viewport-selection {
-    inset-inline-start: 34%;
-    margin-block-start: 108%;
-    inline-size: 64%;
-  }
-}
 
 /* A dialog composed on a builder canvas: one clear step below the floating toolbar, and as
    wide as the canvas lets it be, up to a dialog's width. */
@@ -598,6 +703,11 @@ body {
 
   .kd-figure .kd-band-stage > .kd-device::before {
     --kd-camera: var(--layout-space-2);
+  }
+
+  /* A tablet's browser has no window buttons. */
+  .kd-figure .kd-band-stage > .kd-device .kd-browser-lights {
+    display: none;
   }
 
   .kd-figure > .kd-band > .kd-band-stage:has(> .kd-device) {

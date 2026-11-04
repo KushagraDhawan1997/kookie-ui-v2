@@ -1,6 +1,6 @@
 import * as React from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { BookmarkAdd01Icon, Cancel01Icon, ComputerIcon, PlayIcon, Redo02Icon, SidebarLeftIcon, SidebarRightIcon, SmartPhone01Icon, SquareDashedIcon, Undo02Icon, Sofa01Icon, Camera01Icon, Sun03Icon, BulbIcon, CubeIcon, Move01Icon, Rotate01Icon, ArrowExpand01Icon, FavouriteIcon, InformationCircleIcon, NoteEditIcon, Share08Icon, TextFontIcon, Tick02Icon } from "@hugeicons/core-free-icons";
+import { BookmarkAdd01Icon, Cancel01Icon, Redo02Icon, Undo02Icon, Sofa01Icon, Camera01Icon, Sun03Icon, CubeIcon, Move01Icon, Rotate01Icon, ArrowExpand01Icon, FavouriteIcon, InformationCircleIcon, NoteEditIcon, Share08Icon, TextFontIcon, Tick02Icon, Folder01Icon, SquaresUniteIcon, SquaresSubtractIcon, SquaresIntersectIcon, Globe02Icon, SparklesIcon, PieChartIcon, DropletIcon, CircleDashedIcon, GridViewIcon, ShuffleIcon, MirrorIcon, Unlink02Icon, PlusSignIcon } from "@hugeicons/core-free-icons";
 import {
   Badge,
   Box,
@@ -13,6 +13,8 @@ import {
   Heading,
   iconStroke,
   Link,
+  NumberField,
+  NumberFieldGroup,
   Progress,
   Row,
   RowGroup,
@@ -23,10 +25,7 @@ import {
   SelectItem,
   SelectTrigger,
   Separator,
-  NumberField,
-  NumberFieldGroup,
   Shell,
-  Slider,
   ShellContent,
   ShellInspector,
   ShellNavItem,
@@ -48,6 +47,8 @@ import {
   ToolbarOverflow,
   ToolbarOverflowItem,
   ToolbarTitle,
+  Tree,
+  type TreeNode,
 } from "@kushagradhawan/kookie-ui-react";
 
 import {
@@ -61,6 +62,8 @@ import {
   UsersIcon,
 } from "../icons";
 import { Measures } from "./measures";
+import { ScrolledTo } from "./scrolled-to";
+import { BrowserBar, PhoneAddressBar } from "./browser-chrome";
 
 /**
  * THE PRINCIPLES CHAPTER'S FIGURES (2026-11-02, draft). Each one is a real screen built from the
@@ -99,7 +102,7 @@ export const PRINCIPLE_FIGURES = {
   AppearanceFigure:
     "A notes app's appearance settings on two phones, one in light mode and one in dark. One screen, two modes, nothing written twice.",
   CompositionFigure:
-    "A 3D editor: the scene's objects in the sidebar, the render of a living room filling the viewport with the selected sofa outlined, and its transform, material and shadows in the inspector, with one loud Render in the toolbar.",
+    "A 3D editor: the scene's objects in a tree on the left, a living-room render with the sofa selected in the middle, and the sofa's inspector on the right with its form, material, transform and mirror sections.",
   FitFigure:
     "The same settings screen on a desktop with a mouse and on a phone. Under touch, every row grows to 44 pixels.",
   OneFormFigure:
@@ -180,12 +183,14 @@ export function FitFigure() {
       <div className="kd-band-devices">
         <div className="kd-device">
           <Theme size="2" pointer="fine" className="kd-band-window kd-band-desktop">
+            <BrowserBar kind="desktop" url="kookie.studio/settings" />
             <SettingsApp />
           </Theme>
         </div>
         <div className="kd-band-phone">
           <Theme size="2" pointer="coarse" className="kd-band-phone-screen">
             <SettingsApp />
+            <PhoneAddressBar url="kookie.studio/settings" />
             <span className="kd-band-home-indicator" />
           </Theme>
         </div>
@@ -203,6 +208,7 @@ export function OneFormFigure() {
     <Band name="OneFormFigure">
       <div className="kd-device">
         <Theme size="2" className="kd-band-window">
+          <BrowserBar kind="desktop" url="kookie.studio/billing" />
           <Shell contained size="2" className="kd-band-shell" style={PANE_WIDTHS}>
             <ShellSidebar aria-label="Settings" defaultOpen presentation="fixed" flush>
               <ShellPaneHeader>
@@ -283,61 +289,290 @@ function PanelGroup({ children }: { children: React.ReactNode }) {
   return <Stack gap="5">{children}</Stack>;
 }
 
-/** The Composition chapter's figure: a full, busy screen composed well. */
+/* ── Composition: a design tool, built with Kookie ─────────────────────────────────────────── */
+
+/** One section of the 3D editor's inspector: its title and its actions on one line, its controls
+ *  under it, and a hairline under the section unless it is the last. */
+function InspectorSection({
+  title,
+  action,
+  last,
+  children,
+}: {
+  title: string;
+  action?: React.ReactNode;
+  last?: boolean;
+  children?: React.ReactNode;
+}) {
+  return (
+    <>
+      <Stack gap="4">
+        <Flex align="center" justify="space-between">
+          <Text size="3" weight="medium">
+            {title}
+          </Text>
+          {action ? <Flex align="center">{action}</Flex> : null}
+        </Flex>
+        {children}
+      </Stack>
+      {last ? null : <Separator />}
+    </>
+  );
+}
+
+/** A quiet icon button for a section's title line or a caption's end. */
+function PanelAction({
+  label,
+  icon,
+  pressed,
+}: {
+  label: string;
+  icon: typeof PlusSignIcon;
+  pressed?: boolean;
+}) {
+  return (
+    <Button
+      iconOnly
+      emphasis={pressed ? "medium" : "quiet"}
+      aria-label={label}
+      aria-pressed={pressed}
+    >
+      <HugeiconsIcon icon={icon} strokeWidth={iconStroke} aria-hidden />
+    </Button>
+  );
+}
+
+/** A caption with an action at its end, over the control it names. */
+function CaptionedField({
+  label,
+  action,
+  children,
+}: {
+  label: string;
+  action?: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <Field>
+      <Flex align="center" justify="space-between">
+        <FieldLabel>{label}</FieldLabel>
+        {action}
+      </Flex>
+      {children}
+    </Field>
+  );
+}
+
+function AddButton({ label }: { label: string }) {
+  return (
+    <Button iconOnly emphasis="quiet" aria-label={label}>
+      <HugeiconsIcon icon={PlusSignIcon} strokeWidth={iconStroke} aria-hidden />
+    </Button>
+  );
+}
+
+const COMPOSITION_SCENE: readonly TreeNode[] = [
+  {
+    id: "camera",
+    label: "Camera",
+    leading: (
+      <HugeiconsIcon icon={Camera01Icon} strokeWidth={iconStroke} aria-hidden />
+    ),
+  },
+  {
+    id: "sun",
+    label: "Sun",
+    leading: (
+      <HugeiconsIcon icon={Sun03Icon} strokeWidth={iconStroke} aria-hidden />
+    ),
+  },
+  {
+    id: "room",
+    label: "Living room",
+    leading: (
+      <HugeiconsIcon icon={Folder01Icon} strokeWidth={iconStroke} aria-hidden />
+    ),
+    children: [
+      {
+        id: "sofa",
+        label: "Sofa",
+        leading: (
+          <HugeiconsIcon
+            icon={Sofa01Icon}
+            strokeWidth={iconStroke}
+            aria-hidden
+          />
+        ),
+      },
+      {
+        id: "table",
+        label: "Coffee table",
+        leading: (
+          <HugeiconsIcon icon={CubeIcon} strokeWidth={iconStroke} aria-hidden />
+        ),
+      },
+      {
+        id: "rug",
+        label: "Rug",
+        leading: (
+          <HugeiconsIcon icon={CubeIcon} strokeWidth={iconStroke} aria-hidden />
+        ),
+      },
+      {
+        id: "wall",
+        label: "Media wall",
+        leading: (
+          <HugeiconsIcon icon={CubeIcon} strokeWidth={iconStroke} aria-hidden />
+        ),
+      },
+    ],
+  },
+];
+
+const AXIS_TONES = { X: "green", Y: "blue", Z: "destructive" } as const;
+
+/** X, Y and Z in one joined field, each axis letter a scrub handle in its axis colour. */
+function AxisFields({
+  label,
+  values,
+}: {
+  label: string;
+  values: [number, number, number];
+}) {
+  return (
+    <NumberFieldGroup label={label}>
+      {(["X", "Y", "Z"] as const).map((axis, i) => (
+        <NumberField
+          key={axis}
+          scrub={
+            <Text size="2" tone={AXIS_TONES[axis]}>
+              {axis}
+            </Text>
+          }
+          aria-label={axis}
+          defaultValue={values[i]}
+        />
+      ))}
+    </NumberFieldGroup>
+  );
+}
+
+const MATERIALS = [
+  { id: "boucle", name: "Bouclé, grey", colour: "#8d8b86" },
+  { id: "oak", name: "Oak, smoked", colour: "#4a3a2c" },
+  { id: "linen", name: "Linen, sand", colour: "#cbbfa8" },
+];
+
+/** A material's name after its colour, a round swatch, as the picker and its list show it. */
+function MaterialLabel({ name, colour }: { name: string; colour: string }) {
+  return (
+    <Flex align="center" gap="2">
+      <span
+        className="kd-band-swatch"
+        style={{ "--kd-swatch": colour } as React.CSSProperties}
+      />
+      {name}
+    </Flex>
+  );
+}
+
+/** One material on the object: a field-height picker, its swatch inset like a field's icon. */
+function MaterialRow({ value }: { value: string }) {
+  const items = Object.fromEntries(
+    MATERIALS.map((m) => [
+      m.id,
+      <MaterialLabel key={m.id} name={m.name} colour={m.colour} />,
+    ]),
+  );
+  return (
+    <Field>
+      <Select defaultValue={value} items={items}>
+        <SelectTrigger aria-label="Material" />
+        <SelectContent>
+          {MATERIALS.map((m) => (
+            <SelectItem key={m.id} value={m.id}>
+              <MaterialLabel name={m.name} colour={m.colour} />
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </Field>
+  );
+}
+
+/** The Composition chapter's figure: a 3D editor, laid out like Womp's object panel (2026-11-04,
+ *  Kushagra: "We can show a 3D scene, and show womp like controls"). The scene's objects on the
+ *  left, the render with the sofa selected in the middle, and the sofa's inspector on the right:
+ *  Form, Material and Transform, each section one question, one grid, one size, actions at the end
+ *  of a title line. The densest pane in the window, composed. */
 export function CompositionFigure() {
-  /* A COMPLEX SCREEN, COMPOSED (2026-11-04, Kushagra: "why will someone use Kookie UI for such a
-     simple UI, we should thrive in complex user interfaces"). A 3D editor: the scene in the
-     sidebar, the render filling the viewport with the selected sofa outlined, the selected object's properties in the inspector. Every
-     rule on the page is in it: one loud Render for the window's job, groups set apart by space,
-     titles a rank above their contents, and one size throughout. */
   return (
     <Band name="CompositionFigure">
       <div className="kd-device">
         <Theme size="2" className="kd-band-window">
+          <BrowserBar kind="desktop" url="kookie.studio/scene" />
           <Shell
             contained
             className="kd-band-shell kd-band-editor"
-            style={{ "--shell-sidebar-w": "200px", "--shell-inspector-w": "280px" } as React.CSSProperties}
+            style={
+              {
+                "--shell-sidebar-w": "232px",
+                "--shell-inspector-w": "288px",
+              } as React.CSSProperties
+            }
           >
-            <ShellSidebar aria-label="Scene" defaultOpen presentation="fixed" flush>
+            <ShellSidebar
+              aria-label="Scene"
+              defaultOpen
+              presentation="fixed"
+              flush
+            >
               <ShellPaneHeader>
                 <Toolbar backdrop>
-                  <ToolbarTitle>Living room</ToolbarTitle>
+                  <ToolbarTitle>Scene</ToolbarTitle>
+                  <ToolbarButton iconOnly aria-label="Add object">
+                    <HugeiconsIcon
+                      icon={PlusSignIcon}
+                      strokeWidth={iconStroke}
+                      aria-hidden
+                    />
+                  </ToolbarButton>
                 </Toolbar>
               </ShellPaneHeader>
               <ShellScroll fade>
-                <Stack gap="5">
-                  <Stack gap="1">
-                    <ShellNavItem leading={<HugeiconsIcon icon={Camera01Icon} strokeWidth={iconStroke} aria-hidden />}>Camera</ShellNavItem>
-                    <ShellNavItem leading={<HugeiconsIcon icon={Sun03Icon} strokeWidth={iconStroke} aria-hidden />}>Key light</ShellNavItem>
-                    <ShellNavItem leading={<HugeiconsIcon icon={BulbIcon} strokeWidth={iconStroke} aria-hidden />}>Fill light</ShellNavItem>
-                  </Stack>
-                  <Stack gap="1">
-                    <ShellNavItem leading={<HugeiconsIcon icon={Sofa01Icon} strokeWidth={iconStroke} aria-hidden />} current>
-                      Sofa
-                    </ShellNavItem>
-                    <ShellNavItem leading={<HugeiconsIcon icon={CubeIcon} strokeWidth={iconStroke} aria-hidden />}>Coffee table</ShellNavItem>
-                    <ShellNavItem leading={<HugeiconsIcon icon={CubeIcon} strokeWidth={iconStroke} aria-hidden />}>Rug</ShellNavItem>
-                    <ShellNavItem leading={<HugeiconsIcon icon={CubeIcon} strokeWidth={iconStroke} aria-hidden />}>Media wall</ShellNavItem>
-                  </Stack>
-                </Stack>
+                <Tree
+                  items={COMPOSITION_SCENE}
+                  defaultExpandedIds={["room"]}
+                  defaultSelectedIds={["sofa"]}
+                  aria-label="Scene"
+                />
               </ShellScroll>
             </ShellSidebar>
             <ShellContent>
               <ShellPaneHeader float>
-                {/* No title over the render: on a light render a dark-mode title can't be read. The
-                    scene's name heads the sidebar instead. */}
                 <Toolbar backdrop>
                   <ToolbarOverflow label="More tools">
                     <ToolbarGroup>
                       <ToolbarButton iconOnly aria-label="Move">
-                        <HugeiconsIcon icon={Move01Icon} strokeWidth={iconStroke} aria-hidden />
+                        <HugeiconsIcon
+                          icon={Move01Icon}
+                          strokeWidth={iconStroke}
+                          aria-hidden
+                        />
                       </ToolbarButton>
                       <ToolbarButton iconOnly aria-label="Rotate">
-                        <HugeiconsIcon icon={Rotate01Icon} strokeWidth={iconStroke} aria-hidden />
+                        <HugeiconsIcon
+                          icon={Rotate01Icon}
+                          strokeWidth={iconStroke}
+                          aria-hidden
+                        />
                       </ToolbarButton>
                       <ToolbarButton iconOnly aria-label="Scale">
-                        <HugeiconsIcon icon={ArrowExpand01Icon} strokeWidth={iconStroke} aria-hidden />
+                        <HugeiconsIcon
+                          icon={ArrowExpand01Icon}
+                          strokeWidth={iconStroke}
+                          aria-hidden
+                        />
                       </ToolbarButton>
                     </ToolbarGroup>
                     <ToolbarOverflowItem rank={1}>
@@ -354,68 +589,210 @@ export function CompositionFigure() {
                 <Toolbar backdrop>
                   <ToolbarGroup>
                     <ToolbarButton iconOnly aria-label="Undo">
-                      <HugeiconsIcon icon={Undo02Icon} strokeWidth={iconStroke} aria-hidden />
+                      <HugeiconsIcon
+                        icon={Undo02Icon}
+                        strokeWidth={iconStroke}
+                        aria-hidden
+                      />
                     </ToolbarButton>
                     <ToolbarButton iconOnly aria-label="Redo">
-                      <HugeiconsIcon icon={Redo02Icon} strokeWidth={iconStroke} aria-hidden />
+                      <HugeiconsIcon
+                        icon={Redo02Icon}
+                        strokeWidth={iconStroke}
+                        aria-hidden
+                      />
                     </ToolbarButton>
                   </ToolbarGroup>
                   <ToolbarButton>Camera</ToolbarButton>
                 </Toolbar>
               </ShellPaneFooter>
             </ShellContent>
-            <ShellInspector aria-label="Properties" defaultOpen presentation="fixed" flush>
+            <ShellInspector
+              aria-label="Properties"
+              defaultOpen
+              presentation="fixed"
+              flush
+            >
               <ShellPaneHeader>
                 <Toolbar backdrop>
-                  <ToolbarTitle>Sofa</ToolbarTitle>
+                  <SegmentedControl defaultValue="object" aria-label="Panel">
+                    <SegmentedItem value="object" aria-label="Object">
+                      <HugeiconsIcon
+                        icon={CubeIcon}
+                        strokeWidth={iconStroke}
+                        aria-hidden
+                      />
+                    </SegmentedItem>
+                    <SegmentedItem value="camera" aria-label="Camera">
+                      <HugeiconsIcon
+                        icon={Camera01Icon}
+                        strokeWidth={iconStroke}
+                        aria-hidden
+                      />
+                    </SegmentedItem>
+                    <SegmentedItem value="scene" aria-label="Environment">
+                      <HugeiconsIcon
+                        icon={Globe02Icon}
+                        strokeWidth={iconStroke}
+                        aria-hidden
+                      />
+                    </SegmentedItem>
+                    <SegmentedItem value="effects" aria-label="Effects">
+                      <HugeiconsIcon
+                        icon={SparklesIcon}
+                        strokeWidth={iconStroke}
+                        aria-hidden
+                      />
+                    </SegmentedItem>
+                  </SegmentedControl>
                 </Toolbar>
               </ShellPaneHeader>
               <ShellScroll fade>
-                <Stack gap="6">
-                  <Stack gap="4">
-                    <Heading size="4">Transform</Heading>
-                    <Stack gap="3">
-                      <Text size="2">Position</Text>
-                      <NumberFieldGroup label="Position">
-                        <NumberField scrub="X" aria-label="X" defaultValue={1.2} />
-                        <NumberField scrub="Y" aria-label="Y" defaultValue={0} />
-                        <NumberField scrub="Z" aria-label="Z" defaultValue={2.4} />
-                      </NumberFieldGroup>
-                    </Stack>
-                    <Stack gap="3">
-                      <Text size="2">Rotation</Text>
-                      <NumberFieldGroup label="Rotation">
-                        <NumberField scrub="X" aria-label="X" defaultValue={0} format={{ style: "unit", unit: "degree", unitDisplay: "narrow" }} />
-                        <NumberField scrub="Y" aria-label="Y" defaultValue={35} format={{ style: "unit", unit: "degree", unitDisplay: "narrow" }} />
-                        <NumberField scrub="Z" aria-label="Z" defaultValue={0} format={{ style: "unit", unit: "degree", unitDisplay: "narrow" }} />
-                      </NumberFieldGroup>
-                    </Stack>
-                  </Stack>
-                  <Stack gap="4">
-                    <Heading size="4">Material</Heading>
+                <Stack gap="5">
+                  <InspectorSection title="Form">
                     <Field>
-                      <FieldLabel>Fabric</FieldLabel>
-                      <Select defaultValue="boucle" items={{ boucle: "Bouclé", linen: "Linen", leather: "Leather" }}>
+                      <FieldLabel>Shape</FieldLabel>
+                      <Select
+                        defaultValue="cube"
+                        items={{
+                          cube: "Cube",
+                          sphere: "Sphere",
+                          cylinder: "Cylinder",
+                        }}
+                      >
                         <SelectTrigger />
                         <SelectContent>
-                          <SelectItem value="boucle">Bouclé</SelectItem>
-                          <SelectItem value="linen">Linen</SelectItem>
-                          <SelectItem value="leather">Leather</SelectItem>
+                          <SelectItem value="cube">Cube</SelectItem>
+                          <SelectItem value="sphere">Sphere</SelectItem>
+                          <SelectItem value="cylinder">Cylinder</SelectItem>
                         </SelectContent>
                       </Select>
                     </Field>
                     <Field>
-                      <FieldLabel>Roughness</FieldLabel>
-                      <Slider defaultValue={60} aria-label="Roughness" />
+                      <FieldLabel>Combine</FieldLabel>
+                      <SegmentedControl defaultValue="add" aria-label="Combine">
+                        <SegmentedItem value="add" aria-label="Add">
+                          <HugeiconsIcon
+                            icon={SquaresUniteIcon}
+                            strokeWidth={iconStroke}
+                            aria-hidden
+                          />
+                        </SegmentedItem>
+                        <SegmentedItem value="subtract" aria-label="Subtract">
+                          <HugeiconsIcon
+                            icon={SquaresSubtractIcon}
+                            strokeWidth={iconStroke}
+                            aria-hidden
+                          />
+                        </SegmentedItem>
+                        <SegmentedItem value="split" aria-label="Split">
+                          <HugeiconsIcon
+                            icon={PieChartIcon}
+                            strokeWidth={iconStroke}
+                            aria-hidden
+                          />
+                        </SegmentedItem>
+                        <SegmentedItem value="intersect" aria-label="Intersect">
+                          <HugeiconsIcon
+                            icon={SquaresIntersectIcon}
+                            strokeWidth={iconStroke}
+                            aria-hidden
+                          />
+                        </SegmentedItem>
+                      </SegmentedControl>
                     </Field>
-                  </Stack>
-                  <Stack gap="4">
-                    <Heading size="4">Shadows</Heading>
-                    <Field>
-                      <FieldLabel>Cast shadows</FieldLabel>
-                      <Switch defaultChecked aria-label="Cast shadows" />
-                    </Field>
-                  </Stack>
+                    <Grid columns="repeat(2, minmax(0, 1fr))" gap="3">
+                      <Field>
+                        <FieldLabel>Goop</FieldLabel>
+                        <NumberField
+                          scrub={
+                            <HugeiconsIcon
+                              icon={DropletIcon}
+                              strokeWidth={iconStroke}
+                              aria-hidden
+                            />
+                          }
+                          aria-label="Goop"
+                          defaultValue={0}
+                        />
+                      </Field>
+                      <Field>
+                        <FieldLabel>Roundness</FieldLabel>
+                        <NumberField
+                          scrub={
+                            <HugeiconsIcon
+                              icon={CircleDashedIcon}
+                              strokeWidth={iconStroke}
+                              aria-hidden
+                            />
+                          }
+                          aria-label="Roundness"
+                          defaultValue={8}
+                        />
+                      </Field>
+                    </Grid>
+                  </InspectorSection>
+                  <InspectorSection
+                    title="Material"
+                    action={
+                      <>
+                        <PanelAction label="Library" icon={GridViewIcon} />
+                        <PanelAction label="Shuffle" icon={ShuffleIcon} />
+                        <PanelAction label="Add material" icon={PlusSignIcon} />
+                      </>
+                    }
+                  >
+                    <MaterialRow value="boucle" />
+                  </InspectorSection>
+                  <ScrolledTo />
+                  <InspectorSection
+                    title="Transform"
+                    action={
+                      <>
+                        <PanelAction label="Mirror" icon={MirrorIcon} />
+                        <PanelAction
+                          label="World space"
+                          icon={Globe02Icon}
+                          pressed
+                        />
+                      </>
+                    }
+                  >
+                    <CaptionedField
+                      label="Position (m)"
+                      action={
+                        <PanelAction label="Link axes" icon={Unlink02Icon} />
+                      }
+                    >
+                      <AxisFields
+                        label="Position"
+                        values={[1.2, 0.3, 0.8]}
+                      />
+                    </CaptionedField>
+                    <CaptionedField
+                      label="Rotation (°)"
+                      action={
+                        <PanelAction label="Link axes" icon={Unlink02Icon} />
+                      }
+                    >
+                      <AxisFields label="Rotation" values={[0, 35, 0]} />
+                    </CaptionedField>
+                    <CaptionedField
+                      label="Size (m)"
+                      action={
+                        <PanelAction label="Link axes" icon={Unlink02Icon} />
+                      }
+                    >
+                      <AxisFields label="Size" values={[2.8, 0.7, 1.6]} />
+                    </CaptionedField>
+                  </InspectorSection>
+                  <InspectorSection
+                    title="Mirror"
+                    action={
+                      <PanelAction label="Add mirror" icon={PlusSignIcon} />
+                    }
+                    last
+                  />
                 </Stack>
               </ShellScroll>
             </ShellInspector>
@@ -492,6 +869,7 @@ export function AppearanceFigure() {
           <Theme key={mode} appearance={mode} className="kd-band-phone">
             <Theme size="2" pointer="coarse" className="kd-band-phone-screen">
               <AppearanceSettings />
+              <PhoneAddressBar url="kookie.studio/settings" />
               <span className="kd-band-home-indicator" />
             </Theme>
           </Theme>
@@ -521,6 +899,7 @@ export function ColourFigure() {
     <Band name="ColourFigure">
       <div className="kd-device">
         <Theme size="2" className="kd-band-window">
+          <BrowserBar kind="desktop" url="kookie.studio/calendar" />
           <Shell contained className="kd-band-shell">
             <ShellContent>
               <ShellPaneHeader>
@@ -574,6 +953,7 @@ export function DepthFigure() {
     <Band name="DepthFigure">
       <div className="kd-device">
         <Theme size="2" depth="elevated" className="kd-band-window">
+          <BrowserBar kind="desktop" url="kookie.studio/board" />
           <Shell contained className="kd-band-shell">
             <ShellContent>
               <ShellPaneHeader>
@@ -636,6 +1016,7 @@ export function IconsFigure() {
     <Band name="IconsFigure">
       <div className="kd-device">
         <Theme size="2" className="kd-band-window">
+          <BrowserBar kind="desktop" url="kookie.studio/notes" />
           <Shell contained className="kd-band-shell" style={{ "--shell-sidebar-w": "216px" } as React.CSSProperties}>
             <ShellSidebar aria-label="Folders" defaultOpen presentation="fixed" flush>
               <ShellPaneHeader>
@@ -707,6 +1088,7 @@ export function InteractionFigure() {
     <Band name="InteractionFigure">
       <div className="kd-device">
         <Theme size="2" className="kd-band-window">
+          <BrowserBar kind="desktop" url="kookie.studio/sign-in" />
           <Shell contained className="kd-band-shell">
             <ShellContent>
               <ShellPaneHeader>
@@ -765,6 +1147,7 @@ export function MaterialsFigure() {
     <Band name="MaterialsFigure">
       <div className="kd-device">
         <Theme size="2" material="6" className="kd-band-window">
+          <BrowserBar kind="desktop" url="kookie.studio/collection" />
           <Shell contained className="kd-band-shell">
             <ShellContent>
               <img src="/beds/birmingham-museums-trust-adudERb6uDM-unsplash.jpg" alt="" className="kd-band-photo" />
@@ -804,6 +1187,7 @@ export function TypographyFigure() {
     <Band name="TypographyFigure">
       <div className="kd-device">
         <Theme size="2" className="kd-band-window">
+          <BrowserBar kind="desktop" url="kookie.studio/journal" />
           <Shell contained className="kd-band-shell">
             <ShellContent>
               <ShellPaneHeader>
@@ -869,6 +1253,7 @@ function Pair({ wrong, right }: { wrong: React.ReactNode; right: React.ReactNode
           <div className="kd-band-phone">
             <Theme size="2" pointer="coarse" className="kd-band-phone-screen">
               {screen}
+              <PhoneAddressBar url="kookie.studio/events" />
             </Theme>
           </div>
         </Stack>
