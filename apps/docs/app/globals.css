@@ -248,9 +248,9 @@ body {
   align-items: start;
   justify-content: center;
   gap: calc(4 * var(--layout-space-4));
-  /* Small enough that the whole phone shows, top to bottom (2026-11-03, Kushagra: "Keep mobiles
-     to standard device frame height"). */
-  zoom: 0.55;
+  /* Close in, the phones cut by the band (2026-11-04, Kushagra: the appearance ones "will look
+     better with much much more zoom"). Before, small enough that the whole phone showed. */
+  zoom: 0.8;
 }
 
 .kd-band-stage:has(> .kd-band-devices) {
@@ -259,7 +259,7 @@ body {
 
 @container (max-width: 43rem) {
   .kd-band-devices {
-    zoom: 0.5;
+    zoom: 0.7;
   }
 }
 
@@ -415,6 +415,21 @@ body {
   inline-size: min(calc(9 * var(--layout-space-7)), 100%);
 }
 
+/* The render in the export dialog: a 2:1 crop at the radius of the controls under it. */
+.kd-band-render {
+  display: block;
+  inline-size: 100%;
+  aspect-ratio: 2;
+  object-fit: cover;
+  border-radius: var(--radius-surface-1);
+}
+
+/* The dialog's group outlines stand clear of what they hold and of the size measure. */
+.kd-band-compose .kd-band-group-outline {
+  outline-offset: var(--layout-space-3);
+}
+
+
 .kd-band-canvas.kd-band-canvas-form {
   padding-block-start: var(--layout-space-7);
 }
@@ -569,7 +584,8 @@ body {
   justify-content: center;
   gap: calc(4 * var(--layout-space-4));
   inline-size: 100%;
-  zoom: 0.58;
+  /* Larger, to use the band's room (2026-11-04, Kushagra: "we have space, could zoom in"). */
+  zoom: 0.72;
 }
 
 .kd-band-stage:has(> .kd-band-pair) {

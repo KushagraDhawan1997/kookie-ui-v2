@@ -96,7 +96,7 @@ export const PRINCIPLE_FIGURES = {
   AppearanceFigure:
     "A notes app's appearance settings on two phones, one in light mode and one in dark. One screen, two modes, nothing written twice.",
   CompositionFigure:
-    "A builder composing a 3D app's Export render dialog, its Export button selected, with the button's property panel beside it: content and appearance in two groups spaced apart, the labels at the controls' size, and one size throughout.",
+    "A builder composing a 3D app's Render image dialog: the render, its format and size, and Cancel and Render, each group outlined and a control measured at its height. The loud Render is selected, and the inspector beside it edits that button.",
   FitFigure:
     "The same settings screen on a desktop with a mouse and on a phone. Under touch, every row grows to 44 pixels.",
   OneFormFigure:
@@ -285,7 +285,7 @@ function PanelGroup({ children }: { children: React.ReactNode }) {
  *  by space, labels a step below the controls, one size, one loud thing on the canvas. */
 export function CompositionFigure() {
   return (
-    <Band name="CompositionFigure">
+    <Band name="CompositionFigure" measured>
       <div className="kd-device">
         <Theme size="2" className="kd-band-window">
           <Shell contained className="kd-band-shell" style={{ "--shell-inspector-w": "248px" } as React.CSSProperties}>
@@ -301,7 +301,7 @@ export function CompositionFigure() {
                     <ToolbarButton iconOnly aria-label="Layers">
                       <HugeiconsIcon icon={SidebarLeftIcon} strokeWidth={iconStroke} aria-hidden />
                     </ToolbarButton>
-                    <ToolbarTitle>Render</ToolbarTitle>
+                    <ToolbarTitle>Render settings</ToolbarTitle>
                   </Flex>
                   <ToolbarOverflow label="More tools">
                     <ToolbarGroup>
@@ -316,7 +316,7 @@ export function CompositionFigure() {
                       <HugeiconsIcon icon={PlayIcon} strokeWidth={iconStroke} aria-hidden />
                     </ToolbarButton>
                     {/* Medium here, where the hero's is loud: this chapter's figure shows one loud
-                        thing, and it is the Export on the canvas (RULES.md 8). */}
+                        thing, and it is the Render on the canvas (RULES.md 8). */}
                     <ToolbarOverflowItem rank={1}>
                       <ToolbarButton>Export</ToolbarButton>
                     </ToolbarOverflowItem>
@@ -326,46 +326,44 @@ export function CompositionFigure() {
                   </ToolbarOverflow>
                 </Toolbar>
               </ShellPaneHeader>
-              {/* Something to compose (2026-11-04, Kushagra: "Shouldnt the composition figure actually
-                  have something to compose?"): the export dialog of a 3D app, with its Export button
-                  selected. A different screen from the hero's sign-in card, made the same way. */}
+              {/* Something to compose (2026-11-04, Kushagra: "shouldnt export render have a render
+                  too?"): a 3D app's export dialog, its render on top, and annotated with what this
+                  page teaches. The dashed outlines are the groups the spacing makes and the selected Render sits inside its own group, each control
+                  carries its one size, and the loud Render is the selection the inspector edits. */}
               <div className="kd-band-canvas kd-band-canvas-compose">
                 <Card size="2" className="kd-band-compose">
-                  <Stack gap="5">
-                    <Stack gap="2">
-                      <Heading size="5">Export render</Heading>
-                      <Text size="2" emphasis="medium">
-                        Render the scene at full quality.
-                      </Text>
+                  <Stack gap="6">
+                    <Stack gap="3" className="kd-band-group-outline">
+                      <Heading size="6">Render image</Heading>
+                      <img className="kd-band-render" src="/backdrop.jpg" alt="" />
                     </Stack>
-                    <Stack gap="4">
-                      <Field>
-                        <FieldLabel>File name</FieldLabel>
-                        <TextField defaultValue="Living room" />
-                      </Field>
+                    <Grid columns="repeat(2, minmax(0, 1fr))" gap="3" className="kd-band-group-outline">
                       <Field>
                         <FieldLabel>Format</FieldLabel>
-                        <SegmentedControl defaultValue="png" aria-label="Format">
-                          <SegmentedItem value="png">PNG</SegmentedItem>
-                          <SegmentedItem value="jpeg">JPEG</SegmentedItem>
-                          <SegmentedItem value="exr">EXR</SegmentedItem>
-                        </SegmentedControl>
-                      </Field>
-                      <Field>
-                        <FieldLabel>Resolution</FieldLabel>
-                        <Select defaultValue="4k" items={{ hd: "1920 × 1080", "4k": "3840 × 2160" }}>
-                          <SelectTrigger />
+                        <Select defaultValue="png" items={{ png: "PNG", jpeg: "JPEG", exr: "EXR" }}>
+                          <SelectTrigger data-measure="height" />
                           <SelectContent>
-                            <SelectItem value="hd">1920 × 1080</SelectItem>
-                            <SelectItem value="4k">3840 × 2160</SelectItem>
+                            <SelectItem value="png">PNG</SelectItem>
+                            <SelectItem value="jpeg">JPEG</SelectItem>
+                            <SelectItem value="exr">EXR</SelectItem>
                           </SelectContent>
                         </Select>
                       </Field>
-                    </Stack>
-                    <Flex gap="2" justify="end">
+                      <Field>
+                        <FieldLabel>Size</FieldLabel>
+                        <Select defaultValue="4k" items={{ hd: "1080p", "4k": "4K" }}>
+                          <SelectTrigger />
+                          <SelectContent>
+                            <SelectItem value="hd">1080p</SelectItem>
+                            <SelectItem value="4k">4K</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </Field>
+                    </Grid>
+                    <Flex gap="2" justify="end" className="kd-band-group-outline">
                       <Button emphasis="quiet">Cancel</Button>
                       <Button emphasis="loud" className="kd-band-selected">
-                        Export
+                        Render
                       </Button>
                     </Flex>
                   </Stack>
@@ -401,7 +399,7 @@ export function CompositionFigure() {
                   <PanelGroup>
                     <Field>
                       <FieldLabel>Label</FieldLabel>
-                      <TextField defaultValue="Export" />
+                      <TextField defaultValue="Render" />
                     </Field>
                   </PanelGroup>
                   <PanelGroup>
