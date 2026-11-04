@@ -1,6 +1,8 @@
 "use client";
 
 import * as React from "react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import {
   Button,
   Dialog,
@@ -11,6 +13,10 @@ import {
   Flex,
   Stack,
   Text,
+  Toolbar,
+  ToolbarButton,
+  ToolbarTitle,
+  iconStroke,
 } from "@kushagradhawan/kookie-ui-react";
 
 // A dialog does not need a DialogTrigger. Open it from your own state,
@@ -28,13 +34,20 @@ export default function Example() {
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
+          <Toolbar>
+            <ToolbarTitle render={<DialogTitle />}>Export ready</ToolbarTitle>
+            <DialogClose
+              render={
+                <ToolbarButton iconOnly aria-label="Close">
+                  <HugeiconsIcon icon={Cancel01Icon} strokeWidth={iconStroke} aria-hidden />
+                </ToolbarButton>
+              }
+            />
+          </Toolbar>
           <Stack gap="6">
-            <Stack gap="2">
-              <DialogTitle>Export ready</DialogTitle>
-              <DialogDescription>
-                Your data is ready as a 4.2 MB ZIP file. The link works for 24 hours.
-              </DialogDescription>
-            </Stack>
+            <DialogDescription>
+              Your data is ready as a 4.2 MB ZIP file. The link works for 24 hours.
+            </DialogDescription>
             <Flex gap="3" justify="flex-end">
               <DialogClose render={<Button emphasis="quiet" bordered>Later</Button>} />
               <DialogClose render={<Button emphasis="loud">Download</Button>} />

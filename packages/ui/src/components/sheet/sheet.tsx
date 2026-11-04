@@ -48,6 +48,7 @@ import {
   FloatingDirectionContext,
   PortalScope,
   useAmbientDirection,
+  useCloseWarning,
   useNameWarning,
   type OverlayOpenChangeReason,
   type TextDirection,
@@ -337,6 +338,7 @@ function SheetPopup({
   const material = useMaterial({ backdrop: true });
   const lensRef = useLensRef<HTMLDivElement>(material, ref);
   const nameRef = useNameWarning("Sheet");
+  const closeRef = useCloseWarning("Sheet");
   const clipRef = useClipWarning("<Sheet>");
   /* WHERE FOCUS LANDS, which this file claimed from Dialog and was getting from Drawer
      (2026-09-12, the ship audit). The header says a sheet "takes Dialog's a11y whole", and on
@@ -358,7 +360,7 @@ function SheetPopup({
      parameter is contextually typed by the prop, so it needs no import of its own. The ref is
      held here because `initialFocus` wants the ELEMENT, which a callback ref does not keep. */
   const popupRef = React.useRef<HTMLDivElement>(null);
-  const setPopup = useMergedRefs(lensRef, nameRef, clipRef, popupRef);
+  const setPopup = useMergedRefs(lensRef, nameRef, closeRef, clipRef, popupRef);
   return (
     <BaseDrawer.Popup
       {...rest}

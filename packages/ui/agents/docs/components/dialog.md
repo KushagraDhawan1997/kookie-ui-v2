@@ -51,6 +51,8 @@ The part names follow shadcn/ui's dialog (MIT), and the behaviour comes from Bas
 ## Examples
 
 ```tsx
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import {
   Button,
   Dialog,
@@ -61,6 +63,10 @@ import {
   DialogTrigger,
   Flex,
   Stack,
+  Toolbar,
+  ToolbarButton,
+  ToolbarTitle,
+  iconStroke,
 } from "@kushagradhawan/kookie-ui-react";
 import type { Size } from "@kushagradhawan/kookie-ui-react";
 
@@ -69,11 +75,18 @@ export default function Example({ size = "2" }: { size?: Size }) {
     <Dialog size={size}>
       <DialogTrigger render={<Button emphasis="medium">Rename project</Button>} />
       <DialogContent>
+        <Toolbar>
+          <ToolbarTitle render={<DialogTitle />}>Rename project</ToolbarTitle>
+          <DialogClose
+            render={
+              <ToolbarButton iconOnly aria-label="Close">
+                <HugeiconsIcon icon={Cancel01Icon} strokeWidth={iconStroke} aria-hidden />
+              </ToolbarButton>
+            }
+          />
+        </Toolbar>
         <Stack gap="6">
-          <Stack gap="2">
-            <DialogTitle>Rename project</DialogTitle>
-            <DialogDescription>Everyone with access will see the new name.</DialogDescription>
-          </Stack>
+          <DialogDescription>Everyone with access will see the new name.</DialogDescription>
           <Flex gap="3" justify="flex-end">
             <DialogClose render={<Button emphasis="quiet" bordered>Cancel</Button>} />
             <DialogClose render={<Button emphasis="loud">Save</Button>} />
@@ -93,6 +106,8 @@ Project settings in a form inside the panel, with `open` held in state. Enter su
 "use client";
 
 import * as React from "react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import {
   Button,
   Dialog,
@@ -107,6 +122,10 @@ import {
   Flex,
   Stack,
   TextField,
+  Toolbar,
+  ToolbarButton,
+  ToolbarTitle,
+  iconStroke,
 } from "@kushagradhawan/kookie-ui-react";
 
 // Control `open` so the dialog closes only after the form is saved. The
@@ -119,6 +138,16 @@ export default function Example() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={<Button emphasis="medium">Project settings</Button>} />
       <DialogContent>
+        <Toolbar>
+          <ToolbarTitle render={<DialogTitle />}>Project settings</ToolbarTitle>
+          <DialogClose
+            render={
+              <ToolbarButton iconOnly aria-label="Close">
+                <HugeiconsIcon icon={Cancel01Icon} strokeWidth={iconStroke} aria-hidden />
+              </ToolbarButton>
+            }
+          />
+        </Toolbar>
         <Stack
           gap="6"
           render={
@@ -130,10 +159,7 @@ export default function Example() {
             />
           }
         >
-          <Stack gap="2">
-            <DialogTitle>Project settings</DialogTitle>
-            <DialogDescription>Changes apply to everyone in the workspace.</DialogDescription>
-          </Stack>
+          <DialogDescription>Changes apply to everyone in the workspace.</DialogDescription>
           <Stack gap="5">
             <Field>
               <FieldLabel>Project name</FieldLabel>
@@ -166,6 +192,8 @@ A dialog with no `DialogTrigger`, opened from state when an export finishes. Use
 "use client";
 
 import * as React from "react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import {
   Button,
   Dialog,
@@ -176,6 +204,10 @@ import {
   Flex,
   Stack,
   Text,
+  Toolbar,
+  ToolbarButton,
+  ToolbarTitle,
+  iconStroke,
 } from "@kushagradhawan/kookie-ui-react";
 
 // A dialog does not need a DialogTrigger. Open it from your own state,
@@ -193,13 +225,20 @@ export default function Example() {
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
+          <Toolbar>
+            <ToolbarTitle render={<DialogTitle />}>Export ready</ToolbarTitle>
+            <DialogClose
+              render={
+                <ToolbarButton iconOnly aria-label="Close">
+                  <HugeiconsIcon icon={Cancel01Icon} strokeWidth={iconStroke} aria-hidden />
+                </ToolbarButton>
+              }
+            />
+          </Toolbar>
           <Stack gap="6">
-            <Stack gap="2">
-              <DialogTitle>Export ready</DialogTitle>
-              <DialogDescription>
-                Your data is ready as a 4.2 MB ZIP file. The link works for 24 hours.
-              </DialogDescription>
-            </Stack>
+            <DialogDescription>
+              Your data is ready as a 4.2 MB ZIP file. The link works for 24 hours.
+            </DialogDescription>
             <Flex gap="3" justify="flex-end">
               <DialogClose render={<Button emphasis="quiet" bordered>Later</Button>} />
               <DialogClose render={<Button emphasis="loud">Download</Button>} />
@@ -217,6 +256,8 @@ export default function Example() {
 A `maxHeight` on `DialogContent` with a `ScrollArea` around a long list. The list scrolls, and the title and the button stay in view.
 
 ```tsx
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import {
   Button,
   Dialog,
@@ -229,6 +270,10 @@ import {
   ScrollArea,
   Stack,
   Text,
+  Toolbar,
+  ToolbarButton,
+  ToolbarTitle,
+  iconStroke,
 } from "@kushagradhawan/kookie-ui-react";
 
 const CHANGES = [
@@ -253,22 +298,27 @@ export default function Example() {
     <Dialog>
       <DialogTrigger render={<Button emphasis="medium">What’s new</Button>} />
       <DialogContent style={{ maxHeight: "28rem" }}>
-        <Stack gap="5">
-          <Stack gap="2">
-            <DialogTitle>What’s new</DialogTitle>
-            <DialogDescription>Twelve changes shipped this month.</DialogDescription>
+        <Toolbar>
+          <ToolbarTitle render={<DialogTitle />}>What’s new</ToolbarTitle>
+          <DialogClose
+            render={
+              <ToolbarButton iconOnly aria-label="Close">
+                <HugeiconsIcon icon={Cancel01Icon} strokeWidth={iconStroke} aria-hidden />
+              </ToolbarButton>
+            }
+          />
+        </Toolbar>
+        <DialogDescription>Twelve changes shipped this month.</DialogDescription>
+        <ScrollArea>
+          <Stack gap="3">
+            {CHANGES.map((change) => (
+              <Text key={change}>{change}</Text>
+            ))}
           </Stack>
-          <ScrollArea>
-            <Stack gap="3">
-              {CHANGES.map((change) => (
-                <Text key={change}>{change}</Text>
-              ))}
-            </Stack>
-          </ScrollArea>
-          <Flex justify="flex-end">
-            <DialogClose render={<Button emphasis="loud">Got it</Button>} />
-          </Flex>
-        </Stack>
+        </ScrollArea>
+        <Flex justify="flex-end">
+          <DialogClose render={<Button emphasis="loud">Got it</Button>} />
+        </Flex>
       </DialogContent>
     </Dialog>
   );
@@ -283,6 +333,8 @@ export default function Example() {
 "use client";
 
 import * as React from "react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import {
   Button,
   Dialog,
@@ -297,6 +349,10 @@ import {
   Flex,
   Stack,
   TextArea,
+  Toolbar,
+  ToolbarButton,
+  ToolbarTitle,
+  iconStroke,
 } from "@kushagradhawan/kookie-ui-react";
 
 // `onOpenChange` tells you why the dialog is closing. Call `cancel()` to
@@ -314,11 +370,18 @@ export default function Example() {
     >
       <DialogTrigger render={<Button emphasis="medium">Leave feedback</Button>} />
       <DialogContent>
+        <Toolbar>
+          <ToolbarTitle render={<DialogTitle />}>Leave feedback</ToolbarTitle>
+          <DialogClose
+            render={
+              <ToolbarButton iconOnly aria-label="Close">
+                <HugeiconsIcon icon={Cancel01Icon} strokeWidth={iconStroke} aria-hidden />
+              </ToolbarButton>
+            }
+          />
+        </Toolbar>
         <Stack gap="6">
-          <Stack gap="2">
-            <DialogTitle>Leave feedback</DialogTitle>
-            <DialogDescription>Escape does not close this dialog while it holds a draft.</DialogDescription>
-          </Stack>
+          <DialogDescription>Escape does not close this dialog while it holds a draft.</DialogDescription>
           <Field>
             <FieldLabel>Your feedback</FieldLabel>
             <TextArea rows={4} value={draft} onChange={(event) => setDraft(event.target.value)} />
@@ -355,6 +418,8 @@ A `Menu` row that opens a rename dialog. The dialog sits outside the menu and is
 "use client";
 
 import * as React from "react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import {
   Button,
   Dialog,
@@ -371,6 +436,10 @@ import {
   MenuTrigger,
   Stack,
   TextField,
+  Toolbar,
+  ToolbarButton,
+  ToolbarTitle,
+  iconStroke,
 } from "@kushagradhawan/kookie-ui-react";
 
 // A menu row can open a dialog. Keep the dialog outside the menu and
@@ -390,11 +459,18 @@ export default function Example() {
       </Menu>
       <Dialog open={renaming} onOpenChange={setRenaming}>
         <DialogContent>
+          <Toolbar>
+            <ToolbarTitle render={<DialogTitle />}>Rename project</ToolbarTitle>
+            <DialogClose
+              render={
+                <ToolbarButton iconOnly aria-label="Close">
+                  <HugeiconsIcon icon={Cancel01Icon} strokeWidth={iconStroke} aria-hidden />
+                </ToolbarButton>
+              }
+            />
+          </Toolbar>
           <Stack gap="6">
-            <Stack gap="2">
-              <DialogTitle>Rename project</DialogTitle>
-              <DialogDescription>Everyone with access will see the new name.</DialogDescription>
-            </Stack>
+            <DialogDescription>Everyone with access will see the new name.</DialogDescription>
             <Field>
               <FieldLabel>Project name</FieldLabel>
               <TextField defaultValue="Marketing site" />

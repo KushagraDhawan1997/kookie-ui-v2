@@ -14,6 +14,8 @@
  * hairline and the radius band all arrived from the surface layer already judged on Card.
  */
 import * as React from "react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import {
   Box,
   Button,
@@ -41,6 +43,10 @@ import {
   Text,
   TextField,
   Theme,
+  Toolbar,
+  ToolbarButton,
+  ToolbarTitle,
+  iconStroke,
   themeAxes,
 } from "@kushagradhawan/kookie-ui-react";
 
@@ -88,20 +94,29 @@ type Size = "1" | "2" | "3" | "4";
  */
 function SignIn({ size = "3" }: { size?: Size }) {
   return (
-    <Stack gap="6">
-      <Stack gap="2">
-        <DialogTitle>Sign in</DialogTitle>
+    <>
+      <Toolbar>
+        <ToolbarTitle render={<DialogTitle />}>Sign in</ToolbarTitle>
+        <DialogClose
+          render={
+            <ToolbarButton iconOnly aria-label="Close">
+              <HugeiconsIcon icon={Cancel01Icon} strokeWidth={iconStroke} aria-hidden />
+            </ToolbarButton>
+          }
+        />
+      </Toolbar>
+      <Stack gap="6">
         <DialogDescription>Use your work email to continue.</DialogDescription>
+        <Stack gap="5">
+          <TextField size={size} type="email" placeholder="you@company.com" aria-label="Email" />
+          <TextField size={size} type="password" placeholder="Password" aria-label="Password" />
+        </Stack>
+        <Flex gap="3" justify="flex-end">
+          <DialogClose render={<Button size={size} emphasis="quiet" bordered>Cancel</Button>} />
+          <DialogClose render={<Button size={size} tone="accent" emphasis="loud">Sign in</Button>} />
+        </Flex>
       </Stack>
-      <Stack gap="5">
-        <TextField size={size} type="email" placeholder="you@company.com" aria-label="Email" />
-        <TextField size={size} type="password" placeholder="Password" aria-label="Password" />
-      </Stack>
-      <Flex gap="3" justify="flex-end">
-        <DialogClose render={<Button size={size} emphasis="quiet" bordered>Cancel</Button>} />
-        <DialogClose render={<Button size={size} tone="accent" emphasis="loud">Sign in</Button>} />
-      </Flex>
-    </Stack>
+    </>
   );
 }
 
@@ -197,11 +212,18 @@ function States() {
           <Dialog>
             <DialogTrigger render={<Button emphasis="medium">Long form</Button>} />
             <DialogContent>
+              <Toolbar>
+                <ToolbarTitle render={<DialogTitle />}>Connect a repository</ToolbarTitle>
+                <DialogClose
+                  render={
+                    <ToolbarButton iconOnly aria-label="Close">
+                      <HugeiconsIcon icon={Cancel01Icon} strokeWidth={iconStroke} aria-hidden />
+                    </ToolbarButton>
+                  }
+                />
+              </Toolbar>
               <Stack gap="6">
-                <Stack gap="2">
-                  <DialogTitle>Connect a repository</DialogTitle>
-                  <DialogDescription>Pick a branch and name the environment.</DialogDescription>
-                </Stack>
+                <DialogDescription>Pick a branch and name the environment.</DialogDescription>
                 <Stack gap="5">
                   {["Repository", "Branch", "Environment", "Region", "Build command", "Output directory", "Install command", "Root directory"].map(
                     (label) => (
@@ -233,11 +255,18 @@ function States() {
           <Dialog>
             <DialogTrigger render={<Button emphasis="medium">Rename project</Button>} />
             <DialogContent>
+              <Toolbar>
+                <ToolbarTitle render={<DialogTitle />}>Rename project</ToolbarTitle>
+                <DialogClose
+                  render={
+                    <ToolbarButton iconOnly aria-label="Close">
+                      <HugeiconsIcon icon={Cancel01Icon} strokeWidth={iconStroke} aria-hidden />
+                    </ToolbarButton>
+                  }
+                />
+              </Toolbar>
               <Stack gap="6">
-                <Stack gap="2">
-                  <DialogTitle>Rename project</DialogTitle>
-                  <DialogDescription>Everyone with access will see the new name.</DialogDescription>
-                </Stack>
+                <DialogDescription>Everyone with access will see the new name.</DialogDescription>
                 <TextField placeholder="Project name" aria-label="Project name" />
                 <Flex gap="3" justify="flex-end">
                   <DialogClose render={<Button emphasis="quiet" bordered>Cancel</Button>} />
@@ -259,10 +288,17 @@ function States() {
           <Dialog>
             <DialogTrigger render={<Button emphasis="medium">Choose a region</Button>} />
             <DialogContent style={{ maxHeight: "min(32rem, 70dvh)" }}>
-              <Stack gap="2">
-                <DialogTitle>Choose a region</DialogTitle>
-                <DialogDescription>Latency is measured from your last deploy.</DialogDescription>
-              </Stack>
+              <Toolbar>
+                <ToolbarTitle render={<DialogTitle />}>Choose a region</ToolbarTitle>
+                <DialogClose
+                  render={
+                    <ToolbarButton iconOnly aria-label="Close">
+                      <HugeiconsIcon icon={Cancel01Icon} strokeWidth={iconStroke} aria-hidden />
+                    </ToolbarButton>
+                  }
+                />
+              </Toolbar>
+              <DialogDescription>Latency is measured from your last deploy.</DialogDescription>
               <ScrollArea>
                 <Stack gap="1">
                   {REGIONS.map((r) => (
@@ -411,11 +447,18 @@ function Nesting() {
           <Dialog size="3">
             <DialogTrigger render={<Button emphasis="medium">Workspace settings</Button>} />
             <DialogContent>
+              <Toolbar>
+                <ToolbarTitle render={<DialogTitle />}>Workspace settings</ToolbarTitle>
+                <DialogClose
+                  render={
+                    <ToolbarButton iconOnly aria-label="Close">
+                      <HugeiconsIcon icon={Cancel01Icon} strokeWidth={iconStroke} aria-hidden />
+                    </ToolbarButton>
+                  }
+                />
+              </Toolbar>
               <Stack gap="6">
-                <Stack gap="2">
-                  <DialogTitle>Workspace settings</DialogTitle>
-                  <DialogDescription>Changes apply to every member.</DialogDescription>
-                </Stack>
+                <DialogDescription>Changes apply to every member.</DialogDescription>
                 <Stack gap="5">
                   <Stack gap="3">
                     <Text size="2" weight="medium" render={<label htmlFor="dlg-prev-name" />}>
@@ -448,11 +491,18 @@ function Nesting() {
           <Dialog size="3">
             <DialogTrigger render={<Button emphasis="medium">Deploy</Button>} />
             <DialogContent>
+              <Toolbar>
+                <ToolbarTitle render={<DialogTitle />}>Deploy to production</ToolbarTitle>
+                <DialogClose
+                  render={
+                    <ToolbarButton iconOnly aria-label="Close">
+                      <HugeiconsIcon icon={Cancel01Icon} strokeWidth={iconStroke} aria-hidden />
+                    </ToolbarButton>
+                  }
+                />
+              </Toolbar>
               <Stack gap="6">
-                <Stack gap="2">
-                  <DialogTitle>Deploy to production</DialogTitle>
-                  <DialogDescription>Choose a branch and confirm.</DialogDescription>
-                </Stack>
+                <DialogDescription>Choose a branch and confirm.</DialogDescription>
                 <Stack gap="5">
                   <Stack gap="3">
                     <Text size="2" weight="medium">
@@ -559,11 +609,18 @@ function InUse() {
                 <Dialog size="2">
                   <DialogTrigger render={<Button emphasis="quiet" bordered>Update</Button>} />
                   <DialogContent>
+                    <Toolbar>
+                      <ToolbarTitle render={<DialogTitle />}>Update payment method</ToolbarTitle>
+                      <DialogClose
+                        render={
+                          <ToolbarButton iconOnly aria-label="Close">
+                            <HugeiconsIcon icon={Cancel01Icon} strokeWidth={iconStroke} aria-hidden />
+                          </ToolbarButton>
+                        }
+                      />
+                    </Toolbar>
                     <Stack gap="6">
-                      <Stack gap="2">
-                        <DialogTitle>Update payment method</DialogTitle>
-                        <DialogDescription>Charges apply from the next cycle.</DialogDescription>
-                      </Stack>
+                      <DialogDescription>Charges apply from the next cycle.</DialogDescription>
                       <Stack gap="5">
                         <TextField size="2" placeholder="Card number" aria-label="Card number" />
                         <Flex gap="3">
@@ -591,11 +648,18 @@ function InUse() {
                 <Dialog size="2">
                   <DialogTrigger render={<Button emphasis="quiet" bordered>Change</Button>} />
                   <DialogContent>
+                    <Toolbar>
+                      <ToolbarTitle render={<DialogTitle />}>Billing email</ToolbarTitle>
+                      <DialogClose
+                        render={
+                          <ToolbarButton iconOnly aria-label="Close">
+                            <HugeiconsIcon icon={Cancel01Icon} strokeWidth={iconStroke} aria-hidden />
+                          </ToolbarButton>
+                        }
+                      />
+                    </Toolbar>
                     <Stack gap="6">
-                      <Stack gap="2">
-                        <DialogTitle>Billing email</DialogTitle>
-                        <DialogDescription>Invoices and receipts go here.</DialogDescription>
-                      </Stack>
+                      <DialogDescription>Invoices and receipts go here.</DialogDescription>
                       <TextField size="2" type="email" defaultValue="finance@acme.com" aria-label="Billing email" />
                       <Flex gap="3" justify="flex-end">
                         <DialogClose render={<Button size="2" emphasis="quiet" bordered>Cancel</Button>} />
@@ -630,11 +694,18 @@ function InUse() {
                     <Dialog size="2">
                       <DialogTrigger render={<Button tone="accent" emphasis="loud">Share</Button>} />
                       <DialogContent>
+                        <Toolbar>
+                          <ToolbarTitle render={<DialogTitle />}>Share this set</ToolbarTitle>
+                          <DialogClose
+                            render={
+                              <ToolbarButton iconOnly aria-label="Close">
+                                <HugeiconsIcon icon={Cancel01Icon} strokeWidth={iconStroke} aria-hidden />
+                              </ToolbarButton>
+                            }
+                          />
+                        </Toolbar>
                         <Stack gap="6">
-                          <Stack gap="2">
-                            <DialogTitle>Share this set</DialogTitle>
-                            <DialogDescription>Anyone with the link can view it.</DialogDescription>
-                          </Stack>
+                          <DialogDescription>Anyone with the link can view it.</DialogDescription>
                           <Stack gap="3">
                             <Text size="2" weight="medium">
                               Who can open it

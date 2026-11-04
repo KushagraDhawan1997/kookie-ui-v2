@@ -42,6 +42,7 @@ import {
   PortalScope,
   overlayOpenChange,
   useAmbientDirection,
+  useCloseWarning,
   useNameWarning,
   type OverlayOpenChangeDetails,
 } from "../../system/floating.tsx";
@@ -308,9 +309,10 @@ function DialogPopup({
   // §10 — the lens on the pane itself (see Card).
   const lensRef = useLensRef<HTMLDivElement>(material, ref);
   const nameRef = useNameWarning("Dialog");
+  const closeRef = useCloseWarning("Dialog");
   // A pane clips (§3, 2026-08-21): content wider than the panel is not reachable at all.
   const clipRef = useClipWarning("<Dialog>");
-  const setPopup = useMergedRefs(lensRef, nameRef, clipRef);
+  const setPopup = useMergedRefs(lensRef, nameRef, closeRef, clipRef);
   return (
     <BaseDialog.Popup
       {...rest}

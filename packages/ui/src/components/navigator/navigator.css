@@ -67,21 +67,18 @@
 }
 
 /* A screen outside a pane: the band, holding Back, the title and Close, then the body. The band
-   sits closer to the panel's edges than the content, by one step, and the body starts a
-   section's distance under it. */
+   sits closer to the panel's edges than the content, by one step (the panel places it), and
+   the body starts a section's distance under it. */
 .kui-navigator-screen {
   display: flex;
   flex-direction: column;
   min-block-size: 0;
 }
 
-/* One step closer to the panel's edge than the content, never a fixed distance: a fixed 12 or
-   16 sat the buttons inside a large panel's corner curve (2026-11-02, "too close to the
-   edge"). Stated against the panel's own padding, the band moves with the panel's size. */
+/* Where the band sits against the panel's edges is the panel's to say (surfaces.css, "THE
+   PANEL PLACES ITS BAND"), the same for this band as for a Toolbar written by hand. */
 .kui-navigator-bar {
   position: relative;
-  margin-block-start: calc(-1 * var(--layout-space-2));
-  margin-inline: calc(-1 * var(--layout-space-2));
   margin-block-end: var(--layout-space-6);
 }
 
@@ -168,10 +165,4 @@
 /* Back is staying: it holds its room in the leaving row and the live one shows through. */
 .kui-navigator-leaving .kui-navigator-back-held {
   visibility: hidden;
-}
-
-/* With no Back before it, the title lines up with the content under it rather than with the
-   band's edge, which sits one step further out. */
-.kui-navigator-bar .kui-toolbar > .kui-toolbar-title:first-child {
-  padding-inline-start: var(--layout-space-2);
 }

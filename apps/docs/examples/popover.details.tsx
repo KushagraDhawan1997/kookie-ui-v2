@@ -1,8 +1,11 @@
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import {
   Avatar,
   Button,
   Flex,
   Popover,
+  PopoverClose,
   PopoverContent,
   PopoverDescription,
   PopoverTitle,
@@ -10,6 +13,10 @@ import {
   Separator,
   Stack,
   Text,
+  Toolbar,
+  ToolbarButton,
+  ToolbarTitle,
+  iconStroke,
 } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
@@ -17,13 +24,20 @@ export default function Example() {
     <Popover>
       <PopoverTrigger render={<Button emphasis="quiet">Shruti Bhatia</Button>} />
       <PopoverContent side="bottom" align="start">
+        <Toolbar>
+          <ToolbarTitle render={<PopoverTitle />}>Shruti Bhatia</ToolbarTitle>
+          <PopoverClose
+            render={
+              <ToolbarButton iconOnly aria-label="Close">
+                <HugeiconsIcon icon={Cancel01Icon} strokeWidth={iconStroke} aria-hidden />
+              </ToolbarButton>
+            }
+          />
+        </Toolbar>
         <Stack gap="4">
           <Flex gap="3" align="center">
             <Avatar fallback="SB" alt="" />
-            <Stack gap="1">
-              <PopoverTitle>Shruti Bhatia</PopoverTitle>
-              <PopoverDescription>Engineering lead, Payments</PopoverDescription>
-            </Stack>
+            <PopoverDescription>Engineering lead, Payments</PopoverDescription>
           </Flex>
           <Separator />
           <Stack gap="2">

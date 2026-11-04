@@ -1,5 +1,5 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import { FilterHorizontalIcon } from "@hugeicons/core-free-icons";
+import { Cancel01Icon, FilterHorizontalIcon } from "@hugeicons/core-free-icons";
 import {
   Button,
   Checkbox,
@@ -13,6 +13,9 @@ import {
   PopoverTitle,
   PopoverTrigger,
   Stack,
+  Toolbar,
+  ToolbarButton,
+  ToolbarTitle,
   iconStroke,
 } from "@kushagradhawan/kookie-ui-react";
 
@@ -33,8 +36,17 @@ export default function Example() {
         }
       />
       <PopoverContent align="start">
+        <Toolbar>
+          <ToolbarTitle render={<PopoverTitle />}>Filter jobs</ToolbarTitle>
+          <PopoverClose
+            render={
+              <ToolbarButton iconOnly aria-label="Close">
+                <HugeiconsIcon icon={Cancel01Icon} strokeWidth={iconStroke} aria-hidden />
+              </ToolbarButton>
+            }
+          />
+        </Toolbar>
         <Stack gap="4">
-          <PopoverTitle>Filter jobs</PopoverTitle>
           <Field>
             <FieldLabel>Status</FieldLabel>
             <Stack gap="5">

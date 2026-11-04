@@ -1,3 +1,5 @@
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import {
   Box,
   Button,
@@ -8,6 +10,10 @@ import {
   SheetTitle,
   SheetTrigger,
   Stack,
+  Toolbar,
+  ToolbarButton,
+  ToolbarTitle,
+  iconStroke,
 } from "@kushagradhawan/kookie-ui-react";
 
 // `side` follows the reading direction. Under `dir="rtl"`, `inline-end` opens the panel
@@ -18,11 +24,18 @@ export default function Example() {
       <Sheet side="inline-end">
         <SheetTrigger render={<Button emphasis="medium">Details</Button>} />
         <SheetContent>
+          <Toolbar>
+            <ToolbarTitle render={<SheetTitle />}>Invoice details</ToolbarTitle>
+            <SheetClose
+              render={
+                <ToolbarButton iconOnly aria-label="Close">
+                  <HugeiconsIcon icon={Cancel01Icon} strokeWidth={iconStroke} aria-hidden />
+                </ToolbarButton>
+              }
+            />
+          </Toolbar>
           <Stack gap="6">
-            <Stack gap="2">
-              <SheetTitle>Invoice details</SheetTitle>
-              <SheetDescription>Paid on 1 September by card.</SheetDescription>
-            </Stack>
+            <SheetDescription>Paid on 1 September by card.</SheetDescription>
             <SheetClose render={<Button emphasis="loud">Done</Button>} />
           </Stack>
         </SheetContent>

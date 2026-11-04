@@ -1,5 +1,5 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Folder01Icon, Home01Icon, Menu01Icon, Settings02Icon } from "@hugeicons/core-free-icons";
+import { Cancel01Icon, Folder01Icon, Home01Icon, Menu01Icon, Settings02Icon } from "@hugeicons/core-free-icons";
 import {
   Button,
   Row,
@@ -9,6 +9,9 @@ import {
   SheetTitle,
   SheetTrigger,
   Stack,
+  Toolbar,
+  ToolbarButton,
+  ToolbarTitle,
   iconStroke,
 } from "@kushagradhawan/kookie-ui-react";
 
@@ -29,8 +32,17 @@ export default function Example() {
         }
       />
       <SheetContent>
+        <Toolbar>
+          <ToolbarTitle render={<SheetTitle />}>Workspace</ToolbarTitle>
+          <SheetClose
+            render={
+              <ToolbarButton iconOnly aria-label="Close">
+                <HugeiconsIcon icon={Cancel01Icon} strokeWidth={iconStroke} aria-hidden />
+              </ToolbarButton>
+            }
+          />
+        </Toolbar>
         <Stack gap="5">
-          <SheetTitle>Workspace</SheetTitle>
           <Stack gap="1">
             <Row current leading={icon(Home01Icon)} render={<a href="#overview" />}>
               Overview

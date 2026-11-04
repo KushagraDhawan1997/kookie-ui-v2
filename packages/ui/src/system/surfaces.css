@@ -2516,3 +2516,31 @@
   --kui-m-material-ring: var(--material-g8-ring);
   --kui-m-material-ring-control: var(--material-g8-ring-control);
 }
+
+/* THE PANEL PLACES ITS BAND (2026-11-03, RULES.md 3, Kushagra: "Yes" to the panel doing it).
+   Whatever row comes first in a dialog, sheet or popover — a Toolbar you write, or a
+   Navigator's band — sits one step closer to the panel's edges than the content, stated
+   against the panel's own padding so it moves with the panel's size. Before this only the
+   Navigator's band did, and a Toolbar written by hand sat a step further in. */
+:is(.kui-dialog-body, .kui-sheet-body, .kui-popover-popup .kui-floating-body)
+  > :is(.kui-toolbar, .kui-navigator-bar):first-child {
+  margin-block-start: calc(-1 * var(--layout-space-2));
+  margin-inline: calc(-1 * var(--layout-space-2));
+}
+
+/* And the content starts a section's distance under it, as it does under a Navigator's band. */
+:is(.kui-dialog-body, .kui-sheet-body, .kui-popover-popup .kui-floating-body) > .kui-toolbar:first-child {
+  margin-block-end: var(--layout-space-6);
+}
+
+/* With nothing before it in the band, the title lines up with the content under it rather than
+   with the band's edge, which sits one step further out. */
+:is(.kui-dialog-body, .kui-sheet-body, .kui-popover-popup .kui-floating-body)
+  > .kui-toolbar:first-child
+  > .kui-toolbar-title:first-child,
+:is(.kui-dialog-body, .kui-sheet-body, .kui-popover-popup .kui-floating-body)
+  > .kui-navigator-bar:first-child
+  > .kui-toolbar
+  > .kui-toolbar-title:first-child {
+  padding-inline-start: var(--layout-space-2);
+}

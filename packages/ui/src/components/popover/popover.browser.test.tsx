@@ -330,7 +330,7 @@ describe("the parts exist because the wiring forces them (§10, §31)", () => {
     async function warnings(want: number, run: () => void): Promise<number> {
       const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
       const count = () =>
-        spy.mock.calls.map((c) => String(c[0])).filter((m) => m.includes("<Popover>")).length;
+        spy.mock.calls.map((c) => String(c[0])).filter((m) => m.includes("<Popover>") && m.includes("accessible name")).length;
       try {
         run();
         for (let waited = 0; waited < 2000; waited += 16) {

@@ -1,3 +1,5 @@
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import {
   Button,
   Dialog,
@@ -10,6 +12,10 @@ import {
   ScrollArea,
   Stack,
   Text,
+  Toolbar,
+  ToolbarButton,
+  ToolbarTitle,
+  iconStroke,
 } from "@kushagradhawan/kookie-ui-react";
 
 const CHANGES = [
@@ -34,22 +40,27 @@ export default function Example() {
     <Dialog>
       <DialogTrigger render={<Button emphasis="medium">What’s new</Button>} />
       <DialogContent style={{ maxHeight: "28rem" }}>
-        <Stack gap="5">
-          <Stack gap="2">
-            <DialogTitle>What’s new</DialogTitle>
-            <DialogDescription>Twelve changes shipped this month.</DialogDescription>
+        <Toolbar>
+          <ToolbarTitle render={<DialogTitle />}>What’s new</ToolbarTitle>
+          <DialogClose
+            render={
+              <ToolbarButton iconOnly aria-label="Close">
+                <HugeiconsIcon icon={Cancel01Icon} strokeWidth={iconStroke} aria-hidden />
+              </ToolbarButton>
+            }
+          />
+        </Toolbar>
+        <DialogDescription>Twelve changes shipped this month.</DialogDescription>
+        <ScrollArea>
+          <Stack gap="3">
+            {CHANGES.map((change) => (
+              <Text key={change}>{change}</Text>
+            ))}
           </Stack>
-          <ScrollArea>
-            <Stack gap="3">
-              {CHANGES.map((change) => (
-                <Text key={change}>{change}</Text>
-              ))}
-            </Stack>
-          </ScrollArea>
-          <Flex justify="flex-end">
-            <DialogClose render={<Button emphasis="loud">Got it</Button>} />
-          </Flex>
-        </Stack>
+        </ScrollArea>
+        <Flex justify="flex-end">
+          <DialogClose render={<Button emphasis="loud">Got it</Button>} />
+        </Flex>
       </DialogContent>
     </Dialog>
   );

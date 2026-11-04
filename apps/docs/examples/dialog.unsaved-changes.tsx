@@ -1,6 +1,8 @@
 "use client";
 
 import * as React from "react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import {
   Button,
   Dialog,
@@ -15,6 +17,10 @@ import {
   Flex,
   Stack,
   TextArea,
+  Toolbar,
+  ToolbarButton,
+  ToolbarTitle,
+  iconStroke,
 } from "@kushagradhawan/kookie-ui-react";
 
 // `onOpenChange` tells you why the dialog is closing. Call `cancel()` to
@@ -32,11 +38,18 @@ export default function Example() {
     >
       <DialogTrigger render={<Button emphasis="medium">Leave feedback</Button>} />
       <DialogContent>
+        <Toolbar>
+          <ToolbarTitle render={<DialogTitle />}>Leave feedback</ToolbarTitle>
+          <DialogClose
+            render={
+              <ToolbarButton iconOnly aria-label="Close">
+                <HugeiconsIcon icon={Cancel01Icon} strokeWidth={iconStroke} aria-hidden />
+              </ToolbarButton>
+            }
+          />
+        </Toolbar>
         <Stack gap="6">
-          <Stack gap="2">
-            <DialogTitle>Leave feedback</DialogTitle>
-            <DialogDescription>Escape does not close this dialog while it holds a draft.</DialogDescription>
-          </Stack>
+          <DialogDescription>Escape does not close this dialog while it holds a draft.</DialogDescription>
           <Field>
             <FieldLabel>Your feedback</FieldLabel>
             <TextArea rows={4} value={draft} onChange={(event) => setDraft(event.target.value)} />

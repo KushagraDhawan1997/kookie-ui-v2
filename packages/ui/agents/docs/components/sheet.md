@@ -44,6 +44,8 @@ Screen readers announce the panel as a dialog, named by `SheetTitle` and describ
 ## Examples
 
 ```tsx
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import {
   Button,
   Flex,
@@ -56,6 +58,10 @@ import {
   Stack,
   Text,
   TextField,
+  Toolbar,
+  ToolbarButton,
+  ToolbarTitle,
+  iconStroke,
 } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
@@ -63,11 +69,18 @@ export default function Example() {
     <Sheet side="inline-end">
       <SheetTrigger render={<Button emphasis="medium">Filters</Button>} />
       <SheetContent>
+        <Toolbar>
+          <ToolbarTitle render={<SheetTitle />}>Filters</ToolbarTitle>
+          <SheetClose
+            render={
+              <ToolbarButton iconOnly aria-label="Close">
+                <HugeiconsIcon icon={Cancel01Icon} strokeWidth={iconStroke} aria-hidden />
+              </ToolbarButton>
+            }
+          />
+        </Toolbar>
         <Stack gap="6">
-          <Stack gap="2">
-            <SheetTitle>Filters</SheetTitle>
-            <SheetDescription>Narrow the deploys shown on this page.</SheetDescription>
-          </Stack>
+          <SheetDescription>Narrow the deploys shown on this page.</SheetDescription>
           <Stack gap="3">
             <Text size="2" weight="medium">Branch</Text>
             <TextField placeholder="main" aria-label="Branch" />
@@ -88,6 +101,8 @@ export default function Example() {
 A sheet with the default `side="bottom"`. On a phone it fills the window's width, and on a wider window its width stops at a size that suits one task.
 
 ```tsx
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import {
   Button,
   Flex,
@@ -98,6 +113,10 @@ import {
   SheetTitle,
   SheetTrigger,
   Stack,
+  Toolbar,
+  ToolbarButton,
+  ToolbarTitle,
+  iconStroke,
 } from "@kushagradhawan/kookie-ui-react";
 
 // `side="bottom"` is the default. On a phone the panel is the full width of the window.
@@ -107,11 +126,18 @@ export default function Example() {
     <Sheet>
       <SheetTrigger render={<Button emphasis="medium">Share project</Button>} />
       <SheetContent>
+        <Toolbar>
+          <ToolbarTitle render={<SheetTitle />}>Share project</ToolbarTitle>
+          <SheetClose
+            render={
+              <ToolbarButton iconOnly aria-label="Close">
+                <HugeiconsIcon icon={Cancel01Icon} strokeWidth={iconStroke} aria-hidden />
+              </ToolbarButton>
+            }
+          />
+        </Toolbar>
         <Stack gap="6">
-          <Stack gap="2">
-            <SheetTitle>Share project</SheetTitle>
-            <SheetDescription>Anyone with the link can view this project.</SheetDescription>
-          </Stack>
+          <SheetDescription>Anyone with the link can view this project.</SheetDescription>
           <Flex gap="3" justify="flex-end">
             <SheetClose render={<Button emphasis="quiet" bordered>Cancel</Button>} />
             <SheetClose render={<Button emphasis="loud">Copy link</Button>} />
@@ -129,7 +155,7 @@ With `side="inline-start"`, the panel opens from the side where reading starts, 
 
 ```tsx
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Folder01Icon, Home01Icon, Menu01Icon, Settings02Icon } from "@hugeicons/core-free-icons";
+import { Cancel01Icon, Folder01Icon, Home01Icon, Menu01Icon, Settings02Icon } from "@hugeicons/core-free-icons";
 import {
   Button,
   Row,
@@ -139,6 +165,9 @@ import {
   SheetTitle,
   SheetTrigger,
   Stack,
+  Toolbar,
+  ToolbarButton,
+  ToolbarTitle,
   iconStroke,
 } from "@kushagradhawan/kookie-ui-react";
 
@@ -159,8 +188,17 @@ export default function Example() {
         }
       />
       <SheetContent>
+        <Toolbar>
+          <ToolbarTitle render={<SheetTitle />}>Workspace</ToolbarTitle>
+          <SheetClose
+            render={
+              <ToolbarButton iconOnly aria-label="Close">
+                <HugeiconsIcon icon={Cancel01Icon} strokeWidth={iconStroke} aria-hidden />
+              </ToolbarButton>
+            }
+          />
+        </Toolbar>
         <Stack gap="5">
-          <SheetTitle>Workspace</SheetTitle>
           <Stack gap="1">
             <Row current leading={icon(Home01Icon)} render={<a href="#overview" />}>
               Overview
@@ -188,15 +226,22 @@ The open state lives in the example's own state, so the sheet can open from anyw
 "use client";
 
 import * as React from "react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import {
   Button,
   Flex,
   Sheet,
+  SheetClose,
   SheetContent,
   SheetDescription,
   SheetTitle,
   Stack,
   Text,
+  Toolbar,
+  ToolbarButton,
+  ToolbarTitle,
+  iconStroke,
 } from "@kushagradhawan/kookie-ui-react";
 
 // Hold `open` in your own state to open the sheet from anywhere, with no SheetTrigger.
@@ -213,11 +258,18 @@ export default function Example() {
       </Button>
       <Sheet side="inline-end" open={open} onOpenChange={setOpen}>
         <SheetContent>
+          <Toolbar>
+            <ToolbarTitle render={<SheetTitle />}>Compare plans</ToolbarTitle>
+            <SheetClose
+              render={
+                <ToolbarButton iconOnly aria-label="Close">
+                  <HugeiconsIcon icon={Cancel01Icon} strokeWidth={iconStroke} aria-hidden />
+                </ToolbarButton>
+              }
+            />
+          </Toolbar>
           <Stack gap="6">
-            <Stack gap="2">
-              <SheetTitle>Compare plans</SheetTitle>
-              <SheetDescription>Team adds shared projects and an audit log.</SheetDescription>
-            </Stack>
+            <SheetDescription>Team adds shared projects and an audit log.</SheetDescription>
             <Flex gap="3" justify="flex-end">
               <Button emphasis="quiet" bordered onClick={() => setOpen(false)}>
                 Not now
@@ -239,17 +291,24 @@ export default function Example() {
 When the content is taller than the window, the panel stops at the window's height and its body scrolls, while the page behind it stays still.
 
 ```tsx
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import {
   Button,
   Flex,
   Separator,
   Sheet,
+  SheetClose,
   SheetContent,
   SheetDescription,
   SheetTitle,
   SheetTrigger,
   Stack,
   Text,
+  Toolbar,
+  ToolbarButton,
+  ToolbarTitle,
+  iconStroke,
 } from "@kushagradhawan/kookie-ui-react";
 
 const EVENTS = Array.from({ length: 24 }, (_, i) => ({
@@ -265,11 +324,18 @@ export default function Example() {
     <Sheet side="inline-end">
       <SheetTrigger render={<Button emphasis="medium">View activity</Button>} />
       <SheetContent>
+        <Toolbar>
+          <ToolbarTitle render={<SheetTitle />}>Activity</ToolbarTitle>
+          <SheetClose
+            render={
+              <ToolbarButton iconOnly aria-label="Close">
+                <HugeiconsIcon icon={Cancel01Icon} strokeWidth={iconStroke} aria-hidden />
+              </ToolbarButton>
+            }
+          />
+        </Toolbar>
         <Stack gap="6">
-          <Stack gap="2">
-            <SheetTitle>Activity</SheetTitle>
-            <SheetDescription>Everything that happened in this workspace today.</SheetDescription>
-          </Stack>
+          <SheetDescription>Everything that happened in this workspace today.</SheetDescription>
           <Stack gap="3">
             {EVENTS.map((event, i) => (
               <Stack key={event.id} gap="3">
@@ -295,6 +361,8 @@ export default function Example() {
 Inside `dir="rtl"`, `inline-end` opens the panel from the left, and a swipe to the left closes it.
 
 ```tsx
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import {
   Box,
   Button,
@@ -305,6 +373,10 @@ import {
   SheetTitle,
   SheetTrigger,
   Stack,
+  Toolbar,
+  ToolbarButton,
+  ToolbarTitle,
+  iconStroke,
 } from "@kushagradhawan/kookie-ui-react";
 
 // `side` follows the reading direction. Under `dir="rtl"`, `inline-end` opens the panel
@@ -315,11 +387,18 @@ export default function Example() {
       <Sheet side="inline-end">
         <SheetTrigger render={<Button emphasis="medium">Details</Button>} />
         <SheetContent>
+          <Toolbar>
+            <ToolbarTitle render={<SheetTitle />}>Invoice details</ToolbarTitle>
+            <SheetClose
+              render={
+                <ToolbarButton iconOnly aria-label="Close">
+                  <HugeiconsIcon icon={Cancel01Icon} strokeWidth={iconStroke} aria-hidden />
+                </ToolbarButton>
+              }
+            />
+          </Toolbar>
           <Stack gap="6">
-            <Stack gap="2">
-              <SheetTitle>Invoice details</SheetTitle>
-              <SheetDescription>Paid on 1 September by card.</SheetDescription>
-            </Stack>
+            <SheetDescription>Paid on 1 September by card.</SheetDescription>
             <SheetClose render={<Button emphasis="loud">Done</Button>} />
           </Stack>
         </SheetContent>

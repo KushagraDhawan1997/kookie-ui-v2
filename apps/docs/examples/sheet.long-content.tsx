@@ -1,14 +1,21 @@
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import {
   Button,
   Flex,
   Separator,
   Sheet,
+  SheetClose,
   SheetContent,
   SheetDescription,
   SheetTitle,
   SheetTrigger,
   Stack,
   Text,
+  Toolbar,
+  ToolbarButton,
+  ToolbarTitle,
+  iconStroke,
 } from "@kushagradhawan/kookie-ui-react";
 
 const EVENTS = Array.from({ length: 24 }, (_, i) => ({
@@ -24,11 +31,18 @@ export default function Example() {
     <Sheet side="inline-end">
       <SheetTrigger render={<Button emphasis="medium">View activity</Button>} />
       <SheetContent>
+        <Toolbar>
+          <ToolbarTitle render={<SheetTitle />}>Activity</ToolbarTitle>
+          <SheetClose
+            render={
+              <ToolbarButton iconOnly aria-label="Close">
+                <HugeiconsIcon icon={Cancel01Icon} strokeWidth={iconStroke} aria-hidden />
+              </ToolbarButton>
+            }
+          />
+        </Toolbar>
         <Stack gap="6">
-          <Stack gap="2">
-            <SheetTitle>Activity</SheetTitle>
-            <SheetDescription>Everything that happened in this workspace today.</SheetDescription>
-          </Stack>
+          <SheetDescription>Everything that happened in this workspace today.</SheetDescription>
           <Stack gap="3">
             {EVENTS.map((event, i) => (
               <Stack key={event.id} gap="3">

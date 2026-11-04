@@ -6,7 +6,7 @@ import * as React from "react";
 
 import type { Size } from "../../system/axes.ts";
 import { useLensRef } from "../../system/refraction.tsx";
-import { rootsInButton, type RenderElement } from "../../system/render.ts";
+import { rootsInButton, unwrapLazy, type RenderElement } from "../../system/render.ts";
 import { BackdropContext, GlassScope, useMaterial } from "../../theme/theme.tsx";
 import { BAND_STEP, SizeScopeContext, useSize } from "../../system/size.ts";
 import { BAND_TITLE_STEP } from "../../system/type-steps.ts";
@@ -591,8 +591,10 @@ export function ToolbarTitle({ className, children, style, id, render }: Toolbar
   // heading was a block inside phrasing content, which HTML forbids. Rendered AS the heading,
   // the element is the heading's, at its own step, and the row only adds its spacing.
   if (render) {
-    const own = render.props.className;
-    return React.cloneElement(render, {
+    // A server-rendered call site hands the element over as a lazy reference (render.ts).
+    const target = unwrapLazy(render as RenderElement) as typeof render;
+    const own = target.props.className;
+    return React.cloneElement(target, {
       className: own ? `${cls} ${own}` : cls,
       ...(style === undefined ? {} : { style }),
       ...(id === undefined ? {} : { id }),

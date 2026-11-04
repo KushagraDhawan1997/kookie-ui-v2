@@ -13,6 +13,8 @@
  * already judged on Card and Dialog.
  */
 import * as React from "react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import {
   Button,
   Card,
@@ -39,6 +41,10 @@ import {
   Text,
   TextField,
   Theme,
+  Toolbar,
+  ToolbarButton,
+  ToolbarTitle,
+  iconStroke,
   themeAxes,
 } from "@kushagradhawan/kookie-ui-react";
 
@@ -80,36 +86,45 @@ const ACTIVITY = [
  */
 function Filters({ size = "2" }: { size?: Size }) {
   return (
-    <Stack gap="6">
-      <Stack gap="2">
-        <SheetTitle>Filters</SheetTitle>
+    <>
+      <Toolbar>
+        <ToolbarTitle render={<SheetTitle />}>Filters</ToolbarTitle>
+        <SheetClose
+          render={
+            <ToolbarButton iconOnly aria-label="Close">
+              <HugeiconsIcon icon={Cancel01Icon} strokeWidth={iconStroke} aria-hidden />
+            </ToolbarButton>
+          }
+        />
+      </Toolbar>
+      <Stack gap="6">
         <SheetDescription>Narrow the deploys shown on this page.</SheetDescription>
-      </Stack>
-      <Stack gap="5">
-        <Stack gap="3">
-          <Text size="2" weight="medium">
-            Environment
-          </Text>
-          <Select size={size} defaultValue="production" items={{ production: "Production", preview: "Preview" }}>
-            <SelectTrigger aria-label="Environment" />
-            <SelectContent>
-              <SelectItem value="production">Production</SelectItem>
-              <SelectItem value="preview">Preview</SelectItem>
-            </SelectContent>
-          </Select>
+        <Stack gap="5">
+          <Stack gap="3">
+            <Text size="2" weight="medium">
+              Environment
+            </Text>
+            <Select size={size} defaultValue="production" items={{ production: "Production", preview: "Preview" }}>
+              <SelectTrigger aria-label="Environment" />
+              <SelectContent>
+                <SelectItem value="production">Production</SelectItem>
+                <SelectItem value="preview">Preview</SelectItem>
+              </SelectContent>
+            </Select>
+          </Stack>
+          <Stack gap="3">
+            <Text size="2" weight="medium">
+              Branch
+            </Text>
+            <TextField size={size} placeholder="main" aria-label="Branch" />
+          </Stack>
         </Stack>
-        <Stack gap="3">
-          <Text size="2" weight="medium">
-            Branch
-          </Text>
-          <TextField size={size} placeholder="main" aria-label="Branch" />
-        </Stack>
+        <Flex gap="3" justify="flex-end">
+          <SheetClose render={<Button size={size} emphasis="quiet" bordered>Reset</Button>} />
+          <SheetClose render={<Button size={size} tone="accent" emphasis="loud">Apply</Button>} />
+        </Flex>
       </Stack>
-      <Flex gap="3" justify="flex-end">
-        <SheetClose render={<Button size={size} emphasis="quiet" bordered>Reset</Button>} />
-        <SheetClose render={<Button size={size} tone="accent" emphasis="loud">Apply</Button>} />
-      </Flex>
-    </Stack>
+    </>
   );
 }
 
@@ -165,11 +180,18 @@ function States() {
             <Sheet key={side} side={side}>
               <SheetTrigger render={<Button emphasis="medium">Activity ({sideLabel(side).toLowerCase()})</Button>} />
               <SheetContent>
+                <Toolbar>
+                  <ToolbarTitle render={<SheetTitle />}>Activity</ToolbarTitle>
+                  <SheetClose
+                    render={
+                      <ToolbarButton iconOnly aria-label="Close">
+                        <HugeiconsIcon icon={Cancel01Icon} strokeWidth={iconStroke} aria-hidden />
+                      </ToolbarButton>
+                    }
+                  />
+                </Toolbar>
                 <Stack gap="5">
-                  <Stack gap="2">
-                    <SheetTitle>Activity</SheetTitle>
-                    <SheetDescription>Everything that changed in the last week.</SheetDescription>
-                  </Stack>
+                  <SheetDescription>Everything that changed in the last week.</SheetDescription>
                   <Stack gap="4">
                     {[...ACTIVITY, ...ACTIVITY].map((line, i) => (
                       <Text key={i} size="2">
@@ -193,10 +215,17 @@ function States() {
           <Sheet side="inline-end">
             <SheetTrigger render={<Button emphasis="medium">Recent activity</Button>} />
             <SheetContent style={{ height: "100%" }}>
-              <Stack gap="2">
-                <SheetTitle>Recent activity</SheetTitle>
-                <SheetDescription>Newest first.</SheetDescription>
-              </Stack>
+              <Toolbar>
+                <ToolbarTitle render={<SheetTitle />}>Recent activity</ToolbarTitle>
+                <SheetClose
+                  render={
+                    <ToolbarButton iconOnly aria-label="Close">
+                      <HugeiconsIcon icon={Cancel01Icon} strokeWidth={iconStroke} aria-hidden />
+                    </ToolbarButton>
+                  }
+                />
+              </Toolbar>
+              <SheetDescription>Newest first.</SheetDescription>
               <ScrollArea>
                 <Stack gap="4">
                   {[...ACTIVITY, ...ACTIVITY].map((line, i) => (
@@ -231,11 +260,18 @@ function ControlledSheet() {
       </Button>
       <Sheet side="inline-end" open={open} onOpenChange={setOpen}>
         <SheetContent>
+          <Toolbar>
+            <ToolbarTitle render={<SheetTitle />}>Project details</ToolbarTitle>
+            <SheetClose
+              render={
+                <ToolbarButton iconOnly aria-label="Close">
+                  <HugeiconsIcon icon={Cancel01Icon} strokeWidth={iconStroke} aria-hidden />
+                </ToolbarButton>
+              }
+            />
+          </Toolbar>
           <Stack gap="6">
-            <Stack gap="2">
-              <SheetTitle>Project details</SheetTitle>
-              <SheetDescription>Everyone with access sees these.</SheetDescription>
-            </Stack>
+            <SheetDescription>Everyone with access sees these.</SheetDescription>
             <TextField defaultValue="Acme web" aria-label="Project name" />
             <Flex gap="3" justify="flex-end">
               <SheetClose render={<Button emphasis="quiet" bordered>Cancel</Button>} />
@@ -344,11 +380,18 @@ function Nesting() {
         <Sheet side="inline-end" size="3">
           <SheetTrigger render={<Button emphasis="medium">Notification settings</Button>} />
           <SheetContent>
+            <Toolbar>
+              <ToolbarTitle render={<SheetTitle />}>Notifications</ToolbarTitle>
+              <SheetClose
+                render={
+                  <ToolbarButton iconOnly aria-label="Close">
+                    <HugeiconsIcon icon={Cancel01Icon} strokeWidth={iconStroke} aria-hidden />
+                  </ToolbarButton>
+                }
+              />
+            </Toolbar>
             <Stack gap="6">
-              <Stack gap="2">
-                <SheetTitle>Notifications</SheetTitle>
-                <SheetDescription>Choose what reaches your inbox.</SheetDescription>
-              </Stack>
+              <SheetDescription>Choose what reaches your inbox.</SheetDescription>
               <Stack gap="5">
                 <Flex gap="3" align="center" justify="space-between">
                   <Text size="2" weight="medium" render={<label htmlFor="sheet-prev-deploys" />}>
@@ -383,11 +426,18 @@ function Nesting() {
         <Sheet>
           <SheetTrigger render={<Button emphasis="medium">Deploy</Button>} />
           <SheetContent>
+            <Toolbar>
+              <ToolbarTitle render={<SheetTitle />}>Deploy to production</ToolbarTitle>
+              <SheetClose
+                render={
+                  <ToolbarButton iconOnly aria-label="Close">
+                    <HugeiconsIcon icon={Cancel01Icon} strokeWidth={iconStroke} aria-hidden />
+                  </ToolbarButton>
+                }
+              />
+            </Toolbar>
             <Stack gap="6">
-              <Stack gap="2">
-                <SheetTitle>Deploy to production</SheetTitle>
-                <SheetDescription>Choose a branch and confirm.</SheetDescription>
-              </Stack>
+              <SheetDescription>Choose a branch and confirm.</SheetDescription>
               <Flex gap="3" align="center" justify="space-between">
                 <Select defaultValue="main" items={{ main: "main", next: "next" }}>
                   <SelectTrigger aria-label="Branch" />
@@ -486,11 +536,18 @@ function InUse() {
               <Sheet side="inline-end" size="2">
                 <SheetTrigger render={<Button emphasis="quiet" bordered>View</Button>} />
                 <SheetContent>
+                  <Toolbar>
+                    <ToolbarTitle render={<SheetTitle />}>Shruti Bhatia</ToolbarTitle>
+                    <SheetClose
+                      render={
+                        <ToolbarButton iconOnly aria-label="Close">
+                          <HugeiconsIcon icon={Cancel01Icon} strokeWidth={iconStroke} aria-hidden />
+                        </ToolbarButton>
+                      }
+                    />
+                  </Toolbar>
                   <Stack gap="6">
-                    <Stack gap="2">
-                      <SheetTitle>Shruti Bhatia</SheetTitle>
-                      <SheetDescription>Admin since March.</SheetDescription>
-                    </Stack>
+                    <SheetDescription>Admin since March.</SheetDescription>
                     <Stack gap="4">
                       <Flex justify="space-between">
                         <Text size="2" emphasis="medium">
@@ -521,11 +578,18 @@ function InUse() {
         <Sheet>
           <SheetTrigger render={<Button tone="accent" emphasis="loud">Share</Button>} />
           <SheetContent>
+            <Toolbar>
+              <ToolbarTitle render={<SheetTitle />}>Share this project</ToolbarTitle>
+              <SheetClose
+                render={
+                  <ToolbarButton iconOnly aria-label="Close">
+                    <HugeiconsIcon icon={Cancel01Icon} strokeWidth={iconStroke} aria-hidden />
+                  </ToolbarButton>
+                }
+              />
+            </Toolbar>
             <Stack gap="6">
-              <Stack gap="2">
-                <SheetTitle>Share this project</SheetTitle>
-                <SheetDescription>Anyone with the link can view it.</SheetDescription>
-              </Stack>
+              <SheetDescription>Anyone with the link can view it.</SheetDescription>
               <TextField readOnly defaultValue="https://acme.dev/p/482" aria-label="Link" />
               <Flex gap="3" justify="flex-end">
                 <SheetClose render={<Button emphasis="quiet" bordered>Done</Button>} />

@@ -24,6 +24,7 @@ import {
 import { Menu, MenuContent, MenuItem, MenuTrigger } from "../menu/menu.tsx";
 import { Button } from "../button/button.tsx";
 import { Card } from "../card/card.tsx";
+import { Toolbar, ToolbarButton, ToolbarTitle } from "../toolbar/toolbar.tsx";
 import { Box } from "../box/box.tsx";
 import { TextField } from "../text-field/text-field.tsx";
 import { VIEWPORT } from "../../test/viewport.ts";
@@ -788,6 +789,35 @@ describe("what the call site can say to a dialog", () => {
       ),
     );
     expect(labelled, "an explicit label names it too — silence").toBe(0);
+  });
+
+  it("a titled dialog with no Close in its top row says so in dev (2026-11-03, RULES.md 1)", async () => {
+    const bare = await warnings("no Close in its top row", 1, () =>
+      render(
+        <Theme>
+          <Dialog defaultOpen>
+            <DialogContent><DialogTitle>Rename</DialogTitle></DialogContent>
+          </Dialog>
+        </Theme>,
+      ),
+    );
+    expect(bare, "a title and no Close — warn once").toBe(1);
+
+    const banded = await warnings("no Close in its top row", 0, () =>
+      render(
+        <Theme>
+          <Dialog defaultOpen>
+            <DialogContent>
+              <Toolbar>
+                <ToolbarTitle render={<DialogTitle />}>Rename</ToolbarTitle>
+                <DialogClose render={<ToolbarButton iconOnly aria-label="Close">x</ToolbarButton>} />
+              </Toolbar>
+            </DialogContent>
+          </Dialog>
+        </Theme>,
+      ),
+    );
+    expect(banded, "the title and Close in a top-row Toolbar — silence").toBe(0);
   });
 
   it("says WHY it is closing, and a dialog may refuse", async () => {

@@ -362,6 +362,36 @@ export function useNameWarning(what: string): (node: HTMLDivElement | null) => v
   );
 }
 
+/**
+ * A TITLED PANEL CLOSES FROM ITS TOP ROW (2026-11-03, RULES.md 1 and 2, Kushagra: "Yes" to a
+ * dev warning). Every titled dialog, sheet and popover has an X at the end of a top-row
+ * `Toolbar`; the screen check enforced it on the docs, and nothing reached an app that broke it.
+ * Read from the DOM after paint for `useNameWarning`'s reason: the title and the close can each
+ * arrive from the caller or from a component (a Navigator draws both).
+ */
+export function useCloseWarning(what: string): (node: HTMLDivElement | null) => void {
+  const seen = React.useRef(false);
+  return React.useCallback(
+    (node: HTMLDivElement | null) => {
+      if (!DEV || !node || seen.current) return;
+      requestAnimationFrame(() => {
+        if (seen.current || !node.isConnected || !node.getAttribute("aria-labelledby")) return;
+        const close = [...node.querySelectorAll(".kui-toolbar button")].some((b) =>
+          /^(close|dismiss|done)\b/i.test((b.getAttribute("aria-label") || b.textContent || "").trim()),
+        );
+        if (close) return;
+        seen.current = true;
+        console.warn(
+          `[kookie-ui] A titled <${what}> has no Close in its top row. Put a <Toolbar> first in ` +
+            `<${what}Content>, holding <ToolbarTitle render={<${what}Title />}> and ` +
+            `<${what}Close render={<ToolbarButton iconOnly aria-label="Close">…</ToolbarButton>} />.`,
+        );
+      });
+    },
+    [what],
+  );
+}
+
 /* The panel type steps MOVED to `system/type-steps.ts` on their third consumer (2026-08-21).
    Notice owns its message the way an alert owns its description, and a notice floats over
    nothing — so a step imported from the floating layer would misname where the rule comes

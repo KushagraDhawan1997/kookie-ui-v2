@@ -1,6 +1,8 @@
 "use client";
 
 import * as React from "react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import {
   Button,
   Dialog,
@@ -15,6 +17,10 @@ import {
   Flex,
   Stack,
   TextField,
+  Toolbar,
+  ToolbarButton,
+  ToolbarTitle,
+  iconStroke,
 } from "@kushagradhawan/kookie-ui-react";
 
 // Control `open` so the dialog closes only after the form is saved. The
@@ -27,6 +33,16 @@ export default function Example() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={<Button emphasis="medium">Project settings</Button>} />
       <DialogContent>
+        <Toolbar>
+          <ToolbarTitle render={<DialogTitle />}>Project settings</ToolbarTitle>
+          <DialogClose
+            render={
+              <ToolbarButton iconOnly aria-label="Close">
+                <HugeiconsIcon icon={Cancel01Icon} strokeWidth={iconStroke} aria-hidden />
+              </ToolbarButton>
+            }
+          />
+        </Toolbar>
         <Stack
           gap="6"
           render={
@@ -38,10 +54,7 @@ export default function Example() {
             />
           }
         >
-          <Stack gap="2">
-            <DialogTitle>Project settings</DialogTitle>
-            <DialogDescription>Changes apply to everyone in the workspace.</DialogDescription>
-          </Stack>
+          <DialogDescription>Changes apply to everyone in the workspace.</DialogDescription>
           <Stack gap="5">
             <Field>
               <FieldLabel>Project name</FieldLabel>

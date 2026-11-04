@@ -15,6 +15,7 @@ import {
   PortalScope,
   SIDE_OFFSET,
   useAmbientDirection,
+  useCloseWarning,
   useNameWarning,
 } from "../../system/floating.tsx";
 import { useLensRef } from "../../system/refraction.tsx";
@@ -252,7 +253,8 @@ function PopoverPopup({
   // AlertDialog both made it. A popover with no heading is an ORDINARY shape, which is what
   // makes the omission expensive here rather than theoretical (added 2026-08-26, audit).
   const nameRef = useNameWarning("Popover");
-  const setPopup = useMergedRefs(lensRef, nameRef);
+  const closeRef = useCloseWarning("Popover");
+  const setPopup = useMergedRefs(lensRef, nameRef, closeRef);
   return (
     <BasePopover.Popup
       {...popupProps(React.use(PopoverSizeContext), material, className)}

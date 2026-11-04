@@ -9,6 +9,8 @@ Inviting someone is a short task that needs the person's full attention, so it b
 `Dialog`. A `Popover` would leave the page usable around it, which suits a filter, not a form
 someone has to finish.
 ```tsx
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import {
   Button,
   Dialog,
@@ -19,6 +21,10 @@ import {
   DialogTrigger,
   Flex,
   Stack,
+  Toolbar,
+  ToolbarButton,
+  ToolbarTitle,
+  iconStroke,
 } from "@kushagradhawan/kookie-ui-react";
 
 export default function Invite() {
@@ -26,11 +32,18 @@ export default function Invite() {
     <Dialog>
       <DialogTrigger render={<Button>Invite teammate</Button>} />
       <DialogContent>
+        <Toolbar>
+          <ToolbarTitle render={<DialogTitle />}>Invite a teammate</ToolbarTitle>
+          <DialogClose
+            render={
+              <ToolbarButton iconOnly aria-label="Close">
+                <HugeiconsIcon icon={Cancel01Icon} strokeWidth={iconStroke} aria-hidden />
+              </ToolbarButton>
+            }
+          />
+        </Toolbar>
         <Stack gap="6">
-          <Stack gap="2">
-            <DialogTitle>Invite a teammate</DialogTitle>
-            <DialogDescription>They get an email with a link to join.</DialogDescription>
-          </Stack>
+          <DialogDescription>They get an email with a link to join.</DialogDescription>
           {/* the fields go here */}
           <Flex gap="3" justify="flex-end">
             <DialogClose render={<Button emphasis="quiet">Cancel</Button>} />
@@ -109,6 +122,8 @@ Each `FieldItem` names its own radio and description, so the options need no wir
 
 ## Put it together
 ```tsx
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import {
   Button,
   Dialog,
@@ -126,6 +141,10 @@ import {
   RadioGroup,
   Stack,
   TextField,
+  Toolbar,
+  ToolbarButton,
+  ToolbarTitle,
+  iconStroke,
 } from "@kushagradhawan/kookie-ui-react";
 
 export default function Invite() {
@@ -133,11 +152,18 @@ export default function Invite() {
     <Dialog>
       <DialogTrigger render={<Button>Invite teammate</Button>} />
       <DialogContent>
+        <Toolbar>
+          <ToolbarTitle render={<DialogTitle />}>Invite a teammate</ToolbarTitle>
+          <DialogClose
+            render={
+              <ToolbarButton iconOnly aria-label="Close">
+                <HugeiconsIcon icon={Cancel01Icon} strokeWidth={iconStroke} aria-hidden />
+              </ToolbarButton>
+            }
+          />
+        </Toolbar>
         <Stack gap="6">
-          <Stack gap="2">
-            <DialogTitle>Invite a teammate</DialogTitle>
-            <DialogDescription>They get an email with a link to join.</DialogDescription>
-          </Stack>
+          <DialogDescription>They get an email with a link to join.</DialogDescription>
 
           <Field>
             <FieldLabel>Email</FieldLabel>

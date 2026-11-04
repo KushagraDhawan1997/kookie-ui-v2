@@ -45,6 +45,8 @@ Give every panel a `PopoverTitle`, because screen readers announce the panel by 
 ## Examples
 
 ```tsx
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import {
   Button,
   Field,
@@ -58,6 +60,10 @@ import {
   PopoverTrigger,
   Stack,
   TextField,
+  Toolbar,
+  ToolbarButton,
+  ToolbarTitle,
+  iconStroke,
 } from "@kushagradhawan/kookie-ui-react";
 import type { Size } from "@kushagradhawan/kookie-ui-react";
 
@@ -66,11 +72,18 @@ export default function Example({ size = "2" }: { size?: Size }) {
     <Popover size={size}>
       <PopoverTrigger render={<Button emphasis="quiet" bordered>Rename</Button>} />
       <PopoverContent>
+        <Toolbar>
+          <ToolbarTitle render={<PopoverTitle />}>Rename project</ToolbarTitle>
+          <PopoverClose
+            render={
+              <ToolbarButton iconOnly aria-label="Close">
+                <HugeiconsIcon icon={Cancel01Icon} strokeWidth={iconStroke} aria-hidden />
+              </ToolbarButton>
+            }
+          />
+        </Toolbar>
         <Stack gap="4">
-          <Stack gap="1">
-            <PopoverTitle>Rename project</PopoverTitle>
-            <PopoverDescription>This changes the name everywhere it appears.</PopoverDescription>
-          </Stack>
+          <PopoverDescription>This changes the name everywhere it appears.</PopoverDescription>
           <Field>
             <FieldLabel>Name</FieldLabel>
             <TextField defaultValue="api-gateway" />
@@ -91,14 +104,21 @@ export default function Example({ size = "2" }: { size?: Size }) {
 Each button opens its panel on a different preferred `side`. When the preferred side has no room, such as near the edge of the window, the panel opens on the opposite side instead.
 
 ```tsx
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import {
   Button,
   Flex,
   Popover,
+  PopoverClose,
   PopoverContent,
   PopoverDescription,
   PopoverTitle,
   PopoverTrigger,
+  Toolbar,
+  ToolbarButton,
+  ToolbarTitle,
+  iconStroke,
 } from "@kushagradhawan/kookie-ui-react";
 
 const SIDES = ["top", "right", "bottom", "left"] as const;
@@ -110,7 +130,16 @@ export default function Example() {
         <Popover key={side}>
           <PopoverTrigger render={<Button emphasis="quiet" bordered>{`Open ${side}`}</Button>} />
           <PopoverContent side={side} align="start">
-            <PopoverTitle>Preferred side: {side}</PopoverTitle>
+            <Toolbar>
+              <ToolbarTitle render={<PopoverTitle />}>Preferred side: {side}</ToolbarTitle>
+              <PopoverClose
+                render={
+                  <ToolbarButton iconOnly aria-label="Close">
+                    <HugeiconsIcon icon={Cancel01Icon} strokeWidth={iconStroke} aria-hidden />
+                  </ToolbarButton>
+                }
+              />
+            </Toolbar>
             <PopoverDescription>
               The panel moves to the other side when this side has no room.
             </PopoverDescription>
@@ -127,15 +156,22 @@ export default function Example() {
 The same panel at sizes 1 to 4. `size` changes the padding, the corner and the title and description, and any content you add keeps its own size.
 
 ```tsx
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import {
   Button,
   Flex,
   Popover,
+  PopoverClose,
   PopoverContent,
   PopoverDescription,
   PopoverTitle,
   PopoverTrigger,
   Stack,
+  Toolbar,
+  ToolbarButton,
+  ToolbarTitle,
+  iconStroke,
 } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
@@ -145,10 +181,17 @@ export default function Example() {
         <Popover key={size} size={size}>
           <PopoverTrigger render={<Button emphasis="quiet" bordered>{`Size ${size}`}</Button>} />
           <PopoverContent>
-            <Stack gap="1">
-              <PopoverTitle>Share link</PopoverTitle>
-              <PopoverDescription>Anyone with the link can view this report.</PopoverDescription>
-            </Stack>
+            <Toolbar>
+              <ToolbarTitle render={<PopoverTitle />}>Share link</ToolbarTitle>
+              <PopoverClose
+                render={
+                  <ToolbarButton iconOnly aria-label="Close">
+                    <HugeiconsIcon icon={Cancel01Icon} strokeWidth={iconStroke} aria-hidden />
+                  </ToolbarButton>
+                }
+              />
+            </Toolbar>
+            <PopoverDescription>Anyone with the link can view this report.</PopoverDescription>
           </PopoverContent>
         </Popover>
       ))}
@@ -163,7 +206,7 @@ A Popover can hold a small form, here a set of checkboxes. The Reset and Apply b
 
 ```tsx
 import { HugeiconsIcon } from "@hugeicons/react";
-import { FilterHorizontalIcon } from "@hugeicons/core-free-icons";
+import { Cancel01Icon, FilterHorizontalIcon } from "@hugeicons/core-free-icons";
 import {
   Button,
   Checkbox,
@@ -177,6 +220,9 @@ import {
   PopoverTitle,
   PopoverTrigger,
   Stack,
+  Toolbar,
+  ToolbarButton,
+  ToolbarTitle,
   iconStroke,
 } from "@kushagradhawan/kookie-ui-react";
 
@@ -197,8 +243,17 @@ export default function Example() {
         }
       />
       <PopoverContent align="start">
+        <Toolbar>
+          <ToolbarTitle render={<PopoverTitle />}>Filter jobs</ToolbarTitle>
+          <PopoverClose
+            render={
+              <ToolbarButton iconOnly aria-label="Close">
+                <HugeiconsIcon icon={Cancel01Icon} strokeWidth={iconStroke} aria-hidden />
+              </ToolbarButton>
+            }
+          />
+        </Toolbar>
         <Stack gap="4">
-          <PopoverTitle>Filter jobs</PopoverTitle>
           <Field>
             <FieldLabel>Status</FieldLabel>
             <Stack gap="5">
@@ -229,18 +284,25 @@ Use `open` and `onOpenChange` when your code needs to close the panel, such as a
 "use client";
 
 import * as React from "react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import {
   Button,
   Field,
   FieldLabel,
   Flex,
   Popover,
+  PopoverClose,
   PopoverContent,
   PopoverTitle,
   PopoverTrigger,
   Stack,
   Text,
   TextField,
+  Toolbar,
+  ToolbarButton,
+  ToolbarTitle,
+  iconStroke,
 } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
@@ -260,6 +322,16 @@ export default function Example() {
       >
         <PopoverTrigger render={<Button emphasis="quiet" bordered>Edit label</Button>} />
         <PopoverContent align="start">
+          <Toolbar>
+            <ToolbarTitle render={<PopoverTitle />}>Edit label</ToolbarTitle>
+            <PopoverClose
+              render={
+                <ToolbarButton iconOnly aria-label="Close">
+                  <HugeiconsIcon icon={Cancel01Icon} strokeWidth={iconStroke} aria-hidden />
+                </ToolbarButton>
+              }
+            />
+          </Toolbar>
           <form
             onSubmit={(event) => {
               event.preventDefault();
@@ -268,7 +340,6 @@ export default function Example() {
             }}
           >
             <Stack gap="4">
-              <PopoverTitle>Edit label</PopoverTitle>
               <Field>
                 <FieldLabel>Label</FieldLabel>
                 <TextField value={draft} onChange={(event) => setDraft(event.target.value)} />
@@ -292,11 +363,14 @@ export default function Example() {
 A Popover can show details with no form at all. The title and description name the panel for screen readers, and a Separator divides the header from the details below it.
 
 ```tsx
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import {
   Avatar,
   Button,
   Flex,
   Popover,
+  PopoverClose,
   PopoverContent,
   PopoverDescription,
   PopoverTitle,
@@ -304,6 +378,10 @@ import {
   Separator,
   Stack,
   Text,
+  Toolbar,
+  ToolbarButton,
+  ToolbarTitle,
+  iconStroke,
 } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
@@ -311,13 +389,20 @@ export default function Example() {
     <Popover>
       <PopoverTrigger render={<Button emphasis="quiet">Shruti Bhatia</Button>} />
       <PopoverContent side="bottom" align="start">
+        <Toolbar>
+          <ToolbarTitle render={<PopoverTitle />}>Shruti Bhatia</ToolbarTitle>
+          <PopoverClose
+            render={
+              <ToolbarButton iconOnly aria-label="Close">
+                <HugeiconsIcon icon={Cancel01Icon} strokeWidth={iconStroke} aria-hidden />
+              </ToolbarButton>
+            }
+          />
+        </Toolbar>
         <Stack gap="4">
           <Flex gap="3" align="center">
             <Avatar fallback="SB" alt="" />
-            <Stack gap="1">
-              <PopoverTitle>Shruti Bhatia</PopoverTitle>
-              <PopoverDescription>Engineering lead, Payments</PopoverDescription>
-            </Stack>
+            <PopoverDescription>Engineering lead, Payments</PopoverDescription>
           </Flex>
           <Separator />
           <Stack gap="2">
