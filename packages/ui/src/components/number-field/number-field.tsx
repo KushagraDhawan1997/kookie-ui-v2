@@ -484,7 +484,7 @@ export type NumberFieldGroupProps = ComponentRefusals &
 
 /**
  * Number fields that edit one value together, such as a position's X, Y and Z, joined edge to
- * edge in equal columns (2026-11-03, the creative core; Womp's Design System calls them paired
+ * edge in equal columns (2026-11-03, the creative core; Womp UI calls them paired
  * inputs). One group, one name, one size: a vec3 is one thing to read, so the three fields
  * share their borders the way a `ButtonGroup` shares a button's, and each keeps its own focus
  * ring and its own value.
