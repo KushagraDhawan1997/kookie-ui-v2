@@ -1620,8 +1620,8 @@ export function RealWordsFigure() {
 /* ── Craft: the glass and the controls, up close ────────────────────────────────────────────── */
 
 /** A Spanish summer playlist, for the Valencia set (2026-11-05, Kushagra: "pick a Spanish
- *  playlist"). The cover is a placeholder painting (Kseniya Lapteva, Unsplash) until he sources one. */
-const ALBUM_ART = "/beds/kseniya-lapteva-h2O5HI6bE1c-unsplash.jpg";
+ *  playlist"). The cover is a flamenco dancer (Edgar Serrano, Unsplash). */
+const ALBUM_ART = "/figures/playlist/cover.jpg";
 const ALBUM_ARTIST = "Rosalía";
 const ALBUM_TRACKS = [
   { title: "Entre dos aguas", time: "5:56" },
