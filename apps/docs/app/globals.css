@@ -773,6 +773,9 @@ body {
 /* A taller band for a pair, so the zoomed phones show whole (2026-11-04, Kushagra: cut, "the
    phones look too long"; only Appearance's run off the band). */
 .kd-band:has(> .kd-band-stage > .kd-band-pair) {
+  /* Its own height, not the bands' 16:10: with both, the ratio set its width and the band ran
+     into the contents column (2026-11-05). */
+  aspect-ratio: auto;
   block-size: calc(68 * var(--layout-space-4));
 }
 
