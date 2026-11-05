@@ -118,9 +118,10 @@ body {
 .kd-hero,
 .kd-band {
   position: relative;
-  /* 2:1 on a chapter's inner pages (2026-11-05, Kushagra: "For inner pages, can we use a wider
-     aspect ratio?"); the principles' figures keep 16:10, below. Was a fixed 56 cells. */
-  aspect-ratio: 2 / 1;
+  /* 16:10 by default, a laptop screen's shape; a figure that needs another shape asks for it
+     (`aspect` on Band). 2026-11-05, Kushagra: "We can ask for aspect per image, and by default
+     its 16:10". Was a fixed 56 cells. */
+  aspect-ratio: 16 / 10;
   overflow: clip;
   /* DOTS THAT COME UP WITH THE GROUND (2026-11-03, a trial: Kushagra asked for dots, then "the
      opposite direction"). A 12px dot grid on the soft neutral, under a wash of the surface that runs
@@ -891,11 +892,6 @@ body {
 
 .kd-example-picture > * {
   background-image: none !important;
-}
-
-/* The principles' figures are taller, 16:10, a laptop screen's shape (2026-11-05). */
-.kd-band:has(.kd-craft, .kd-fit-person) {
-  aspect-ratio: 16 / 10;
 }
 
 /* Craft (principle-figures.tsx): the album on two phones. Covers are photos, so they take a fixed

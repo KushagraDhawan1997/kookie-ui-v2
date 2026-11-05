@@ -121,9 +121,20 @@ type FigureName = keyof typeof PRINCIPLE_FIGURES;
 /** The band: the gradient ground, the hairlines, the stage the window hangs from, and the measures
  *  read off whatever inside it carries `data-measure`. The stage is inert, because a figure is a
  *  picture of an app and not an app on the page. */
-function Band({ name, measured, children }: { name: FigureName; measured?: boolean; children: React.ReactNode }) {
+function Band({
+  name,
+  measured,
+  aspect,
+  children,
+}: {
+  name: FigureName;
+  measured?: boolean;
+  /** The band's shape, when 16:10 does not suit the figure, as a CSS ratio such as "2 / 1". */
+  aspect?: string;
+  children: React.ReactNode;
+}) {
   return (
-    <Box className="kd-band" role="img" aria-label={PRINCIPLE_FIGURES[name]}>
+    <Box className="kd-band" role="img" aria-label={PRINCIPLE_FIGURES[name]} style={aspect ? { aspectRatio: aspect } : undefined}>
       <div className="kd-band-stage" inert>
         {children}
       </div>
