@@ -23,6 +23,8 @@ them needs, keep everything else one step away, and let the work itself be the r
 Kookie's composition rules give each screen one loud action, so the main task stands out. In a
 narrow window, Shell's sidebar and inspector step aside so the content keeps the screen.
 
+*Figure.* A video editor on a laptop, dense as a real one: a clip library, a viewer showing Valencia's cathedral, a clip inspector and a ten-track timeline. Each region has one loud action, the selected clip is the timeline's one strong mark, and everything else is quiet.
+
 ## Build on what people know
 
 Use the patterns people already recognise, and use each one the same way everywhere. Two things that

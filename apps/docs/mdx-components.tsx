@@ -94,6 +94,7 @@ import {
   CompositionFigure,
   CraftFigure,
   FitPersonFigure,
+  ServeFigure,
 } from "./app/(docs)/principle-figures";
 import { nodeText, slugify } from "./app/(docs)/slug";
 import type { TypeSize } from "@kushagradhawan/kookie-ui-react";
@@ -342,6 +343,11 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     FitPersonFigure: () => (
       <Figure>
         <FitPersonFigure />
+      </Figure>
+    ),
+    ServeFigure: () => (
+      <Figure>
+        <ServeFigure />
       </Figure>
     ),
     ColourFigure: () => (

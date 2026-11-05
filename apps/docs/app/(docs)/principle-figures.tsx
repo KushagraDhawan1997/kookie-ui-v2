@@ -67,6 +67,7 @@ import { Measures } from "./measures";
 import { ScrolledTo } from "./scrolled-to";
 import { ScrolledToEnd } from "./scrolled-to-end";
 import { ScaleToBand } from "./scale-to-band";
+import { EditorApp } from "./editor-app";
 import { BrowserBar, PhoneAddressBar } from "./browser-chrome";
 
 /**
@@ -113,6 +114,8 @@ export const PRINCIPLE_FIGURES = {
     "A shop's bag on a laptop with a mouse and on a phone with touch. The same controls and text are larger under touch: the quantity field grows from 32 to 44 pixels, Check Out from 40 to 52, and the subtotal's text from 16 to 18.",
   OneFormFigure:
     "A billing screen with tabs that switch the view below them, and a segmented control that sets the date range in place.",
+  ServeFigure:
+    "A video editor on a laptop, dense as a real one: a clip library, a viewer showing Valencia's cathedral, a clip inspector and a ten-track timeline. Each region has one loud action, the selected clip is the timeline's one strong mark, and everything else is quiet.",
   CraftFigure:
     "A music app's album on two phones, in glass. One is scrolled down, with the tracks passing under the mini player. The other shows the album's top.",
 } as const;
@@ -1887,6 +1890,26 @@ export function FitPersonFigure() {
             <BagApp end measure={BAG_ITEMS.length - 1} />
             <PhoneAddressBar url="kookie.studio/bag" />
             <span className="kd-band-home-indicator" />
+          </Theme>
+        </div>
+      </ScaleToBand>
+    </Band>
+  );
+}
+
+/* ── Serve the job: a dense editor that still points at the work ──────────────────────────── */
+
+/** Serve the job (2026-11-05, Kushagra: "even in a dense user interface, you can guide users well
+ *  with design"). The editor at a 14-inch screen's real size in its laptop lid, drawn smaller by
+ *  ScaleToBand so its controls keep their real sizes. The timeline shows its last layers. */
+export function ServeFigure() {
+  return (
+    <Band name="ServeFigure">
+      <ScaleToBand share={0.94} className="kd-band-devices kd-serve">
+        <div className="kd-device">
+          <Theme size="3" material="3" className="kd-band-window kd-edit-window">
+            <BrowserBar kind="desktop" url="kookie.studio/edit" />
+            <EditorApp timelineEnd />
           </Theme>
         </div>
       </ScaleToBand>

@@ -1,0 +1,292 @@
+/* SERVE THE JOB (editor-app.tsx, principle-figures.tsx): a video editor at a 14-inch MacBook
+   Pro's real screen size, 1512 x 982 with the browser bar, drawn smaller by ScaleToBand. */
+
+.kd-band-window.kd-edit-window {
+  display: flex;
+  flex-direction: column;
+  inline-size: 1512px;
+  block-size: 982px;
+}
+
+.kd-edit-shell {
+  flex: 1;
+  min-block-size: 0;
+  --shell-sidebar-w: 300px;
+  --shell-inspector-w: 360px;
+  /* Tall enough for the timeline's tools, ruler and six tracks. */
+  --shell-bottom-h: 404px;
+}
+
+.kd-edit-wide {
+  inline-size: 100%;
+}
+
+.kd-edit-grow {
+  flex-grow: 1;
+}
+
+.kd-edit-event {
+  display: flex;
+  align-items: center;
+  gap: var(--layout-space-3);
+  padding: var(--layout-space-2) var(--layout-space-3);
+  margin-inline: calc(-1 * var(--layout-space-3));
+  border-radius: var(--layout-space-3);
+  color: var(--neutral-11);
+}
+
+.kd-edit-event[data-current] {
+  background-color: var(--neutral-a3);
+  color: var(--neutral-12);
+}
+
+.kd-edit-thumb-time {
+  position: absolute;
+  inset-inline-end: var(--layout-space-2);
+  inset-block-end: var(--layout-space-2);
+  font-variant-numeric: tabular-nums;
+}
+
+/* An inspector row: label, its control(s), then a keyframe button. */
+.kd-edit-prop {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: var(--layout-space-3);
+}
+
+.kd-edit-prop-value {
+  display: flex;
+  align-items: center;
+  gap: var(--layout-space-2);
+  min-inline-size: 0;
+}
+
+.kd-edit-prop-value > :not(.kui-switch) {
+  flex: 1;
+  min-inline-size: 0;
+}
+
+/* Each clip's thumbnail is a frame from it, set on the element (kd-edit-figure.tsx). */
+.kd-edit-thumb {
+  position: relative;
+  aspect-ratio: 3 / 2;
+  background: center / cover no-repeat var(--neutral-4);
+  border-radius: var(--layout-space-2);
+}
+
+.kd-edit-thumb[data-selected] {
+  outline: 2px solid var(--neutral-12);
+  outline-offset: 1px;
+}
+
+.kd-edit-clip-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The viewer: the picture fills the pane, and its two control rows float over its top and
+   bottom in glass. */
+.kd-edit-stage {
+  position: relative;
+  block-size: calc(100% + 2 * var(--kui-sf-p));
+}
+
+/* Edge to edge in its pane: no corner of its own. */
+/* The frame fills the viewer, edge to edge, and the glass rows float over it. */
+.kd-edit-viewer {
+  position: absolute;
+  inset: 0;
+  /* The current frame: the Cathedral clip, Valencia cathedral's Baroque door (Unsplash, Hasmik Ghazaryan Olson). */
+  background: url("/figures/editor/frame.jpg") center 35% / cover no-repeat, var(--neutral-3);
+}
+
+/* The rows sit where a floating band in a pane sits, the library's and inspector's headers
+   included: the pane's full padding from the top and bottom, so the rows across the window
+   share one line, and one step inside the content edge at the sides (RULES.md 3). */
+.kd-edit-over {
+  position: absolute;
+  z-index: 1;
+  inset-inline: calc(var(--kui-sf-p) - var(--layout-space-2));
+}
+
+.kd-edit-over-top {
+  inset-block-start: var(--kui-sf-p);
+}
+
+.kd-edit-over-bottom {
+  inset-block-end: var(--kui-sf-p);
+}
+
+.kd-edit-time {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Times at the start, the transport in the middle, the total and full screen at the end. */
+.kd-edit-transport {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: var(--layout-space-4);
+}
+
+.kd-edit-zoom {
+  inline-size: calc(9 * var(--layout-space-7));
+}
+
+.kd-edit-zoom > .kui-slider,
+.kd-edit-zoom > [class*="slider"] {
+  flex: 1;
+}
+
+/* The timeline: a ruler with markers, six tracks with headers, and the level meters; the
+   selected clip is the one strong mark. */
+.kd-edit-timeline {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: var(--layout-space-4);
+}
+
+.kd-edit-tracks {
+  --kd-edit-head-w: 168px;
+  position: relative;
+  display: grid;
+  gap: var(--layout-space-1);
+}
+
+.kd-edit-track {
+  display: grid;
+  grid-template-columns: var(--kd-edit-head-w) 1fr;
+  align-items: center;
+}
+
+.kd-edit-head {
+  display: flex;
+  align-items: center;
+  gap: var(--layout-space-1);
+  padding-inline-end: var(--layout-space-3);
+}
+
+.kd-edit-track[data-muted] .kd-edit-lane {
+  opacity: 0.5;
+}
+
+.kd-edit-lane {
+  position: relative;
+  block-size: 32px;
+}
+
+.kd-edit-ruler {
+  block-size: 32px;
+}
+
+.kd-edit-tick {
+  position: absolute;
+  inset-block-start: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.kd-edit-marker {
+  position: absolute;
+  inset-block-end: 2px;
+  inline-size: 8px;
+  block-size: 8px;
+  translate: -50% 0;
+  rotate: 45deg;
+  background-color: var(--neutral-10);
+}
+
+.kd-edit-meters {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  justify-items: center;
+  gap: var(--layout-space-2);
+  padding-block-start: 32px;
+}
+
+.kd-edit-meter-bars {
+  display: flex;
+  align-items: end;
+  gap: var(--layout-space-2);
+}
+
+.kd-edit-meter-bars > span {
+  inline-size: 6px;
+  border-radius: 3px;
+  background: linear-gradient(to top, var(--neutral-9), var(--neutral-11));
+}
+
+.kd-edit-clip {
+  position: absolute;
+  inset-block: 0;
+  box-sizing: border-box;
+  padding-inline: var(--layout-space-2);
+  border: var(--border-width) solid var(--color-surface);
+  border-radius: var(--layout-space-2);
+  background-color: var(--neutral-4);
+  display: flex;
+  align-items: center;
+  color: var(--neutral-11);
+  white-space: nowrap;
+  overflow: clip;
+}
+
+/* Audio clips draw their waveform; video clips their frames. */
+.kd-edit-clip[data-kind="audio"] {
+  background-color: var(--neutral-3);
+  background-image: repeating-linear-gradient(90deg, var(--neutral-a5) 0 2px, transparent 2px 5px);
+  background-size: 100% 50%;
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+}
+
+.kd-edit-clip[data-kind="video"] {
+  background-image: repeating-linear-gradient(90deg, transparent 0 46px, var(--neutral-a3) 46px 47px);
+}
+
+.kd-edit-clip[data-kind="title"] {
+  background-color: var(--neutral-5);
+}
+
+.kd-edit-clip[data-selected] {
+  background-color: var(--color-surface);
+  color: var(--neutral-12);
+  outline: 2px solid var(--neutral-12);
+  outline-offset: -1px;
+  z-index: 1;
+}
+
+.kd-edit-playhead {
+  position: absolute;
+  inset-block: 0;
+  inline-size: 2px;
+  background-color: var(--neutral-12);
+  z-index: 2;
+}
+
+/* The raw page: the app fills the window. */
+
+/* A pane whose header floats: its content starts below the header and scrolls under it (the v2
+   Shell docs' clearsFloatingChrome). */
+.kd-edit-under-header {
+  padding-block-start: calc(var(--kui-pane-inset-block-start) - var(--kui-sf-p));
+}
+
+.kd-edit-clip-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The time chips: centred, one gap above the transport row. */
+.kd-edit-times {
+  position: absolute;
+  z-index: 1;
+  inset-inline: 0;
+  inset-block-end: calc(var(--kui-sf-p) + var(--control-height-3) + var(--layout-space-3));
+}
+
+/* The viewer's own Theme fills its pane, so the picture and its rows sit where they did. */
+.kd-edit-solid {
+  display: contents;
+}
