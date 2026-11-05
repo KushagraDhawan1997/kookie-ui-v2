@@ -401,6 +401,8 @@ function lensFor(material: SurfaceMaterial, scale: LensScale = "pane"): LensPara
 /** Maps are generated at most this wide/tall and stretched to the box. The bend is a
     low-frequency field, so this is invisible and it is what bounds the cost of a big pane. */
 const MAP_CAP = 320;
+/** The bend map's softening, in px of the box: the field is smoothed so the bend has no steps. */
+const MAP_SOFTEN = 3;
 
 /** Map pixels the glint's band needs to carry its ramp — see the scale floor in `measure()`.
     Three is where the measured edge alpha stops collapsing; the cost of holding it is the
@@ -522,7 +524,16 @@ export const __genPaths = { analytic: 0, banded: 0, glintAnalytic: 0, glintBande
  * sweep exercises BOTH — a sweep that only ever took the fallback would be a law about the
  * special case wearing the general one's name.
  */
-export function physicalMap(w: number, h: number, r: number | Corners, p: LensParams, k = 2): { url: string; max: number } {
+export function physicalMap(
+  w: number,
+  h: number,
+  r: number | Corners,
+  p: LensParams,
+  k = 2,
+  /** px of blur, in MAP pixels, baked into the returned image (see `acquire`). 0 returns the
+      bare map, which is what the identity law holds byte-identical. */
+  soften = 0,
+): { url: string; max: number; softened?: boolean } {
   const canvas = document.createElement("canvas");
   canvas.width = w;
   canvas.height = h;
@@ -744,7 +755,24 @@ export function physicalMap(w: number, h: number, r: number | Corners, p: LensPa
   ctx.putImageData(img, 0, 0);
   // Clamped at the bezel width: past that the displacement asks for pixels outside the
   // element's own backdrop, and the bend washes out instead of bending.
-  return { url: canvas.toDataURL(), max: Math.min(maxAbs, bezel) };
+  const max = Math.min(maxAbs, bezel);
+  /* THE MAP'S SOFTENING IS BAKED IN ONCE (2026-11-05, Kushagra on the docs hero lagging on
+     scroll). The map is a fixed picture, but an `feGaussianBlur` on it inside the filter ran
+     again on every frame the page moved, for every glass box on screen. Blurred here it costs
+     one canvas pass on mount; the edges fade to transparent the way the filter's default
+     `edgeMode` did. Where the canvas cannot filter, the filter keeps its own blur. */
+  if (soften > 0 && "filter" in ctx) {
+    const out = document.createElement("canvas");
+    out.width = w;
+    out.height = h;
+    const octx = out.getContext("2d");
+    if (octx && "filter" in octx) {
+      octx.filter = `blur(${soften}px)`;
+      octx.drawImage(canvas, 0, 0);
+      return { url: out.toDataURL(), max, softened: true };
+    }
+  }
+  return { url: canvas.toDataURL(), max };
 }
 
 /* ── The glint map: the band of light on the bezel (§10, 2026-08-24) ──────────────────────
@@ -930,7 +958,8 @@ function acquire(
     hit.users += 1;
     return hit.id;
   }
-  const { url, max } = physicalMap(w, h, r, p, k);
+  // The filter used to blur the map by 3px of the box; in map pixels that is 3 * fit.
+  const { url, max, softened } = physicalMap(w, h, r, p, k, MAP_SOFTEN * fit);
   if (!url || max <= 0) return null;
 
   const id = `kui-lens-${(seq += 1)}`;
@@ -939,7 +968,6 @@ function acquire(
   // and this is where it is paid back. At or under the cap `fit` is 1 and this is the old
   // arithmetic exactly.
   const base = (max / fit) * p.boost;
-  const spread = p.fringe / 100;
   /**
    * THE MAP IS STRETCHED TO THE BOX, and until 2026-08-23 it was not (found by the
    * floating-motion audit, measured three ways).
@@ -984,8 +1012,8 @@ function acquire(
     width: "100%",
     height: "100%",
   });
-  filter.appendChild(el("feImage", { href: url, preserveAspectRatio: "none", result: "map" }));
-  filter.appendChild(el("feGaussianBlur", { in: "map", stdDeviation: 3, result: "soft" }));
+  filter.appendChild(el("feImage", { href: url, preserveAspectRatio: "none", result: softened ? "soft" : "map" }));
+  if (!softened) filter.appendChild(el("feGaussianBlur", { in: "map", stdDeviation: MAP_SOFTEN, result: "soft" }));
   /* THE BLUR RUNS HERE, BEFORE THE BEND (kube's own order; shipped 2026-09-21). `p.blur` as
      the hook resolved it for this element (the rung's, scaled down on a control, raised on a
      floating pane), plus the bench's `preBlur` dial. The stylesheet's lens row carries no blur of its
@@ -1002,33 +1030,21 @@ function acquire(
   if (pre > 0) {
     filter.appendChild(el("feGaussianBlur", { in: "SourceGraphic", stdDeviation: pre, edgeMode: "duplicate", result: "presoft" }));
   }
-  // Three displacements at different scales, one per channel, screened back together: the edge
-  // splits light. The spread was ~8% when it was written, which kept the body registered as a
-  // side effect rather than as a rule; the judged ladder runs 18 / 30 / 48 (2026-08-23), so the
-  // outer channels sit up to half the bend either side of green. What keeps the body registered
-  // is the bezel profile, not this number: the bend is ~0 by the lip's inner edge (a law), so
-  // all three channels agree everywhere except the band where the split is the point.
-  const keep = {
-    R: "1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0",
-    G: "0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0",
-    B: "0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0",
-  } as const;
-  const scales = { R: base * (1 + spread), G: base, B: base * (1 - spread) } as const;
-  for (const ch of ["R", "G", "B"] as const) {
-    filter.appendChild(
-      el("feDisplacementMap", {
-        in: source,
-        in2: "soft",
-        scale: scales[ch],
-        xChannelSelector: "R",
-        yChannelSelector: "G",
-        result: `d${ch}`,
-      }),
-    );
-    filter.appendChild(el("feColorMatrix", { in: `d${ch}`, type: "matrix", values: keep[ch], result: `c${ch}` }));
-  }
-  filter.appendChild(el("feBlend", { in: "cR", in2: "cG", mode: "screen", result: "rg" }));
-  filter.appendChild(el("feBlend", { in: "rg", in2: "cB", mode: "screen", result: "body" }));
+  /* ONE DISPLACEMENT (2026-11-05, Kushagra: "do 1 and 2"). The edge used to split light: three
+     displacements, one per channel at scales `fringe`% apart, each masked to its channel and
+     screened back together. At the shipped 3% the fringe was faint, and the split was half of
+     the lens's cost on every frame the page moved, so the bend now runs once, at green's scale,
+     the middle of the three. `fringe` stays in the params and the cache key for the bench. */
+  filter.appendChild(
+    el("feDisplacementMap", {
+      in: source,
+      in2: "soft",
+      scale: base,
+      xChannelSelector: "R",
+      yChannelSelector: "G",
+      result: "body",
+    }),
+  );
 
   /* THE RIM RE-EMITS THE BACKDROP (§10, 2026-08-24; kube.io's chain, credited): inside the
      glint band the bent backdrop is shown again, hyper-saturated and clipped to the band's own
