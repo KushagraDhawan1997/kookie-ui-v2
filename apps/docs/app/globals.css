@@ -118,7 +118,9 @@ body {
 .kd-hero,
 .kd-band {
   position: relative;
-  block-size: calc(56 * var(--layout-space-4));
+  /* 16:10, a laptop screen's shape (2026-11-05, Kushagra: "Try 16:10 for figures"). Was a fixed
+     56 cells. */
+  aspect-ratio: 16 / 10;
   overflow: clip;
   /* DOTS THAT COME UP WITH THE GROUND (2026-11-03, a trial: Kushagra asked for dots, then "the
      opposite direction"). A 12px dot grid on the soft neutral, under a wash of the surface that runs
@@ -259,7 +261,8 @@ body {
   justify-content: center;
   gap: 6px;
   block-size: 32px;
-  border-radius: 10px;
+  /* A pill, phone and desktop alike (2026-11-05, Kushagra: "make browser url also pill shaped"). */
+  border-radius: var(--radius-full);
   background-color: var(--neutral-4);
   color: var(--neutral-12);
   white-space: nowrap;
@@ -281,7 +284,6 @@ body {
 
 .kd-browser-phone-bar > .kd-browser-address {
   block-size: 44px;
-  border-radius: 14px;
 }
 
 .kd-hero-canvas {
@@ -886,4 +888,150 @@ body {
 
 .kd-example-picture > * {
   background-image: none !important;
+}
+
+/* Craft (principle-figures.tsx): the album on two phones. Covers are photos, so they take a fixed
+   corner rather than the theme's radius. The first phone rises so the band holds its foot. */
+.kd-craft > :first-child {
+  translate: 0 calc(-11 * var(--layout-space-7));
+}
+
+/* The second phone sinks, so the band cuts it above its mini player: the first phone shows that. */
+.kd-craft > :last-child {
+  translate: 0 calc(3 * var(--layout-space-7));
+}
+
+.kd-wide {
+  inline-size: 100%;
+}
+
+.kd-grow {
+  flex-grow: 1;
+}
+
+.kd-tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+.kd-album {
+  inline-size: 100%;
+  padding-block: calc(var(--kui-pane-inset-block-start) - var(--kui-sf-p)) calc(4 * var(--space-7));
+}
+
+.kd-album-cover {
+  flex: none;
+  inline-size: calc(4 * var(--space-7));
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: var(--radius-6);
+  corner-shape: squircle;
+}
+
+.kd-mini-dock {
+  position: absolute;
+  inset-inline: var(--space-4);
+  inset-block-end: var(--space-4);
+}
+
+.kd-album-mini {
+  flex: none;
+  inline-size: var(--space-8);
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: var(--space-3);
+}
+
+/* Fit the person (principle-figures.tsx): one bag on a laptop and a phone. Each device is a size
+   container, so the bag lays itself out for the window it is drawn in, not the page's. */
+.kd-bag-frame {
+  container-type: inline-size;
+}
+
+/* Closer than the band's usual row, with the laptop running off the start so the phone shows
+   whole; the phone rises so the band holds its foot, where Check Out is. */
+/* Scaled with a transform, not `zoom`: zoom snaps borders to device pixels, so a measured 32
+   reads as 33. A transform leaves layout at its real size and the measures read it exactly. */
+.kd-fit-person {
+  zoom: 1;
+  justify-self: start;
+  transform-origin: 0 0;
+  scale: 0.6;
+}
+
+.kd-fit-person > .kd-band-phone {
+  translate: 0 calc(-8 * var(--layout-space-7));
+}
+
+.kd-bag {
+  inline-size: 100%;
+  max-inline-size: 60rem;
+  margin-inline: auto;
+  padding-block: calc(var(--kui-pane-inset-block-start) - var(--kui-sf-p) + var(--space-5)) var(--space-8);
+}
+
+.kd-bag-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) calc(9 * var(--space-7));
+  align-items: start;
+  column-gap: var(--space-8);
+  row-gap: var(--space-6);
+  inline-size: 100%;
+}
+
+.kd-bag-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  grid-template-areas:
+    "image name name"
+    "image count price";
+  align-items: center;
+  column-gap: var(--space-6);
+  row-gap: var(--space-4);
+  padding-block: var(--space-6);
+}
+
+.kd-bag-items > :first-child > .kd-bag-item {
+  padding-block-start: 0;
+}
+
+.kd-bag-image {
+  grid-area: image;
+  align-self: start;
+  inline-size: calc(3 * var(--space-7));
+  aspect-ratio: 1;
+  border-radius: var(--space-3);
+  background-color: var(--neutral-3);
+}
+
+.kd-bag-name {
+  grid-area: name;
+}
+
+.kd-bag-count {
+  display: flex;
+  grid-area: count;
+  justify-self: start;
+  inline-size: calc(4 * var(--space-7));
+}
+
+[data-pointer="coarse"] .kd-bag-count {
+  inline-size: calc(5 * var(--space-7));
+}
+
+.kd-bag-price {
+  grid-area: price;
+}
+
+@container (max-width: 40rem) {
+  .kd-bag-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .kd-bag-items {
+    border-block-end: var(--border-width) solid var(--color-border);
+  }
+
+  .kd-bag-item {
+    column-gap: var(--space-5);
+  }
 }

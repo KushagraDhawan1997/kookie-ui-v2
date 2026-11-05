@@ -10,7 +10,7 @@ measurements. The two exceptions are that colour never carries a message alone (
 that text people must read stays readable. The [builder](/builder) checks most of the rules
 while you work.
 
-*Figure.* A builder's property panel for a selected button: content and appearance in two groups spaced apart, the labels at the controls' size, and one size throughout.
+*Figure.* A 3D editor: the scene's objects in a tree on the left, a living-room render with the sofa selected in the middle, and the sofa's inspector on the right with its form, material, transform and mirror sections.
 
 ## One obvious action per pane
 

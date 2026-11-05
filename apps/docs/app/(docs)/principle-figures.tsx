@@ -1,6 +1,6 @@
 import * as React from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { BookmarkAdd01Icon, Cancel01Icon, Redo02Icon, Undo02Icon, Sofa01Icon, Camera01Icon, Sun03Icon, CubeIcon, Move01Icon, Rotate01Icon, ArrowExpand01Icon, FavouriteIcon, InformationCircleIcon, NoteEditIcon, Share08Icon, TextFontIcon, Tick02Icon, Folder01Icon, SquaresUniteIcon, SquaresSubtractIcon, SquaresIntersectIcon, Globe02Icon, SparklesIcon, PieChartIcon, DropletIcon, CircleDashedIcon, GridViewIcon, ShuffleIcon, MirrorIcon, Unlink02Icon, PlusSignIcon } from "@hugeicons/core-free-icons";
+import { BookmarkAdd01Icon, Cancel01Icon, Redo02Icon, Undo02Icon, Sofa01Icon, Camera01Icon, Sun03Icon, CubeIcon, Move01Icon, Rotate01Icon, ArrowExpand01Icon, FavouriteIcon, InformationCircleIcon, NoteEditIcon, Share08Icon, TextFontIcon, Tick02Icon, Folder01Icon, SquaresUniteIcon, SquaresSubtractIcon, SquaresIntersectIcon, Globe02Icon, SparklesIcon, PieChartIcon, DropletIcon, CircleDashedIcon, GridViewIcon, ShuffleIcon, MirrorIcon, Unlink02Icon, PlusSignIcon, Download01Icon, PlayIcon, PauseIcon, UserIcon } from "@hugeicons/core-free-icons";
 import {
   Badge,
   Box,
@@ -56,6 +56,8 @@ import {
   ChartIcon,
   ChevronRightIcon,
   FolderIcon,
+  MoreIcon,
+  PlusIcon,
   TrashIcon,
   SearchIcon,
   SettingsIcon,
@@ -63,6 +65,7 @@ import {
 } from "../icons";
 import { Measures } from "./measures";
 import { ScrolledTo } from "./scrolled-to";
+import { ScrolledToEnd } from "./scrolled-to-end";
 import { BrowserBar, PhoneAddressBar } from "./browser-chrome";
 
 /**
@@ -105,8 +108,12 @@ export const PRINCIPLE_FIGURES = {
     "A 3D editor: the scene's objects in a tree on the left, a living-room render with the sofa selected in the middle, and the sofa's inspector on the right with its form, material, transform and mirror sections.",
   FitFigure:
     "The same settings screen on a desktop with a mouse and on a phone. Under touch, every row grows to 44 pixels.",
+  FitPersonFigure:
+    "A shop's bag on a laptop with a mouse and on a phone with touch. The same controls and text are larger under touch: the quantity field and the delivery choice grow from 32 to 44 pixels, Check Out from 40 to 52, and the text two pixels.",
   OneFormFigure:
     "A billing screen with tabs that switch the view below them, and a segmented control that sets the date range in place.",
+  CraftFigure:
+    "A music app's album on two phones, in glass. One is scrolled down, with the tracks passing under the mini player. The other shows the album's top.",
 } as const;
 
 type FigureName = keyof typeof PRINCIPLE_FIGURES;
@@ -1591,6 +1598,286 @@ export function RealWordsFigure() {
           </EventPane>
         }
       />
+    </Band>
+  );
+}
+
+/* ── Craft: the glass and the controls, up close ────────────────────────────────────────────── */
+
+/** The album art is a painting by Kseniya Lapteva (Unsplash). */
+const ALBUM_ART = "/beds/kseniya-lapteva-h2O5HI6bE1c-unsplash.jpg";
+const ALBUM_ARTIST = "Kseniya Lapteva";
+const ALBUM_TRACKS = [
+  { title: "Lavender Field", time: "3:52" },
+  { title: "Wet Paint", time: "2:52", playing: true },
+  { title: "Morning Light", time: "4:43" },
+  { title: "Palette Knife", time: "6:54" },
+  { title: "Slow Bloom", time: "2:58" },
+  { title: "Gesso", time: "3:41" },
+  { title: "Turpentine", time: "4:05" },
+  { title: "Linen", time: "3:18" },
+  { title: "Underpainting", time: "5:22" },
+  { title: "Glaze", time: "2:44" },
+  { title: "Varnish", time: "4:31" },
+  { title: "Still Wet", time: "6:12" },
+];
+const DownloadGlyph = hugeGlyph(Download01Icon);
+const PlayGlyph = hugeGlyph(PlayIcon);
+const PauseGlyph = hugeGlyph(PauseIcon);
+const ShuffleGlyph = hugeGlyph(ShuffleIcon);
+
+/** An album in a music app (2026-11-04, Kushagra, from a reference: "Imagine this but recreated
+ *  using Kookie"). The header floats in glass and the mini player floats in glass, so the page
+ *  passes under both. `end` shows it scrolled down, with the last tracks under the mini player;
+ *  otherwise it is at its top, clear of the header (the first phone already shows the header's
+ *  glass, 2026-11-05). */
+function AlbumApp({ end = false }: { end?: boolean }) {
+  return (
+    <Shell contained className="kd-band-shell">
+      <ShellContent>
+        <ShellPaneHeader float>
+          <Toolbar backdrop>
+            <ToolbarButton iconOnly aria-label="Back to Library">
+              <ArrowLeftIcon />
+            </ToolbarButton>
+            <ToolbarGroup>
+              <ToolbarButton iconOnly aria-label="Add to Library">
+                <PlusIcon />
+              </ToolbarButton>
+              <ToolbarButton iconOnly aria-label="Download">
+                <DownloadGlyph />
+              </ToolbarButton>
+              <ToolbarButton iconOnly aria-label="More">
+                <MoreIcon />
+              </ToolbarButton>
+            </ToolbarGroup>
+          </Toolbar>
+        </ShellPaneHeader>
+        <ShellScroll>
+          <Stack gap="6" className="kd-album">
+            {end ? <ScrolledToEnd short={200} /> : null}
+            <Flex align="center" gap="5" className="kd-wide">
+              <img src={ALBUM_ART} alt="" className="kd-album-cover" />
+              <Stack gap="1">
+                <Text size="2" emphasis="quiet">
+                  Album, 2012
+                </Text>
+                <Heading size="7">Soft Strokes</Heading>
+                <Text size="3" emphasis="quiet">
+                  {ALBUM_ARTIST}
+                </Text>
+              </Stack>
+            </Flex>
+            <Flex gap="3" className="kd-wide">
+              <Button emphasis="loud" className="kd-grow">
+                <PlayGlyph />
+                Play
+              </Button>
+              <Button className="kd-grow">
+                <ShuffleGlyph />
+                Shuffle
+              </Button>
+            </Flex>
+            <Stack gap="1" className="kd-wide">
+              {ALBUM_TRACKS.map(({ title, time, playing }, i) => (
+                <Row
+                  key={title}
+                  current={playing === true}
+                  leading={
+                    <Text size="2" emphasis="quiet" className="kd-tabular">
+                      {String(i + 1).padStart(2, "0")}
+                    </Text>
+                  }
+                  trailing={
+                    <Text size="2" emphasis="quiet">
+                      {time}
+                    </Text>
+                  }
+                >
+                  {title}
+                </Row>
+              ))}
+            </Stack>
+          </Stack>
+        </ShellScroll>
+        {/* The mini player is a card that floats over the list, not the pane's footer band. */}
+        <div className="kd-mini-dock">
+          <Card backdrop size="1" className="kd-wide">
+            <Flex align="center" gap="3" className="kd-wide">
+              <img src={ALBUM_ART} alt="" className="kd-album-mini" />
+              <Stack gap="0" className="kd-grow">
+                <Text size="2">Wet Paint</Text>
+                <Text size="2" emphasis="quiet">
+                  {ALBUM_ARTIST}
+                </Text>
+              </Stack>
+              <Button iconOnly emphasis="quiet" aria-label="Love">
+                <FavouriteGlyph />
+              </Button>
+              <Button iconOnly aria-label="Pause">
+                <PauseGlyph />
+              </Button>
+            </Flex>
+          </Card>
+        </div>
+      </ShellContent>
+    </Shell>
+  );
+}
+
+/** Craft: one album on two phones at one scale, in glass at step 3. The first phone rises so the
+ *  band holds its foot, the mini player over the list; the second shows the album's top. */
+export function CraftFigure() {
+  return (
+    <Band name="CraftFigure">
+      <div className="kd-band-devices kd-craft">
+        {[true, false].map((end) => (
+          <div key={String(end)} className="kd-band-phone">
+            <Theme size="2" material="3" pointer="coarse" className="kd-band-phone-screen">
+              <AlbumApp end={end} />
+              <PhoneAddressBar url="kookie.studio/soft-strokes" />
+              <span className="kd-band-home-indicator" />
+            </Theme>
+          </div>
+        ))}
+      </div>
+    </Band>
+  );
+}
+
+/* ── Fit the person: one bag, mouse and touch ──────────────────────────────────────────────── */
+
+/** Small electronics, after teenage.engineering; their photos are blank tiles until real ones exist
+ *  (2026-11-05, Kushagra: "For now, keep them blank"). */
+const BAG_ITEMS = [
+  { name: "Pocket Synth", detail: "Orange, with case", price: "€249", count: 1 },
+  { name: "Field Recorder", detail: "Aluminium, 64 GB", price: "€399", count: 1 },
+  { name: "Desk Speaker", detail: "Light grey", price: "€189", count: 2 },
+];
+const AccountGlyph = hugeGlyph(UserIcon);
+
+function BagLine({ label, value, total = false, measured = false }: { label: string; value: string; total?: boolean; measured?: boolean }) {
+  return (
+    <Flex justify="space-between" className="kd-wide">
+      <Text size={total ? "5" : "3"} {...(measured ? { "data-measure": "text" } : {})}>
+        {label}
+      </Text>
+      <Text size={total ? "5" : "3"}>{value}</Text>
+    </Flex>
+  );
+}
+
+/** A shop's bag, laid out like Apple's (2026-11-05, Kushagra: "Think Apple"): a glass toolbar, a
+ *  large title, a row per item, a summary and one loud Check Out. Written once; the window and
+ *  the pointer around it are the only difference. A wide window puts the summary beside the
+ *  items, a phone stacks it under them. `end` shows it scrolled to its foot. `measure` is the
+ *  item whose quantity field is measured, the one the band shows on that device. */
+function BagApp({ end = false, measure }: { end?: boolean; measure: number }) {
+  return (
+    <Shell contained className="kd-band-shell">
+      <ShellContent>
+        <ShellPaneHeader float>
+          <Toolbar backdrop>
+            <Flex align="center" gap="2">
+              <ToolbarButton iconOnly aria-label="Back to the store">
+                <ArrowLeftIcon />
+              </ToolbarButton>
+              <ToolbarTitle>Bag</ToolbarTitle>
+            </Flex>
+            <ToolbarGroup>
+              <ToolbarButton iconOnly aria-label="Search the store">
+                <SearchIcon />
+              </ToolbarButton>
+              <ToolbarButton iconOnly aria-label="Account">
+                <AccountGlyph />
+              </ToolbarButton>
+            </ToolbarGroup>
+          </Toolbar>
+        </ShellPaneHeader>
+        <ShellScroll>
+          <Stack gap="7" className="kd-bag">
+            {end ? <ScrolledToEnd /> : null}
+            <Stack gap="2">
+              <Heading size="8">Review your bag.</Heading>
+              <Text size="3" emphasis="quiet">
+                Free delivery and free returns.
+              </Text>
+            </Stack>
+            <div className="kd-bag-body">
+              <Stack gap="0" className="kd-wide kd-bag-items">
+                {BAG_ITEMS.map((item, i) => (
+                  <Stack key={item.name} gap="0" className="kd-wide">
+                    {i > 0 && <Separator />}
+                    <div className="kd-bag-item">
+                      <div className="kd-bag-image" />
+                      <Stack gap="1" className="kd-bag-name">
+                        <Text size="4">{item.name}</Text>
+                        <Text size="3" emphasis="quiet">
+                          {item.detail}
+                        </Text>
+                      </Stack>
+                      <div className="kd-bag-count" {...(i === measure ? { "data-measure": "height" } : {})}>
+                        <NumberField defaultValue={item.count} min={1} max={9} aria-label={`Quantity of ${item.name}`} className="kd-wide" />
+                      </div>
+                      <Stack gap="1" align="end" className="kd-bag-price">
+                        <Text size="4">{item.price}</Text>
+                        <Link size="3" href="#">
+                          Remove
+                        </Link>
+                      </Stack>
+                    </div>
+                  </Stack>
+                ))}
+              </Stack>
+              <Stack gap="6" className="kd-wide">
+                <Field className="kd-wide">
+                  <FieldLabel data-measure="text">How to get it</FieldLabel>
+                  <SegmentedControl defaultValue="deliver" aria-label="How to get it" className="kd-wide" data-measure="height">
+                    <SegmentedItem value="deliver">Delivery</SegmentedItem>
+                    <SegmentedItem value="pickup">Pick up</SegmentedItem>
+                  </SegmentedControl>
+                </Field>
+                {/* The totals are their own group, so their line never shares a box with the
+                    selected delivery choice (RULES.md 28). */}
+                <Stack gap="3" className="kd-wide">
+                  <BagLine label="Subtotal" value="€1,026" measured />
+                  <BagLine label="Shipping" value="Free" />
+                  <BagLine label="Estimated tax" value="€215.46" />
+                  <Separator />
+                  <BagLine label="Total" value="€1,241.46" total />
+                </Stack>
+                <Button emphasis="loud" size="3" className="kd-wide" data-measure="height" data-measure-chip="below">
+                  Check Out
+                </Button>
+              </Stack>
+            </div>
+          </Stack>
+        </ShellScroll>
+      </ShellContent>
+    </Shell>
+  );
+}
+
+/** Fit the person: the same bag at one scale on a laptop with a mouse and on a phone with touch,
+ *  both in glass. Every control and line of text the band shows on both is measured. */
+export function FitPersonFigure() {
+  return (
+    <Band name="FitPersonFigure" measured>
+      <div className="kd-band-devices kd-fit-person">
+        <div className="kd-device">
+          <Theme size="2" material="3" pointer="fine" className="kd-band-window kd-band-desktop kd-bag-frame">
+            <BrowserBar kind="desktop" url="kookie.studio/bag" />
+            <BagApp measure={0} />
+          </Theme>
+        </div>
+        <div className="kd-band-phone">
+          <Theme size="2" material="3" pointer="coarse" className="kd-band-phone-screen kd-bag-frame">
+            <BagApp end measure={BAG_ITEMS.length - 1} />
+            <PhoneAddressBar url="kookie.studio/bag" />
+            <span className="kd-band-home-indicator" />
+          </Theme>
+        </div>
+      </div>
     </Band>
   );
 }
