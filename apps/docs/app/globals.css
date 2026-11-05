@@ -343,33 +343,23 @@ body {
 }
 
 /* Two devices at one scale, so a touch control and a mouse control compare at their real sizes.
-   The row is drawn at three quarters so both fit the column. The window is 36 cells and the gap
-   4, and three quarters of each is a whole number of cells, so both devices start on a line. A
-   narrower column shows the whole row smaller. */
+   The row keeps its real width and ScaleToBand draws it smaller to fill the band, by transform:
+   CSS `zoom` snaps borders to device pixels, so a measured 32 would read as 33 (2026-11-05, when
+   figures went to the prose's width). The band's track stays the band's width, so the wider row
+   centres on the band, and it shrinks from its top centre. */
 .kd-band-devices {
   display: flex;
   align-items: start;
   justify-content: center;
   gap: calc(4 * var(--layout-space-4));
-  /* Close in, the phones cut by the band (2026-11-04, Kushagra: the appearance ones "will look
-     better with much much more zoom"). Before, small enough that the whole phone showed. */
-  zoom: 0.8;
+  inline-size: max-content;
+  justify-self: center;
+  transform-origin: 50% 0;
 }
 
 .kd-band-stage:has(> .kd-band-devices) {
   inset-block-start: var(--layout-space-9);
-}
-
-@container (max-width: 43rem) {
-  .kd-band-devices {
-    zoom: 0.7;
-  }
-}
-
-@container (max-width: 33rem) {
-  .kd-band-devices {
-    zoom: 0.34;
-  }
+  grid-template-columns: minmax(0, 1fr);
 }
 
 /* A desktop window beside a phone is wider than it is tall, as FIGURES.md asks: 800 by 704. */
@@ -637,9 +627,11 @@ body {
   container-type: inline-size;
 }
 
+/* A figure is as wide as the prose around it (2026-11-05, Kushagra: "each image should be
+   contained to width of the prose ... we made it fit wide, but nah"). Until then it ran out to
+   the contents' gutter, and edge to edge without them. */
 .kd-figure:has(> .kd-band) {
-  --kd-out: calc((100cqi - min(var(--kd-measure), 100cqi)) / 2);
-  margin-inline: calc(-1 * var(--kd-out));
+  --kd-out: 0px;
 }
 
 .kd-figure > .kd-band > .kd-band-stage:not(:has(> .kd-band-pair, > .kd-band-devices)) {
@@ -667,27 +659,7 @@ body {
   }
 }
 
-/* Without the contents column, the band runs to both of the pane's edges with square ends and
-   the hairlines at its top and bottom, like the hero. */
-@media (max-width: 64rem) {
-  .kd-figure:has(> .kd-band) {
-    margin-inline: calc(-1 * (var(--kd-out) + var(--kui-sf-p)));
-  }
 
-  .kd-figure > .kd-band {
-    border: 0;
-    border-radius: 0;
-  }
-
-  .kd-figure > .kd-band::before,
-  .kd-figure > .kd-band::after {
-    content: "";
-  }
-
-  .kd-figure > .kd-band > .kd-band-stage:not(:has(> .kd-band-pair, > .kd-band-devices)) {
-    padding-inline-start: calc(var(--kd-out) + var(--kui-sf-p));
-  }
-}
 
 /* A TABLET WHEN THE LAPTOP DOESN'T FIT (2026-11-03, Kushagra: "switch to a tablet or something when
    things are tight? Not as a default, but as an out"). A band too narrow for the whole lid would
@@ -956,19 +928,7 @@ body {
 
 /* Closer than the band's usual row, with the laptop running off the start so the phone shows
    whole; the phone rises so the band holds its foot, where Check Out is. */
-/* Scaled to the band by ScaleToBand (a transform, not `zoom`, so the measures read real sizes):
-   the row keeps its real width, centred in the band, and shrinks from its top centre. */
-/* The band's track stays the band's width, so the wider row centres on the band, not on itself. */
-.kd-band-stage:has(> .kd-fit-person) {
-  grid-template-columns: minmax(0, 1fr);
-}
 
-.kd-fit-person {
-  zoom: 1;
-  inline-size: max-content;
-  justify-self: center;
-  transform-origin: 50% 0;
-}
 
 .kd-fit-person > .kd-band-phone {
   translate: 0 calc(-8 * var(--layout-space-7));

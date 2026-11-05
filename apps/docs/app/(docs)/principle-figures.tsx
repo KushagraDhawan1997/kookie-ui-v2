@@ -199,7 +199,7 @@ function SettingsApp() {
 export function FitFigure() {
   return (
     <Band name="FitFigure" measured>
-      <div className="kd-band-devices">
+      <ScaleToBand className="kd-band-devices">
         <div className="kd-device">
           <Theme size="2" pointer="fine" className="kd-band-window kd-band-desktop">
             <BrowserBar kind="desktop" url="kookie.studio/settings" />
@@ -213,7 +213,7 @@ export function FitFigure() {
             <span className="kd-band-home-indicator" />
           </Theme>
         </div>
-      </div>
+      </ScaleToBand>
     </Band>
   );
 }
@@ -883,7 +883,7 @@ function AppearanceSettings() {
 export function AppearanceFigure() {
   return (
     <Band name="AppearanceFigure">
-      <div className="kd-band-devices">
+      <ScaleToBand className="kd-band-devices">
         {(["light", "dark"] as const).map((mode) => (
           <Theme key={mode} appearance={mode} className="kd-band-phone">
             <Theme size="2" pointer="coarse" className="kd-band-phone-screen">
@@ -893,7 +893,7 @@ export function AppearanceFigure() {
             </Theme>
           </Theme>
         ))}
-      </div>
+      </ScaleToBand>
     </Band>
   );
 }
@@ -1742,7 +1742,7 @@ function AlbumApp({ end = false }: { end?: boolean }) {
 export function CraftFigure() {
   return (
     <Band name="CraftFigure">
-      <div className="kd-band-devices kd-craft">
+      <ScaleToBand className="kd-band-devices kd-craft">
         {[true, false].map((end) => (
           <div key={String(end)} className="kd-band-phone">
             <Theme size="2" material="3" pointer="coarse" className="kd-band-phone-screen">
@@ -1752,7 +1752,7 @@ export function CraftFigure() {
             </Theme>
           </div>
         ))}
-      </div>
+      </ScaleToBand>
     </Band>
   );
 }
