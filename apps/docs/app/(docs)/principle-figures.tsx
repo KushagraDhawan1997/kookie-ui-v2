@@ -66,6 +66,7 @@ import {
 import { Measures } from "./measures";
 import { ScrolledTo } from "./scrolled-to";
 import { ScrolledToEnd } from "./scrolled-to-end";
+import { ScaleToBand } from "./scale-to-band";
 import { BrowserBar, PhoneAddressBar } from "./browser-chrome";
 
 /**
@@ -1874,7 +1875,7 @@ function BagApp({ end = false, measure }: { end?: boolean; measure: number }) {
 export function FitPersonFigure() {
   return (
     <Band name="FitPersonFigure" measured>
-      <div className="kd-band-devices kd-fit-person">
+      <ScaleToBand className="kd-band-devices kd-fit-person">
         <div className="kd-device">
           <Theme size="2" material="3" pointer="fine" className="kd-band-window kd-band-desktop kd-bag-frame">
             <BrowserBar kind="desktop" url="kookie.studio/bag" />
@@ -1888,7 +1889,7 @@ export function FitPersonFigure() {
             <span className="kd-band-home-indicator" />
           </Theme>
         </div>
-      </div>
+      </ScaleToBand>
     </Band>
   );
 }

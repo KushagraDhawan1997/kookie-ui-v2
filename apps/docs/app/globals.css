@@ -956,13 +956,18 @@ body {
 
 /* Closer than the band's usual row, with the laptop running off the start so the phone shows
    whole; the phone rises so the band holds its foot, where Check Out is. */
-/* Scaled with a transform, not `zoom`: zoom snaps borders to device pixels, so a measured 32
-   reads as 33. A transform leaves layout at its real size and the measures read it exactly. */
+/* Scaled to the band by ScaleToBand (a transform, not `zoom`, so the measures read real sizes):
+   the row keeps its real width, centred in the band, and shrinks from its top centre. */
+/* The band's track stays the band's width, so the wider row centres on the band, not on itself. */
+.kd-band-stage:has(> .kd-fit-person) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .kd-fit-person {
   zoom: 1;
-  justify-self: start;
-  transform-origin: 0 0;
-  scale: 0.6;
+  inline-size: max-content;
+  justify-self: center;
+  transform-origin: 50% 0;
 }
 
 .kd-fit-person > .kd-band-phone {
