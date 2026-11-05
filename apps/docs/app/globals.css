@@ -973,6 +973,7 @@ body {
   align-self: start;
   inline-size: calc(3 * var(--space-7));
   aspect-ratio: 1;
+  object-fit: cover;
   border-radius: var(--space-3);
   background-color: var(--neutral-3);
 }

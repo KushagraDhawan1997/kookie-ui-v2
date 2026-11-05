@@ -1764,11 +1764,12 @@ export function CraftFigure() {
 /* ── Fit the person: one bag, mouse and touch ──────────────────────────────────────────────── */
 
 /** What to pack for Valencia (2026-11-05, Kushagra: "items that you need to travel to Valencia,
- *  like a hat"); photos are blank tiles until he sources them. Prices carry Spain's 21% IVA. */
+ *  like a hat"), photographed by him from Unsplash. Prices carry Spain's 21% IVA. */
 const BAG_ITEMS = [
-  { name: "Straw hat", detail: "Palm, natural", price: "€45", count: 1 },
-  { name: "Linen shirt", detail: "Sand, size M", price: "€69", count: 1 },
-  { name: "Espadrilles", detail: "Navy, size 42", price: "€39", count: 2 },
+  { name: "Straw hat", detail: "Raffia, natural", price: "€45", count: 1, image: "straw-hat" },
+  { name: "Linen shirt", detail: "Indigo, size M", price: "€69", count: 1, image: "linen-shirt" },
+  { name: "Tote bag", detail: "Organic cotton", price: "€19", count: 1, image: "tote" },
+  { name: "Sunscreen", detail: "SPF 50, 100 ml", price: "€14", count: 2, image: "sunscreen" },
 ];
 const AccountGlyph = hugeGlyph(UserIcon);
 
@@ -1825,14 +1826,14 @@ function BagApp({ end = false, measure }: { end?: boolean; measure: number }) {
                   <Stack key={item.name} gap="0" className="kd-wide">
                     {i > 0 && <Separator />}
                     <div className="kd-bag-item">
-                      <div className="kd-bag-image" />
+                      <img src={`/figures/bag/${item.image}.jpg`} alt="" className="kd-bag-image" />
                       <Stack gap="1" className="kd-bag-name">
                         <Text size="4">{item.name}</Text>
                         <Text size="3" emphasis="quiet">
                           {item.detail}
                         </Text>
                       </Stack>
-                      <div className="kd-bag-count" {...(i === measure ? { "data-measure": "height" } : {})}>
+                      <div className="kd-bag-count" {...(i === measure ? { "data-measure": "height", "data-measure-chip": "below" } : {})}>
                         <NumberField defaultValue={item.count} min={1} max={9} aria-label={`Quantity of ${item.name}`} className="kd-wide" />
                       </div>
                       <Stack gap="1" align="end" className="kd-bag-price">
@@ -1856,11 +1857,11 @@ function BagApp({ end = false, measure }: { end?: boolean; measure: number }) {
                 {/* The totals are their own group, so their line never shares a box with the
                     selected delivery choice (RULES.md 28). */}
                 <Stack gap="3" className="kd-wide">
-                  <BagLine label="Subtotal" value="€192" measured />
+                  <BagLine label="Subtotal" value="€161" measured />
                   <BagLine label="Shipping" value="Free" />
-                  <BagLine label="Estimated tax" value="€40.32" />
+                  <BagLine label="Estimated tax" value="€33.81" />
                   <Separator />
-                  <BagLine label="Total" value="€232.32" total />
+                  <BagLine label="Total" value="€194.81" total />
                 </Stack>
                 <Button emphasis="loud" size="3" className="kd-wide" data-measure="height" data-measure-chip="below">
                   Check Out
