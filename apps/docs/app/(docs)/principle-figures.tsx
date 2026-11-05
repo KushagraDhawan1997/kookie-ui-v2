@@ -117,7 +117,7 @@ export const PRINCIPLE_FIGURES = {
   ServeFigure:
     "A video editor on a laptop, dense as a real one: a clip library, a viewer showing Valencia's cathedral, a clip inspector and a ten-track timeline. Each region has one loud action, the selected clip is the timeline's one strong mark, and everything else is quiet.",
   CraftFigure:
-    "A music app's album on two phones, in glass. One is scrolled down, with the tracks passing under the mini player. The other shows the album's top.",
+    "A music app's Spanish summer playlist on two phones, in glass. One is scrolled down, with the tracks passing under the mini player. The other shows the album's top.",
 } as const;
 
 type FigureName = keyof typeof PRINCIPLE_FIGURES;
@@ -1619,22 +1619,23 @@ export function RealWordsFigure() {
 
 /* ── Craft: the glass and the controls, up close ────────────────────────────────────────────── */
 
-/** The album art is a painting by Kseniya Lapteva (Unsplash). */
+/** A Spanish summer playlist, for the Valencia set (2026-11-05, Kushagra: "pick a Spanish
+ *  playlist"). The cover is a placeholder painting (Kseniya Lapteva, Unsplash) until he sources one. */
 const ALBUM_ART = "/beds/kseniya-lapteva-h2O5HI6bE1c-unsplash.jpg";
-const ALBUM_ARTIST = "Kseniya Lapteva";
+const ALBUM_ARTIST = "Rosalía";
 const ALBUM_TRACKS = [
-  { title: "Lavender Field", time: "3:52" },
-  { title: "Wet Paint", time: "2:52", playing: true },
-  { title: "Morning Light", time: "4:43" },
-  { title: "Palette Knife", time: "6:54" },
-  { title: "Slow Bloom", time: "2:58" },
-  { title: "Gesso", time: "3:41" },
-  { title: "Turpentine", time: "4:05" },
-  { title: "Linen", time: "3:18" },
-  { title: "Underpainting", time: "5:22" },
-  { title: "Glaze", time: "2:44" },
-  { title: "Varnish", time: "4:31" },
-  { title: "Still Wet", time: "6:12" },
+  { title: "Entre dos aguas", time: "5:56" },
+  { title: "Malamente", time: "2:30", playing: true },
+  { title: "Mediterráneo", time: "3:51" },
+  { title: "Bamboléo", time: "3:26" },
+  { title: "La flaca", time: "4:11" },
+  { title: "Un año más", time: "4:02" },
+  { title: "Me quedo contigo", time: "3:52" },
+  { title: "Corazón partío", time: "5:29" },
+  { title: "Insurrección", time: "4:38" },
+  { title: "Y nos dieron las diez", time: "4:40" },
+  { title: "Vivir así es morir de amor", time: "4:18" },
+  { title: "Aserejé", time: "3:33" },
 ];
 const DownloadGlyph = hugeGlyph(Download01Icon);
 const PlayGlyph = hugeGlyph(PlayIcon);
@@ -1675,11 +1676,11 @@ function AlbumApp({ end = false }: { end?: boolean }) {
               <img src={ALBUM_ART} alt="" className="kd-album-cover" />
               <Stack gap="1">
                 <Text size="2" emphasis="quiet">
-                  Album, 2012
+                  Playlist
                 </Text>
-                <Heading size="7">Soft Strokes</Heading>
+                <Heading size="7">Verano en Valencia</Heading>
                 <Text size="3" emphasis="quiet">
-                  {ALBUM_ARTIST}
+                  12 songs
                 </Text>
               </Stack>
             </Flex>
@@ -1721,7 +1722,7 @@ function AlbumApp({ end = false }: { end?: boolean }) {
             <Flex align="center" gap="3" className="kd-wide">
               <img src={ALBUM_ART} alt="" className="kd-album-mini" />
               <Stack gap="0" className="kd-grow">
-                <Text size="2">Wet Paint</Text>
+                <Text size="2">Malamente</Text>
                 <Text size="2" emphasis="quiet">
                   {ALBUM_ARTIST}
                 </Text>
@@ -1750,7 +1751,7 @@ export function CraftFigure() {
           <div key={String(end)} className="kd-band-phone">
             <Theme size="2" material="3" pointer="coarse" className="kd-band-phone-screen">
               <AlbumApp end={end} />
-              <PhoneAddressBar url="kookie.studio/soft-strokes" />
+              <PhoneAddressBar url="kookie.studio/verano-en-valencia" />
               <span className="kd-band-home-indicator" />
             </Theme>
           </div>
@@ -1762,12 +1763,12 @@ export function CraftFigure() {
 
 /* ── Fit the person: one bag, mouse and touch ──────────────────────────────────────────────── */
 
-/** Small electronics, after teenage.engineering; their photos are blank tiles until real ones exist
- *  (2026-11-05, Kushagra: "For now, keep them blank"). */
+/** What to pack for Valencia (2026-11-05, Kushagra: "items that you need to travel to Valencia,
+ *  like a hat"); photos are blank tiles until he sources them. Prices carry Spain's 21% IVA. */
 const BAG_ITEMS = [
-  { name: "Pocket Synth", detail: "Orange, with case", price: "€249", count: 1 },
-  { name: "Field Recorder", detail: "Aluminium, 64 GB", price: "€399", count: 1 },
-  { name: "Desk Speaker", detail: "Light grey", price: "€189", count: 2 },
+  { name: "Straw hat", detail: "Palm, natural", price: "€45", count: 1 },
+  { name: "Linen shirt", detail: "Sand, size M", price: "€69", count: 1 },
+  { name: "Espadrilles", detail: "Navy, size 42", price: "€39", count: 2 },
 ];
 const AccountGlyph = hugeGlyph(UserIcon);
 
@@ -1855,11 +1856,11 @@ function BagApp({ end = false, measure }: { end?: boolean; measure: number }) {
                 {/* The totals are their own group, so their line never shares a box with the
                     selected delivery choice (RULES.md 28). */}
                 <Stack gap="3" className="kd-wide">
-                  <BagLine label="Subtotal" value="€1,026" measured />
+                  <BagLine label="Subtotal" value="€192" measured />
                   <BagLine label="Shipping" value="Free" />
-                  <BagLine label="Estimated tax" value="€215.46" />
+                  <BagLine label="Estimated tax" value="€40.32" />
                   <Separator />
-                  <BagLine label="Total" value="€1,241.46" total />
+                  <BagLine label="Total" value="€232.32" total />
                 </Stack>
                 <Button emphasis="loud" size="3" className="kd-wide" data-measure="height" data-measure-chip="below">
                   Check Out

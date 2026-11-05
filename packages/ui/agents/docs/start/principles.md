@@ -62,7 +62,7 @@ difference.
 Kookie takes care of the details you would otherwise set by hand: spacing, sizes, corners and states
 all come from the theme. Its docs cite every measured limit and call every other decision a choice.
 
-*Figure.* A music app's album on two phones, in glass. One is scrolled down, with the tracks passing under the mini player. The other shows the album's top.
+*Figure.* A music app's Spanish summer playlist on two phones, in glass. One is scrolled down, with the tracks passing under the mini player. The other shows the album's top.
 
 ## Sources
 
