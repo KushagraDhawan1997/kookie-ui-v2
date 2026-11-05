@@ -28,7 +28,7 @@ import { Card } from "../components/card/card.tsx";
 import { Popover, PopoverContent, PopoverTrigger } from "../components/popover/popover.tsx";
 import { Theme } from "../theme/theme.tsx";
 import { GLASS_MATERIALS, lensBlurOf, render, until } from "../test/browser.tsx";
-import { glint } from "../tokens/config.ts";
+import { glassBlur, glint } from "../tokens/config.ts";
 import { glassStep } from "./axes.ts";
 import {
   __genPaths,
@@ -604,17 +604,18 @@ describe("the corner exponent is read off any spelling of corner-shape", () => {
 /**
  * A FLOATING PANE CARRIES THE SCRIM'S BLUR ITSELF (§10, 2026-09-21, Kushagra: dialogs and the
  * command palette "get the perfect look" because of the blurry scrim; "menus and popover should
- * have that"). Since 2026-09-23 it is the ONLY blur a lens applies, and its amount is the rung's
- * (`floatingFrost`: "Even the blur needs to be less for thin").
+ * have that"), by the rung's amount (`floatingFrost`: "Even the blur needs to be less for thin").
+ * EVERY OTHER PANE blurs by the step's own `glassBlur` since 2026-11-05 (a track's title read sharp
+ * through a glass mini player at every step); from 2026-09-23 until then it blurred by nothing.
  *
- * Both halves in one fixture, under one Theme. The card is the negative control: a rule that gave
- * every pane the frost passes the first assertion and fails the second.
+ * Both halves in one fixture, under one Theme. Each pane is the other's control: a rule that gave
+ * every pane the frost, or every pane the step's blur, fails one of the two.
  */
-describe("a floating pane's lens blurs by the rung's frost, and nothing else blurs (§10)", () => {
+describe("a floating pane's lens blurs by the rung's frost, every other pane by the step's blur (§10)", () => {
   const blurOf = lensBlurOf;
 
   for (const material of GLASS_MATERIALS) {
-    it(`${material}: the popover's lens blurs by the frost, the card's by nothing`, async () => {
+    it(`${material}: the popover's lens blurs by the frost, the card's by the step's blur`, async () => {
       const box = { inlineSize: "24rem", blockSize: "16rem" };
       render(
         <Theme material={material}>
@@ -638,7 +639,7 @@ describe("a floating pane's lens blurs by the rung's frost, and nothing else blu
       expect(popup.classList.contains("kui-floating")).toBe(true);
       expect(card.classList.contains("kui-floating")).toBe(false);
 
-      expect(blurOf(card)).toBe(0);
+      expect(blurOf(card)).toBeCloseTo((glassBlur as Record<string, number>)[glassStep(material)]!, 5);
       expect(blurOf(popup)).toBeCloseTo((floatingFrost as Record<string, number>)[glassStep(material)]!, 5);
       // And the blur runs on the SOURCE, BEFORE the bend (the mirror pass, 2026-09-21): the chain
       // is `lens, then filter`, so a blur after the displacement erases the lip it paid for.
@@ -663,7 +664,9 @@ describe("a floating pane's lens blurs by the rung's frost, and nothing else blu
  * filter, or "the same id" could be true of every pane on the page.
  */
 describe("a thin and a thick pane bend alike (§10)", () => {
-  it("two cards of one size share one lens across the rungs, and a different box does not", async () => {
+  // Until 2026-11-05 the two cards shared one filter outright. Since each step blurs by its own
+  // amount, their filters differ by that blur alone: the bend (the map and its strength) is shared.
+  it("two cards of one size bend alike across the rungs, and a different box does not", async () => {
     const box = { inlineSize: "20rem", blockSize: "12rem" };
     render(
       <>
@@ -688,9 +691,15 @@ describe("a thin and a thick pane bend alike (§10)", () => {
     // The premise: the two really are different rungs.
     expect(at("thin").dataset["material"]).toBe("g2");
     expect(at("thick").dataset["material"]).toBe("g5");
-    expect(lensId(at("thin")), "the rung reached the lens").toBe(lensId(at("thick")));
-    expect(lensId(at("other")), "every pane shares one filter — the instrument cannot tell lenses apart").not.toBe(
-      lensId(at("thick")),
-    );
+    // The bend, read off the filter's own graph: the displacement's strength and the map it reads.
+    const bendOf = (el: Element) => {
+      const graph = [...document.getElementById(lensId(el)!)!.children];
+      const map = graph.find((n) => n.tagName === "feImage");
+      const shift = graph.filter((n) => n.tagName === "feDisplacementMap").map((n) => n.getAttribute("scale"));
+      return JSON.stringify({ map: map?.getAttribute("href") ?? map?.getAttribute("xlink:href"), shift });
+    };
+    expect(bendOf(at("thin")), "the rung reached the bend").toBe(bendOf(at("thick")));
+    expect(lensId(at("thin")), "the rung's blur never reached the lens").not.toBe(lensId(at("thick")));
+    expect(bendOf(at("other")), "every pane bends alike — the instrument cannot tell lenses apart").not.toBe(bendOf(at("thick")));
   });
 });

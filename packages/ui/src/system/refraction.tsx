@@ -41,7 +41,7 @@
 import * as React from "react";
 
 import { ON_GLASS, type SurfaceMaterial } from "../theme/theme.tsx";
-import { glint, glassFloatingFrost, type GlassStep } from "../tokens/config.ts";
+import { glint, glassBlur, glassFloatingFrost, type GlassStep } from "../tokens/config.ts";
 
 /** Signed distance to a rounded-rect border: negative inside, positive outside. */
 function sdRoundedRect(x: number, y: number, w: number, h: number, r: number): number {
@@ -1285,10 +1285,13 @@ export function useLens(material: SurfaceMaterial): (node: HTMLElement | null) =
         if (!base) return;
         // The one blur the lens applies: a FLOATING pane's (menu, select, popover, combobox),
         // which has no scrim to soften what is behind it and carries a little of that itself —
-        // the rung's amount, `floatingFrost`. Nothing else blurs before the bend (see `blur`).
+        // the rung's amount, `floatingFrost`. Every other pane and control blurs by `glassBlur`,
+        // which rises with the step (2026-11-04).
         const params = {
           ...base,
-          blur: node.classList.contains("kui-floating") ? (floatingFrost[material as LensThickness] ?? 0) : 0,
+          blur: node.classList.contains("kui-floating")
+            ? (floatingFrost[material as LensThickness] ?? 0)
+            : (glassBlur[material as LensThickness] ?? 0),
         };
         /**
          * ROUNDED BEFORE ANYTHING READS IT (2026-09-11 audit). `getBoundingClientRect` returns

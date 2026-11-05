@@ -8,6 +8,14 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-11-05 Every glass pane blurs by its step
+
+The 2026-09-23 veil model gave every pane but a floating one no blur, so the step changed only how much tint covered the backdrop. On the principles page's Craft figure, a music app's glass mini player over a track list, that read as text on text at every step: at 3 the fill is 13% and at 6 still a quarter, so the title behind ran straight into the player's own. The step now also blurs: `glassBlur` in config.ts, `bySheets([0, 1, 2, 4])`, inside the lens and before the bend like the floating frost, so the lip stays crisp. A floating pane keeps its own frost.
+
+**Judged on one figure, not on the beds.** The first cut was 1.5px a sheet (0 / 3 / 7.5px at steps 1, 3, 6), chosen without being judged; Kushagra found it "a little too much" and it came down a third. It has not been looked at on the photograph, pattern and countryside beds the veil was judged on, so treat the numbers as a first reading. **The law:** the §10 browser law now asserts the card blurs by `glassBlur` and the popover by `floatingFrost`, each the other's control, and a node law holds zero at step 1 and a rise at every step. Two sabotages (cards back to no blur; every pane on the frost) each fail 7 of 8 steps; the eighth is where the two ladders meet (step 1 at zero, step 3 at 2px).
+
+---
+
 ## 2026-10-23 A performance budget beside the CSS budget
 
 Kushagra asked for the benchmark v1 had just been given (kookie-ui #50) so the two libraries can be compared. `apps/bench` rebuilds v1's five screens from v2 components with the same metric names: a 500-row table, a 40-group form, a 300-item menu, overlays opened and closed 100 times, and a Shell frame. CI runs it after `pnpm run ci`. Counts (bytes, DOM nodes, leftovers after the cycles) fail on any increase; times are recorded from CI and fail past 1.5× plus 5ms, v1's rule verbatim.

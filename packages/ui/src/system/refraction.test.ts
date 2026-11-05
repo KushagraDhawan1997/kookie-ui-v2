@@ -13,7 +13,7 @@ import { describe, expect, it } from "vitest";
 
 import { GLASS_STEPS as GLASS_MATERIALS } from "./axes.ts";
 import { LIP_SHARE, bendAt, fitLens, floatingFrost, lensFamily, type LensParams, type LensScale } from "./refraction.tsx";
-import { scrim } from "../tokens/config.ts";
+import { glassBlur, scrim } from "../tokens/config.ts";
 
 /** The families, read off the table itself — it is their one home. */
 const FAMILIES = Object.keys(lensFamily) as LensScale[];
@@ -199,3 +199,20 @@ describe("a floating pane's blur rises with the rung, under the scrim (§10)", (
     }
   });
 });
+
+/**
+ * EVERY OTHER PANE'S BLUR (§10, 2026-11-05, Kushagra: "The blur is fine but its a little too
+ * much", then "ship"). The step's own blur, 1px a sheet: the clearest step stays clear, and each
+ * step after it hides more of what passes behind.
+ */
+describe("a pane's blur is clear at the first step and rises with the step (§10)", () => {
+  it("is zero at the clearest step", () => {
+    expect(glassBlur[GLASS_MATERIALS[0] as keyof typeof glassBlur]).toBe(0);
+  });
+
+  it("rises with the step", () => {
+    const blur = GLASS_MATERIALS.map((r) => glassBlur[r as keyof typeof glassBlur]);
+    for (let i = 1; i < blur.length; i += 1) expect(blur[i], `${blur.join(" / ")} does not rise`).toBeGreaterThan(blur[i - 1]!);
+  });
+});
+

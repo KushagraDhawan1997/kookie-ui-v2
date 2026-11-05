@@ -927,6 +927,10 @@ const glassFrost = {
 } as const;
 /** A floating pane's blur in place of a scrim (refraction.tsx reads it). */
 export const glassFloatingFrost = bySheets([0.5, 0.75, 2, 3]);
+/** Every other glass pane's and control's blur before the bend (2026-11-04, Kushagra on the
+ *  principles' music figure: a track's title read sharp through the mini player at every step).
+ *  It rises with the step, so a clear step stays clear and a frosted one hides what is behind. */
+export const glassBlur = bySheets([0, 1, 2, 4]);
 const high = (mode: "light" | "dark") => {
   const [a, b, c] = mode === "light"
     ? [bySheets([68, 72, 80, 86], 98), bySheets([74, 77, 84, 89], 98), bySheets([80, 82, 88, 92], 98)]
