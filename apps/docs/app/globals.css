@@ -474,11 +474,13 @@ body {
   position: absolute;
   z-index: 3;
   translate: -100% -50%;
-  padding: 1px 6px;
+  padding: 0 5px;
   border-radius: 999px;
   background-color: var(--kd-measure-ink);
   color: white;
-  font: 500 11px/16px var(--font-body);
+  /* Smaller than the UI's own type, so a chip reads as a note on the picture, not part of it
+     (2026-11-05, Kushagra: the annotations looked "a bit too much"). Was 11px. */
+  font: 500 10px/14px var(--font-body);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
   pointer-events: none;

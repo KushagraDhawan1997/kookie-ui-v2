@@ -13,7 +13,7 @@ design on.
 Kookie adapts to the person for you. Controls grow to 44 pixels under touch, text grows on phones,
 readable text never drops below the contrast floor, and a dialog becomes a sheet in a narrow window.
 
-*Figure.* A shop's bag on a laptop with a mouse and on a phone with touch. The same controls and text are larger under touch: the quantity field and the delivery choice grow from 32 to 44 pixels, Check Out from 40 to 52, and the text two pixels.
+*Figure.* A shop's bag on a laptop with a mouse and on a phone with touch. The same controls and text are larger under touch: the quantity field grows from 32 to 44 pixels, Check Out from 40 to 52, and the subtotal's text from 16 to 18.
 
 ## Serve the job
 

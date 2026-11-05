@@ -110,7 +110,7 @@ export const PRINCIPLE_FIGURES = {
   FitFigure:
     "The same settings screen on a desktop with a mouse and on a phone. Under touch, every row grows to 44 pixels.",
   FitPersonFigure:
-    "A shop's bag on a laptop with a mouse and on a phone with touch. The same controls and text are larger under touch: the quantity field and the delivery choice grow from 32 to 44 pixels, Check Out from 40 to 52, and the text two pixels.",
+    "A shop's bag on a laptop with a mouse and on a phone with touch. The same controls and text are larger under touch: the quantity field grows from 32 to 44 pixels, Check Out from 40 to 52, and the subtotal's text from 16 to 18.",
   OneFormFigure:
     "A billing screen with tabs that switch the view below them, and a segmented control that sets the date range in place.",
   CraftFigure:
@@ -1843,8 +1843,8 @@ function BagApp({ end = false, measure }: { end?: boolean; measure: number }) {
               </Stack>
               <Stack gap="6" className="kd-wide">
                 <Field className="kd-wide">
-                  <FieldLabel data-measure="text">How to get it</FieldLabel>
-                  <SegmentedControl defaultValue="deliver" aria-label="How to get it" className="kd-wide" data-measure="height">
+                  <FieldLabel>How to get it</FieldLabel>
+                  <SegmentedControl defaultValue="deliver" aria-label="How to get it" className="kd-wide">
                     <SegmentedItem value="deliver">Delivery</SegmentedItem>
                     <SegmentedItem value="pickup">Pick up</SegmentedItem>
                   </SegmentedControl>
