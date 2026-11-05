@@ -548,8 +548,20 @@ describe("a pane pads like any other surface (§27)", () => {
       const pane = within(shell, sel);
       const want = tokenOn(pane, "--surface-p-2");
       expect(parseFloat(want), `${sel}: no ladder value`).toBeGreaterThan(0);
-      for (const side of ["top", "right", "bottom", "left"] as const) {
+      // The header takes its own block padding (2026-11-05), and a flush header's hairline
+      // is part of the bottom one: the sides are the ladder's, the block axis is not.
+      const header = sel === ".kui-shell-header";
+      const sides = header ? (["right", "left"] as const) : (["top", "right", "bottom", "left"] as const);
+      for (const side of sides) {
         expect(computed(pane, `padding-${side}`), `${sel} ${side}`).toBe(want);
+      }
+      if (header) {
+        const pb = parseFloat(tokenOn(pane, "--kui-shell-header-pb"));
+        expect(parseFloat(computed(pane, "padding-top")), `${sel} top`).toBeCloseTo(pb, 1);
+        expect(
+          parseFloat(computed(pane, "padding-bottom")) + parseFloat(computed(pane, "border-bottom-width")),
+          `${sel} bottom with its hairline`,
+        ).toBeCloseTo(pb, 1);
       }
       // And the HOOK agrees with the paint, which is what every reader of it depends on —
       // the bleed, the scroller, the nav expander. A pane that pads while claiming not to is
@@ -567,10 +579,10 @@ describe("a pane pads like any other surface (§27)", () => {
         const shell = app(size);
         const pane = within(shell, sel);
         expect(pane.dataset.size, `${sel} at ${size}: the index never reached the pane`).toBe(size);
-        expect(computed(pane, "padding-top"), `${sel} at ${size}`).toBe(
+        expect(computed(pane, "padding-left"), `${sel} at ${size}`).toBe(
           tokenOn(pane, `--surface-p-${size}`),
         );
-        seen.add(computed(pane, "padding-top"));
+        seen.add(computed(pane, "padding-left"));
         shell.remove();
       }
       expect(seen.size, `${sel}: the padding is the same at every index`).toBe(4);
@@ -686,20 +698,22 @@ describe("a header's box is a control row inside the pane's padding (§27)", () 
     );
     const header = within(shell, ".kui-shell-header");
     const button = within(shell, '[data-testid="short"]');
-    const pad = parseFloat(tokenOn(header, "--kui-sf-p"));
+    const pad = parseFloat(tokenOn(header, "--kui-shell-header-pb"));
     const row = parseFloat(tokenOn(header, "--control-height-2"));
 
     // Without this the fixture proves nothing: the two boxes have to disagree.
     expect(button.getBoundingClientRect().height).toBeLessThan(row);
 
-    // The row is the CONTENT box; the padding and the seam sit outside it.
-    expect(header.clientHeight, "the header is not its index's row").toBeCloseTo(row + 2 * pad, 0);
+    // The row is the CONTENT box; the padding and the hairline sit outside it, and the
+    // hairline is part of the bottom padding.
+    expect(header.offsetHeight, "the header is not its index's row").toBeCloseTo(row + 2 * pad, 0);
 
     // And the short control is centred in it, not resting on the top edge.
     const box = header.getBoundingClientRect();
     const mark = button.getBoundingClientRect();
-    const above = mark.top - (box.top + header.clientTop);
-    const below = box.top + header.clientTop + header.clientHeight - mark.bottom;
+    // Centred in the whole band, hairline included, since the hairline is part of the air.
+    const above = mark.top - box.top;
+    const below = box.bottom - mark.bottom;
     expect(above, "the control rests on the top edge").toBeCloseTo(below, 0);
     expect(above).toBeGreaterThan(pad);
   });
@@ -720,15 +734,17 @@ describe("a header's box is a control row inside the pane's padding (§27)", () 
     );
     const header = within(shell, ".kui-shell-header");
     const tall = within(shell, '[data-testid="tall"]').getBoundingClientRect().height;
-    const pad = parseFloat(tokenOn(header, "--kui-sf-p"));
+    const pad = parseFloat(tokenOn(header, "--kui-shell-header-pb"));
     expect(tall).toBeGreaterThan(parseFloat(tokenOn(header, "--control-height-1")));
-    expect(header.clientHeight).toBeCloseTo(tall + 2 * pad, 0);
+    expect(header.offsetHeight).toBeCloseTo(tall + 2 * pad, 0);
   });
 
-  // The construction the two derivations buy: at one index a header is as tall as the rail
-  // is wide, so the app frame's corner is square. Falsified by re-pointing either extent at
-  // a neighbouring index.
-  it("a header is as TALL as the rail at that index is WIDE", () => {
+  // The header is a band, the rail a pane (2026-11-05). Until then a header was as tall as the
+  // rail at its index was wide and the frame's corner was square; the header now takes half
+  // the air above and below, so the corner is given up and both extents are stated on their
+  // own. Falsified by re-pointing either at a neighbouring index, or by putting the hairline
+  // back under the header's padding.
+  it("at every index the header is its row and two header paddings, the rail its row and two pane paddings", () => {
     for (const size of ["1", "2", "3", "4"] as const) {
       const shell = mounted(
         <Shell contained size={size} style={{ height: 600, width: 1200 }}>
@@ -740,10 +756,17 @@ describe("a header's box is a control row inside the pane's padding (§27)", () 
         </Shell>,
         { theme: {}, select: ".kui-shell" },
       );
-      expect(
-        within(shell, ".kui-shell-header").clientHeight,
-        `size ${size}: the frame's corner is not square`,
-      ).toBeCloseTo(within(shell, ".kui-shell-rail").clientWidth, 0);
+      const header = within(shell, ".kui-shell-header");
+      const rail = within(shell, ".kui-shell-rail");
+      const row = parseFloat(tokenOn(header, `--control-height-${size}`));
+      expect(header.offsetHeight, `size ${size}: header, hairline included`).toBeCloseTo(
+        row + 2 * parseFloat(tokenOn(header, "--kui-shell-header-pb")),
+        0,
+      );
+      expect(rail.clientWidth, `size ${size}: rail`).toBeCloseTo(
+        row + 2 * parseFloat(tokenOn(rail, "--kui-sf-p")),
+        0,
+      );
       shell.remove();
     }
   });

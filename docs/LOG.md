@@ -8,6 +8,18 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-11-05 The app header takes half a pane's air above and below
+
+Kushagra found the app header too tall. It padded like any other pane, 24px on every side at size 2, so a 40px toolbar stood in an 89px band. The header's block axis now takes `--kui-shell-header-pb`, two layout steps under the pane's padding: 8, 12, 16 and 24px at sizes 1 to 4 in the default density, on the space ladder and moving with density. The sides keep the pane's padding, so the header's toolbar still lines up with the pane headers below it. A flush header's hairline is part of its bottom padding, so the size 2 header with a 40px toolbar measures 64px with its hairline (measured: 48, 64, 80 and 96px with a toolbar one size up, at sizes 1 to 4).
+
+**The square frame corner is given up.** Since 2026-08-21 a header was as tall as the rail at its index was wide, and a law held the two equal. Narrowing the rail to match would have changed the inline axis Kushagra asked to keep, so the law now states each extent on its own.
+
+**Size 4 is not exactly half.** Half of size 4's 40px is 20px, which no space token gives; it takes the next step, 24px, rather than a raw value.
+
+**Rejected: `calc(var(--kui-sf-p) / 2)`.** It halves exactly at every size, but Kushagra asked for the space token, not a derived px value.
+
+---
+
 ## 2026-11-05 Glass is cheap to scroll: the lens bakes its map, bends once and blurs nothing
 
 The docs home lagged on scroll. Measured in Chrome over the hero (a video editor with about 20 glass controls): the page's own script was idle, and the cost was the GPU re-running every glass filter on every frame the page moved. Same scroll, graphics work: 874ms as it was, 175ms with no glass.

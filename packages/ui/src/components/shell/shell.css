@@ -307,6 +307,9 @@
      rather than on the header and the rail: the content pane reads it too, to price a
      floating neighbour's reach. */
   --kui-shell-row: var(--control-height-2);
+  /* The header's block padding at this index (see the header rule), beside the row it pads,
+     so the content pane can price the header's reach. */
+  --kui-shell-header-pb: var(--layout-space-4);
   /* ONE STEP UP (2026-09-09): the tab bar's seat is the row of the next index — the switch's
      `mark(n + 1)`, one component over — and the per-index arms in the join carry it beside the
      row. Size 4 has no step above it and stays at 4. */
@@ -391,6 +394,13 @@
   grid-area: header;
   box-sizing: content-box;
   min-block-size: var(--kui-shell-row);
+  /* HALF A PANE'S AIR ABOVE AND BELOW (2026-11-05, Kushagra: make ShellHeader shorter). A
+     header is a band across the frame, not a pane of content: with a pane's full padding above
+     and below its one row it stood 89px tall over a 40px toolbar at size 2. The block axis
+     takes `--kui-shell-header-pb` (two layout steps under the pane's padding, 12px at size 2);
+     the sides keep the pane's padding, so the header's toolbar still lines up with the pane
+     headers below it. */
+  padding-block: var(--kui-shell-header-pb);
   display: grid;
   align-content: center;
   /* A header does not scroll — its box is its row. `visible` on the block axis keeps the
@@ -976,6 +986,9 @@
 
 .kui-shell-header[data-flush] {
   border-block-end-width: var(--border-width);
+  /* The hairline is part of the header's air, not added under it: a size 2 header is 64px
+     with its hairline, the row and two paddings. */
+  padding-block-end: calc(var(--kui-shell-header-pb) - var(--border-width));
 }
 
 .kui-shell-rail[data-flush],
@@ -1335,7 +1348,7 @@
 }
 
 .kui-shell:has(> .kui-shell-header:not([data-flush])) > .kui-shell-content[data-flush] {
-  --kui-shell-inset-block-start: calc(var(--kui-shell-row) + 2 * var(--kui-sf-p) + 2 * var(--border-width) + 2 * var(--shell-gap));
+  --kui-shell-inset-block-start: calc(var(--kui-shell-row) + 2 * var(--kui-shell-header-pb) + 2 * var(--border-width) + 2 * var(--shell-gap));
 }
 
 .kui-shell:has(> .kui-shell-bottom:where(:not([data-flush]):not([data-state="closed"]):not([data-state="auto"]):not([data-presentation="overlay"]))) > .kui-shell-content[data-flush] {
@@ -2451,11 +2464,11 @@
   }
 
   .kui-shell:not([data-contained]):has(> .kui-shell-header[data-flush]) > .kui-shell-content {
-    --kui-shell-page-top: calc(var(--kui-shell-row) + 2 * var(--kui-sf-p) + var(--border-width));
+    --kui-shell-page-top: calc(var(--kui-shell-row) + 2 * var(--kui-shell-header-pb));
   }
 
   .kui-shell:not([data-contained]):has(> .kui-shell-header:not([data-flush])) > .kui-shell-content {
-    --kui-shell-page-top: calc(var(--kui-shell-row) + 2 * var(--kui-sf-p) + 2 * var(--border-width));
+    --kui-shell-page-top: calc(var(--kui-shell-row) + 2 * var(--kui-shell-header-pb) + 2 * var(--border-width));
   }
 
   /* A FOCUSED CONTROL OR A LINKED HEADING LANDS WHERE IT CAN BE SEEN (WCAG 2.4.11). The page is

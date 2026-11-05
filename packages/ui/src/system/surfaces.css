@@ -1129,6 +1129,7 @@
    floating header or rail prices that reach for the inset it publishes. */
 .kui-shell-pane[data-size="1"] {
   --kui-shell-row: var(--control-height-1);
+  --kui-shell-header-pb: var(--layout-space-3);
   --kui-shell-row-up: var(--control-height-2);
   --kui-shell-row-up-radius: var(--radius-control-2);
   --kui-shell-row-up-curve: calc(var(--control-px-pill-2) - var(--control-px-2));
@@ -1136,6 +1137,7 @@
 
 .kui-shell-pane[data-size="3"] {
   --kui-shell-row: var(--control-height-3);
+  --kui-shell-header-pb: var(--layout-space-5);
   --kui-shell-row-up: var(--control-height-4);
   --kui-shell-row-up-radius: var(--radius-control-4);
   --kui-shell-row-up-curve: calc(var(--control-px-pill-4) - var(--control-px-4));
@@ -1143,6 +1145,7 @@
 
 .kui-shell-pane[data-size="4"] {
   --kui-shell-row: var(--control-height-4);
+  --kui-shell-header-pb: var(--layout-space-6);
   --kui-shell-row-up: var(--control-height-4);
   --kui-shell-row-up-radius: var(--radius-control-4);
   --kui-shell-row-up-curve: calc(var(--control-px-pill-4) - var(--control-px-4));
