@@ -505,8 +505,8 @@ export function probeIn<T>(
  * first, so a stylesheet blur lands after the displacement and erases the bend. The blur is a
  * primitive inside the filter, on the source, and this is where a law about "how much does this
  * glass blur" has to look. Throws rather than answering 0 when there is NO LENS: that is an error
- * in the fixture or the package, never a number. A lens with no source blur answers 0 — since
- * 2026-09-23 only a floating pane's lens blurs at all, so a card's lens legitimately has none.
+ * in the fixture or the package, never a number. A lens with no source blur answers 0 — and since
+ * 2026-11-05 no lens blurs at all.
  */
 export function lensBlurOf(el: Element): number {
   const id = getComputedStyle(el).backdropFilter.match(/url\("?#([^")]+)/)?.[1];

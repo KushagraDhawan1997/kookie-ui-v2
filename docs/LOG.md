@@ -8,6 +8,16 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-11-05 Glass is cheap to scroll: the lens bakes its map, bends once and blurs nothing
+
+The docs home lagged on scroll. Measured in Chrome over the hero (a video editor with about 20 glass controls): the page's own script was idle, and the cost was the GPU re-running every glass filter on every frame the page moved. Same scroll, graphics work: 874ms as it was, 175ms with no glass.
+
+Three moves, each measured on that scroll: the bend map's 3px softening is baked into the map once on mount instead of running in the filter (585ms, looks the same); the three per-channel displacements that drew a 3% colour fringe at the rim are one (with the first, 374ms); and the lens's blur on the backdrop is gone everywhere, the floating frost and the step blur both (about 220ms). Kushagra chose all three knowing the last brings back the sharp title under the mini player that the step blur was added for the same day.
+
+**Rejected:** sharing one glass sample per toolbar (measured no gain, each control still draws its own); a plain CSS blur in place of the lens (slower, 1454ms); a still image for the hero (it is meant to be a live Kookie UI screen). There is no CSS switch that stops the browser redrawing glass while the page scrolls.
+
+---
+
 ## 2026-11-05 Every glass pane blurs by its step
 
 The 2026-09-23 veil model gave every pane but a floating one no blur, so the step changed only how much tint covered the backdrop. On the principles page's Craft figure, a music app's glass mini player over a track list, that read as text on text at every step: at 3 the fill is 13% and at 6 still a quarter, so the title behind ran straight into the player's own. The step now also blurs: `glassBlur` in config.ts, `bySheets([0, 1, 2, 4])`, inside the lens and before the bend like the floating frost, so the lip stays crisp. A floating pane keeps its own frost.

@@ -835,9 +835,8 @@ export const glint = {
  * much background is let through, not how much glass is thick. Its material thickness, not glass
  * thickness."). A material has two axes and only one of them is the theme's:
  *
- *   - The RUNG is how much of the backdrop comes through: the veil, and with it the blur a pane
- *     carries in place of a scrim (`floatingFrost` in refraction.tsx) and the lens-less engines'
- *     frost. The grey, the saturation, the sheen and the LENS do not move with it — the lens is the
+ *   - The RUNG is how much of the backdrop comes through: the veil, and with it the lens-less engines'
+ *     frost (the lens itself blurs nothing since 2026-11-05). The grey, the saturation, the sheen and the LENS do not move with it — the lens is the
  *     shape of the piece of glass, and that belongs to the component (`lensFamily`, refraction.tsx).
  *   - The FAMILY multiplies the rung's THICKNESS, so a veil compounds: a menu is 3.5 layers of the
  *     rung's glass, `1 - (1 - veil)^3.5` ("a menu needs thicker veil so that content behind is
@@ -925,12 +924,6 @@ const glassFrost = {
   control: bySheets([2, 4, 8, 13.7]),
   region: bySheets([8, 12, 20, 28]),
 } as const;
-/** A floating pane's blur in place of a scrim (refraction.tsx reads it). */
-export const glassFloatingFrost = bySheets([0.5, 0.75, 2, 3]);
-/** Every other glass pane's and control's blur before the bend (2026-11-04, Kushagra on the
- *  principles' music figure: a track's title read sharp through the mini player at every step).
- *  It rises with the step, so a clear step stays clear and a frosted one hides what is behind. */
-export const glassBlur = bySheets([0, 1, 2, 4]);
 const high = (mode: "light" | "dark") => {
   const [a, b, c] = mode === "light"
     ? [bySheets([68, 72, 80, 86], 98), bySheets([74, 77, 84, 89], 98), bySheets([80, 82, 88, 92], 98)]

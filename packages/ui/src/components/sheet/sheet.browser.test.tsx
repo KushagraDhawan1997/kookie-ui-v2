@@ -550,7 +550,7 @@ describe("it is an overlay, exactly as a dialog is", () => {
     // region a pane's lip survived that comparison. On one box only the family differs.
     const reach = (el: HTMLElement) => {
       const id = computed(el, "backdrop-filter").match(/url\("?#([^")]+)/)![1]!;
-      return parseFloat(document.getElementById(id)!.querySelector('[result="dG"]')!.getAttribute("scale")!);
+      return parseFloat(document.getElementById(id)!.querySelector("feDisplacementMap")!.getAttribute("scale")!);
     };
     // A SIDE sheet, opened for this comparison alone: the fixture's default is a bottom sheet
     // 112px tall, where BOTH families' lips cap at floor(112 × 0.28) = 31px, so the two lenses are

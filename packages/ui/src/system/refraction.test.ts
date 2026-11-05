@@ -12,8 +12,7 @@
 import { describe, expect, it } from "vitest";
 
 import { GLASS_STEPS as GLASS_MATERIALS } from "./axes.ts";
-import { LIP_SHARE, bendAt, fitLens, floatingFrost, lensFamily, type LensParams, type LensScale } from "./refraction.tsx";
-import { glassBlur, scrim } from "../tokens/config.ts";
+import { LIP_SHARE, bendAt, fitLens, lensFamily, type LensParams, type LensScale } from "./refraction.tsx";
 
 /** The families, read off the table itself — it is their one home. */
 const FAMILIES = Object.keys(lensFamily) as LensScale[];
@@ -171,48 +170,6 @@ describe("the lip is capped to a share of its box (§10)", () => {
 
   it("the bend really does pass the lip on every family — the mirror is the point, not an accident", () => {
     for (const f of FAMILIES) expect(lensFamily[f].boost, `${f} no longer mirrors at its rim`).toBeGreaterThan(1);
-  });
-});
-
-/**
- * THE ONE BLUR THE RUNG MOVES (§10, 2026-09-23). A floating pane has no scrim behind it, so it
- * carries a little of the scrim's softening itself, and that amount is part of how much of the
- * backdrop comes through — "Even the blur needs to be less for thin, that should be part of what
- * changes with axis."
- */
-describe("a floating pane's blur rises with the rung, under the scrim (§10)", () => {
-  it("rises with the rung", () => {
-    const frost = GLASS_MATERIALS.map((r) => floatingFrost[r as keyof typeof floatingFrost]);
-    for (let i = 1; i < frost.length; i += 1) expect(frost[i], `${frost.join(" / ")} does not rise`).toBeGreaterThan(frost[i - 1]!);
-  });
-
-  it("never out-blurs the scrim it stands in for", () => {
-    // Its ceiling is the scrim's own blur, read off the scrim's row rather than restated here —
-    // every row of the scrim that carries a filter, one per appearance, found not listed.
-    const rows = Object.values(scrim).filter((row): row is { filter: string } & typeof row => typeof row === "object" && "filter" in row);
-    expect(rows.length, "the scrim has no filter rows to read").toBeGreaterThan(0);
-    for (const row of rows) {
-      const scrimBlur = Number(row.filter.match(/blur\(([\d.]+)px/)![1]!);
-      for (const r of GLASS_MATERIALS) {
-        expect(floatingFrost[r as keyof typeof floatingFrost], `${r} adds more than the scrim blurs`).toBeLessThanOrEqual(scrimBlur);
-      }
-    }
-  });
-});
-
-/**
- * EVERY OTHER PANE'S BLUR (§10, 2026-11-05, Kushagra: "The blur is fine but its a little too
- * much", then "ship"). The step's own blur, 1px a sheet: the clearest step stays clear, and each
- * step after it hides more of what passes behind.
- */
-describe("a pane's blur is clear at the first step and rises with the step (§10)", () => {
-  it("is zero at the clearest step", () => {
-    expect(glassBlur[GLASS_MATERIALS[0] as keyof typeof glassBlur]).toBe(0);
-  });
-
-  it("rises with the step", () => {
-    const blur = GLASS_MATERIALS.map((r) => glassBlur[r as keyof typeof glassBlur]);
-    for (let i = 1; i < blur.length; i += 1) expect(blur[i], `${blur.join(" / ")} does not rise`).toBeGreaterThan(blur[i - 1]!);
   });
 });
 

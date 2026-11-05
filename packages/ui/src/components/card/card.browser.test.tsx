@@ -426,8 +426,8 @@ describe("material is backdrop defense, opt-in (§10)", () => {
     // how much background is let through, not how much glass is thick"). This law held the three
     // rungs to three BLURS until then — first in the stylesheet's row, then in the lens — and the
     // model it held is the one that was replaced: the veil rises with the rung. From then until
-    // 2026-11-05 a card blurred at no rung; since then it blurs by the step as well (a title read
-    // sharp through a glass mini player at every step), so both the veil and the blur rise.
+    // 2026-11-05 a card blurred at no rung; that day it blurred by the step for a few hours, and
+    // then the lens's blur went everywhere (scroll cost), so only the veil rises.
     //
     // `backdrop` since the lab port (2026-08-17): an in-flow card is solid by selectivity, so a law
     // about the glass ladder must state the placement that expresses it.
@@ -439,9 +439,8 @@ describe("material is backdrop defense, opt-in (§10)", () => {
     expect(alpha(regular)).toBeLessThan(alpha(thick));
     const lensed = (el: Element) => /url\(/.test(getComputedStyle(el).backdropFilter);
     expect(await until(() => [thin, regular, thick].every(lensed)), "a card never took its lens").toBe(true);
-    expect(lensBlurOf(thin), "a thin card's lens does not blur").toBeGreaterThan(0);
-    expect(lensBlurOf(thin)).toBeLessThan(lensBlurOf(regular));
-    expect(lensBlurOf(regular)).toBeLessThan(lensBlurOf(thick));
+    // Since 2026-11-05 the lens blurs nothing at any step (it ran on every frame of a scroll).
+    for (const card of [thin, regular, thick]) expect(lensBlurOf(card), "a card's lens blurs").toBe(0);
   });
 
   it("a material fill is the shell's own seal made translucent — the modifier, applied (§10)", () => {
