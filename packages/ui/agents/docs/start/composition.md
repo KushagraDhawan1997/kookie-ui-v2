@@ -12,6 +12,13 @@ while you work.
 
 *Figure.* A 3D editor: the scene's objects in a tree on the left, a living-room render with the sofa selected in the middle, and the sofa's inspector on the right with its form, material, transform and mirror sections.
 
+## Start from a screen people know
+
+Before you arrange anything, find a product people already use for the same job, and follow its
+layout. People know where its parts are, so they find yours without thinking. A layout that no one
+has seen makes them learn it first. Change the pattern only where your job needs something that it
+does not have.
+
 ## One obvious action per pane
 
 Give each pane one loud control, and make it the action the pane exists for. Set it with
@@ -46,6 +53,13 @@ uses the same gap from top to bottom, it shows no structure.
 
 Two levels that both separate groups can sit one step apart: a section at gap 6 can hold groups
 at gap 5.
+
+## Keep one edge
+
+In a pane, start the text of every part on one left edge: the title, the labels, the rows and the
+lines between them. The fill of a row or a quiet button hangs outside that edge, so the text in it
+still starts on the edge. Keep one right edge too. A box inside the pane adds a second pair of
+edges, so use one only when its content needs a surface of its own.
 
 ## Rank text by size
 
@@ -90,6 +104,13 @@ the main action is full width on every screen. [Modality](/patterns/modality#foc
 has the details.
 
 *Figure.* An event on two phones. Wrong: a header built by hand from a row of buttons, with no Close. Right: the pane's own toolbar, with Back, the title and Close.
+
+## Remove what repeats
+
+Each part of a screen asks for attention, so keep only the parts that do work. One action needs
+one control: two Undo buttons in one view make people ask how they differ. A sentence that only
+says what comes next, such as "one more question", repeats what the next part already shows.
+Remove it.
 
 ## Write the real words
 
