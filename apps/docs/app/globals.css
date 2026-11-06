@@ -874,12 +874,12 @@ body {
 /* Craft (principle-figures.tsx): the album on two phones. Covers are photos, so they take a fixed
    corner rather than the theme's radius. The first phone rises so the band holds its foot. */
 .kd-craft > :first-child {
-  translate: 0 calc(-11 * var(--layout-space-7));
+  translate: 0 calc(-13 * var(--layout-space-7));
 }
 
 /* The second phone sinks, so the band cuts it above its mini player: the first phone shows that. */
 .kd-craft > :last-child {
-  translate: 0 calc(3 * var(--layout-space-7));
+  translate: 0 calc(-1 * var(--layout-space-7));
 }
 
 .kd-wide {
@@ -1009,4 +1009,165 @@ body {
   .kd-bag-item {
     column-gap: var(--space-5);
   }
+}
+
+/* Trial (2026-11-05, local only): the editor hero shows its whole laptop, timeline included, so it
+   reads as a working app rather than a photo cut off mid-viewer. */
+.kd-hero:has(.kd-edit-window) {
+  block-size: calc(16 * var(--layout-space-4) + 1020px * var(--kd-fit-zoom));
+}
+
+/* Serve the job (principle-figures.tsx): a photo app exporting a picture. The photo sits whole in
+   the view; the export settings fill the inspector in label-and-control rows. */
+.kd-export-window {
+  --shell-inspector-w: 360px;
+}
+
+/* In the figure, the export app is a 14-inch MacBook Pro screen at its real size, 1512 by 982 with
+   the browser bar, drawn smaller by ScaleToBand, like the front page's laptop. */
+.kd-band-window.kd-export-window {
+  display: flex;
+  flex-direction: column;
+  inline-size: 1512px;
+  block-size: 982px;
+}
+
+.kd-band-window.kd-export-window .kd-band-shell {
+  flex: 1;
+  min-block-size: 0;
+  block-size: auto;
+}
+
+.kd-export-shell {
+  --shell-bottom-h: 112px;
+}
+
+/* The photo, shown whole on the app's quiet ground, as a photo app's loupe. */
+.kd-export-stage {
+  display: grid;
+  place-items: center;
+  block-size: 100%;
+}
+
+.kd-export-photo {
+  max-inline-size: 100%;
+  max-block-size: 100%;
+  object-fit: contain;
+}
+
+.kd-export-strip {
+  block-size: 100%;
+  align-items: center;
+  overflow: clip;
+}
+
+.kd-export-thumb {
+  flex: none;
+  block-size: 100%;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  border-radius: var(--space-2);
+  opacity: 0.7;
+}
+
+.kd-export-thumb[data-selected] {
+  opacity: 1;
+  outline: 2px solid var(--neutral-12);
+  outline-offset: 2px;
+}
+
+.kd-export-row {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  align-items: center;
+  column-gap: var(--layout-space-3);
+}
+
+.kd-export-value {
+  display: flex;
+  min-inline-size: 0;
+}
+
+.kd-export-value > :not(.kui-switch) {
+  flex: 1;
+  min-inline-size: 0;
+}
+
+/* The export app's scratch page (app/scratch-export): the app fills the window. */
+.kd-scratch-export {
+  display: flex;
+  flex-direction: column;
+  block-size: 100dvh;
+  background-color: var(--color-ground);
+}
+
+.kd-scratch-export .kd-band-shell {
+  flex: 1;
+  block-size: auto;
+  min-block-size: 0;
+}
+
+/* The simplified export: the photo fills the content area edge to edge. */
+.kd-export-bleed {
+  position: relative;
+  block-size: calc(100% + 2 * var(--kui-sf-p));
+}
+
+.kd-export-cover {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+}
+
+/* Serve the job shows the laptop's foot, where Export is: the laptop stands on the band's bottom,
+   a step up, and runs off the top instead (2026-11-06, Kushagra: "show the bottom so pushing it
+   up"). It scales from its foot so the step stays a step at any width. */
+.kd-band-stage:has(> .kd-render) {
+  inset-block: auto var(--layout-space-9);
+}
+
+/* Zoomed in on the bottom-right corner (2026-11-06): the export panel's foot with Cancel and
+   Export. The laptop is drawn larger and anchored by its bottom-right corner, a step in. */
+.kd-band-stage > .kd-render {
+  justify-self: end;
+  margin-inline-end: var(--layout-space-9);
+  transform-origin: 100% 100%;
+}
+
+/* The figures' shooting pages (app/shoot): the window alone at the page's top-left, nothing else
+   painted, so `pnpm figures` photographs only the window. */
+.kd-shoot {
+  display: flex;
+  padding: 0;
+}
+
+/* A docs figure is shot at the width a figure has on a desktop docs page, beside the contents. */
+.kd-shoot-figure {
+  inline-size: 704px;
+}
+
+/* A FIGURE THAT IS A PHOTOGRAPH (FigureShot): the box keeps its live border, corners and size,
+   and the picture fills its inside. One picture per appearance; the other is never loaded. */
+.kd-shot {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+/* A band showing its shot takes the shot's shape, whatever shape the live band asked for (the
+   shot holds the ground, so the band paints none). `!important` because `aspect` is inline. */
+.kd-band:has(> .kd-shot) {
+  aspect-ratio: auto !important;
+  background: none;
+}
+
+.kd-band > .kd-shot {
+  block-size: auto;
+}
+
+:root[data-appearance="dark"] .kd-shot[data-scheme="light"],
+:root:not([data-appearance="dark"]) .kd-shot[data-scheme="dark"] {
+  display: none;
 }

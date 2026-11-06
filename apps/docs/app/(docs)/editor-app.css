@@ -1,7 +1,8 @@
 /* SERVE THE JOB (editor-app.tsx, principle-figures.tsx): a video editor at a 14-inch MacBook
    Pro's real screen size, 1512 x 982 with the browser bar, drawn smaller by ScaleToBand. */
 
-.kd-band-window.kd-edit-window {
+.kd-band-window.kd-edit-window,
+.kd-hero-window.kd-edit-window {
   display: flex;
   flex-direction: column;
   inline-size: 1512px;
@@ -99,7 +100,7 @@
   position: absolute;
   inset: 0;
   /* The current frame: the Cathedral clip, Valencia cathedral's Baroque door (Unsplash, Hasmik Ghazaryan Olson). */
-  background: url("/figures/editor/frame.jpg") center 35% / cover no-repeat, var(--neutral-3);
+  background: url("/figures/editor/frame.webp") center 35% / cover no-repeat, var(--neutral-3);
 }
 
 /* The rows sit where a floating band in a pane sits, the library's and inspector's headers
@@ -290,3 +291,4 @@
 .kd-edit-solid {
   display: contents;
 }
+

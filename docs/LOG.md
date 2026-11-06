@@ -8,6 +8,22 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-11-06 The docs figures are photographs of live figures
+
+Kushagra wanted the hero's Fit select shown open, so the glass over the frame is visible. A Select opens its panel in a portal on the page body, and every figure is a full-size app scaled down to its band, so the real panel opened at page size, far from its trigger. A drawn copy of the panel was tried first and judged off. Kushagra asked why the figures were not images, then to make them all images.
+
+Every figure still exists live in the code. `/shoot/<name>` draws one at its real size, on the dev server only, and `pnpm figures` (apps/docs) photographs each in light and dark at 2x into `public/figures/shots`, opening the Fit select first for the hero. A docs page shows the shot for its appearance inside the live band or window, so borders and corners still turn over with the theme. The script reads the figure list from `PRINCIPLE_FIGURES` and writes each shot's size to `figure-shots.json`, so a page keeps its place before a shot loads.
+
+**The cost is staleness.** A component change does not reach the figures until `pnpm figures` runs again. The screen check cannot see inside a photograph either, so it runs on the shoot pages instead.
+
+**A figure no longer adapts on a phone.** The live figure moved to a tablet, or ran off the band at 600px, to keep its text readable. The photograph scales down whole.
+
+**Headless Chromium needs a larger GPU budget.** At 2x, a window full of glass filters left whole panes unpainted, at random; `--force-gpu-mem-available-mb=8192` paints them every time.
+
+**Rejected: a drawn copy of the open panel.** It matched the live Select to the pixel only after its classes, rows and placement were copied from it, and it would drift the moment the Select changed.
+
+---
+
 ## 2026-11-05 The app header takes half a pane's air above and below
 
 Kushagra found the app header too tall. It padded like any other pane, 24px on every side at size 2, so a 40px toolbar stood in an 89px band. The header's block axis now takes `--kui-shell-header-pb`, two layout steps under the pane's padding: 8, 12, 16 and 24px at sizes 1 to 4 in the default density, on the space ladder and moving with density. The sides keep the pane's padding, so the header's toolbar still lines up with the pane headers below it. A flush header's hairline is part of its bottom padding, so the size 2 header with a 40px toolbar measures 64px with its hairline (measured: 48, 64, 80 and 96px with a toolbar one size up, at sizes 1 to 4).

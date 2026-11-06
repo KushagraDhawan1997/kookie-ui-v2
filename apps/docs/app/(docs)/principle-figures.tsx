@@ -3,6 +3,10 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { BookmarkAdd01Icon, Cancel01Icon, Redo02Icon, Undo02Icon, Sofa01Icon, Camera01Icon, Sun03Icon, CubeIcon, Move01Icon, Rotate01Icon, ArrowExpand01Icon, FavouriteIcon, InformationCircleIcon, NoteEditIcon, Share08Icon, TextFontIcon, Tick02Icon, Folder01Icon, SquaresUniteIcon, SquaresSubtractIcon, SquaresIntersectIcon, Globe02Icon, SparklesIcon, PieChartIcon, DropletIcon, CircleDashedIcon, GridViewIcon, ShuffleIcon, MirrorIcon, Unlink02Icon, PlusSignIcon, Download01Icon, PlayIcon, PauseIcon, UserIcon } from "@hugeicons/core-free-icons";
 import {
   Badge,
+  AccordionTrigger,
+  AccordionPanel,
+  AccordionItem,
+  Accordion,
   Box,
   Button,
   Card,
@@ -26,6 +30,7 @@ import {
   SelectTrigger,
   Separator,
   Shell,
+  ShellBottom,
   ShellContent,
   ShellInspector,
   ShellNavItem,
@@ -67,8 +72,8 @@ import { Measures } from "./measures";
 import { ScrolledTo } from "./scrolled-to";
 import { ScrolledToEnd } from "./scrolled-to-end";
 import { ScaleToBand } from "./scale-to-band";
-import { EditorApp } from "./editor-app";
 import { BrowserBar, PhoneAddressBar } from "./browser-chrome";
+import { BandBody } from "./figure-shot";
 
 /**
  * THE PRINCIPLES CHAPTER'S FIGURES (2026-11-02, draft). Each one is a real screen built from the
@@ -115,7 +120,7 @@ export const PRINCIPLE_FIGURES = {
   OneFormFigure:
     "A billing screen with tabs that switch the view below them, and a segmented control that sets the date range in place.",
   ServeFigure:
-    "A video editor on a laptop, dense as a real one: a clip library, a viewer showing Valencia's cathedral, a clip inspector and a ten-track timeline. Each region has one loud action, the selected clip is the timeline's one strong mark, and everything else is quiet.",
+    "A photo app exporting a picture of Valencia. The photo fills the view, and the export settings sit beside it in groups: location, file naming, file settings, image sizing, output sharpening and metadata. One loud Export, beside a quieter Cancel.",
   CraftFigure:
     "A music app's Spanish summer playlist on two phones, in glass. One is scrolled down, with the tracks passing under the mini player. The other shows the album's top.",
 } as const;
@@ -139,10 +144,14 @@ function Band({
 }) {
   return (
     <Box className="kd-band" role="img" aria-label={PRINCIPLE_FIGURES[name]} style={aspect ? { aspectRatio: aspect } : undefined}>
-      <div className="kd-band-stage" inert>
-        {children}
-      </div>
-      {measured ? <Measures /> : null}
+      {/* On a docs page the band shows its photograph (`pnpm figures`); the live figure below is
+          what the shooting page draws and photographs. */}
+      <BandBody name={name}>
+        <div className="kd-band-stage" inert>
+          {children}
+        </div>
+        {measured ? <Measures /> : null}
+      </BandBody>
     </Box>
   );
 }
@@ -532,7 +541,7 @@ export function CompositionFigure() {
     <Band name="CompositionFigure">
       <div className="kd-device">
         <Theme size="2" className="kd-band-window">
-          <BrowserBar kind="desktop" url="kookie.studio/scene" />
+          <BrowserBar kind="desktop" url="kookie.studio/photos" />
           <Shell
             contained
             className="kd-band-shell kd-band-editor"
@@ -1621,7 +1630,7 @@ export function RealWordsFigure() {
 
 /** A Spanish summer playlist, for the Valencia set (2026-11-05, Kushagra: "pick a Spanish
  *  playlist"). The cover is a flamenco dancer (Edgar Serrano, Unsplash). */
-const ALBUM_ART = "/figures/playlist/cover.jpg";
+const ALBUM_ART = "/figures/playlist/cover.webp";
 const ALBUM_ARTIST = "Rosalía";
 const ALBUM_TRACKS = [
   { title: "Entre dos aguas", time: "5:56" },
@@ -1741,7 +1750,8 @@ function AlbumApp({ end = false }: { end?: boolean }) {
   );
 }
 
-/** Craft: one album on two phones at one scale, in glass at step 3. The first phone rises so the
+/** Craft: one album on two phones at one scale, in glass at step 7 (2026-11-06, Kushagra: "use a
+ *  higher material, like 7"), so the list reads less through the mini player. The first phone rises so the
  *  band holds its foot, the mini player over the list; the second shows the album's top. */
 export function CraftFigure() {
   return (
@@ -1749,7 +1759,7 @@ export function CraftFigure() {
       <ScaleToBand className="kd-band-devices kd-craft">
         {[true, false].map((end) => (
           <div key={String(end)} className="kd-band-phone">
-            <Theme size="2" material="3" pointer="coarse" className="kd-band-phone-screen">
+            <Theme size="2" material="7" pointer="coarse" className="kd-band-phone-screen">
               <AlbumApp end={end} />
               <PhoneAddressBar url="kookie.studio/verano-en-valencia" />
               <span className="kd-band-home-indicator" />
@@ -1826,7 +1836,7 @@ function BagApp({ end = false, measure }: { end?: boolean; measure: number }) {
                   <Stack key={item.name} gap="0" className="kd-wide">
                     {i > 0 && <Separator />}
                     <div className="kd-bag-item">
-                      <img src={`/figures/bag/${item.image}.jpg`} alt="" className="kd-bag-image" />
+                      <img src={`/figures/bag/${item.image}.webp`} alt="" className="kd-bag-image" />
                       <Stack gap="1" className="kd-bag-name">
                         <Text size="4">{item.name}</Text>
                         <Text size="3" emphasis="quiet">
@@ -1899,19 +1909,364 @@ export function FitPersonFigure() {
   );
 }
 
-/* ── Serve the job: a dense editor that still points at the work ──────────────────────────── */
+/* ── Serve the job: one step of a professional's job, in front ──────────────────────────────── */
 
-/** Serve the job (2026-11-05, Kushagra: "even in a dense user interface, you can guide users well
- *  with design"). The editor at a 14-inch screen's real size in its laptop lid, drawn smaller by
- *  ScaleToBand so its controls keep their real sizes. The timeline shows its last layers. */
+
+const EXPORT_STRIP = ["city-hall", "old-town", "malvarrosa", "facades", "white-street", "street", "cathedral"];
+
+/** One row of export settings: the label at the controls' size, then its control. */
+function ExportRow({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="kd-export-row">
+      <Text size="2">{label}</Text>
+      <div className="kd-export-value">{children}</div>
+    </div>
+  );
+}
+
+function ExportGroup({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <Stack gap="3" className="kd-wide">
+      <Text size="2" emphasis="medium">
+        {title}
+      </Text>
+      {children}
+    </Stack>
+  );
+}
+
+function ExportSelect({ label, value, options }: { label: string; value: string; options: string[] }) {
+  const items = Object.fromEntries(options.map((o) => [o, o]));
+  return (
+    <Select defaultValue={value} items={items}>
+      <SelectTrigger aria-label={label} />
+      <SelectContent>
+        {options.map((o) => (
+          <SelectItem key={o} value={o}>
+            {o}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
+/** Serve the job (2026-11-05, Kushagra: "specific parts of the job"; then "The render panel doesn't
+ *  look serious enough. Lets assume render settings of lightroom etc. and use one of our valencia
+ *  images"). A photo app at the moment of exporting a picture, with the settings a real one asks
+ *  for: where, what name, which file, what size, how sharp, which metadata. Dense, as the job is,
+ *  and still one loud action: Export, in the pane's footer, beside a quieter Cancel. */
+const EXPORT_PRESETS_SAVED = [
+  { name: "Web", detail: "JPEG, 2048 px, sRGB" },
+  { name: "Print", detail: "TIFF, full size, Adobe RGB" },
+  { name: "Instagram", detail: "JPEG, 1080 px, sRGB" },
+  { name: "Full size", detail: "JPEG, original, sRGB" },
+];
+
+/** SAVED 2026-11-06 ("Keep this, save it"): the flush version with the filmstrip and the photo
+ *  shown whole. `photo` picks the picture being exported; the title and the outlined thumbnail follow it.
+ *  One app frame with no top bar (2026-11-06, Kushagra: "do we need header?"): the photo, the export
+ *  panel and the filmstrip, flush (floating panels were tried and dropped the same day).
+ *  Presets do most of the work; the details fold away. */
+export function ExportAppWithStrip({ photo = "malvarrosa" }: { photo?: string }) {
+  return (
+    <Shell contained className="kd-band-shell kd-export-shell">
+      <ShellContent>
+        <div className="kd-export-stage">
+          <img src={`/figures/export/${photo}.webp`} alt="" className="kd-export-photo" />
+        </div>
+      </ShellContent>
+      <ShellInspector aria-label="Export" defaultOpen presentation="fixed" flush>
+        <ShellPaneHeader>
+          <Toolbar>
+            <ToolbarTitle>Export 1 photo</ToolbarTitle>
+          </Toolbar>
+        </ShellPaneHeader>
+        <ShellScroll fade>
+          <Stack gap="5" className="kd-wide">
+            <ExportGroup title="Preset">
+              <Stack gap="1" className="kd-wide">
+                {EXPORT_PRESETS_SAVED.map((preset, i) => (
+                  <Row
+                    key={preset.name}
+                    current={i === 0}
+                    trailing={
+                      <Text size="2" emphasis="quiet">
+                        {preset.detail}
+                      </Text>
+                    }
+                  >
+                    {preset.name}
+                  </Row>
+                ))}
+              </Stack>
+            </ExportGroup>
+            <ExportGroup title="Location">
+              <ExportRow label="Folder">
+                <ExportSelect label="Folder" value="Pictures/Valencia" options={["Pictures/Valencia", "Desktop", "Choose…"]} />
+              </ExportRow>
+              <ExportRow label="Name">
+                <TextField defaultValue="Valencia-001" aria-label="Name" />
+              </ExportRow>
+            </ExportGroup>
+            <Accordion multiple defaultValue={["file", "size", "sharpen", "meta"]} className="kd-wide">
+              <AccordionItem value="file">
+                <AccordionTrigger>File settings</AccordionTrigger>
+                <AccordionPanel>
+                  <Stack gap="3" className="kd-wide">
+                    <ExportRow label="Format">
+                      <SegmentedControl defaultValue="jpeg" aria-label="Format" className="kd-wide">
+                        <SegmentedItem value="jpeg">JPEG</SegmentedItem>
+                        <SegmentedItem value="tiff">TIFF</SegmentedItem>
+                        <SegmentedItem value="png">PNG</SegmentedItem>
+                      </SegmentedControl>
+                    </ExportRow>
+                    <ExportRow label="Quality">
+                      <NumberField defaultValue={85} min={0} max={100} aria-label="Quality" />
+                    </ExportRow>
+                  </Stack>
+                </AccordionPanel>
+              </AccordionItem>
+              <AccordionItem value="size">
+                <AccordionTrigger>Image sizing</AccordionTrigger>
+                <AccordionPanel>
+                  <Stack gap="3" className="kd-wide">
+                    <ExportRow label="Resize to">
+                      <ExportSelect label="Resize to" value="Long edge" options={["Long edge", "Short edge", "Width and height"]} />
+                    </ExportRow>
+                    <ExportRow label="Long edge">
+                      <NumberField defaultValue={2048} aria-label="Long edge in pixels" />
+                    </ExportRow>
+                    <ExportRow label="Resolution">
+                      <NumberField defaultValue={72} aria-label="Resolution, pixels per inch" />
+                    </ExportRow>
+                  </Stack>
+                </AccordionPanel>
+              </AccordionItem>
+              <AccordionItem value="sharpen">
+                <AccordionTrigger>Output sharpening</AccordionTrigger>
+                <AccordionPanel>
+                  <Stack gap="3" className="kd-wide">
+                    <ExportRow label="Sharpen for">
+                      <ExportSelect label="Sharpen for" value="Screen" options={["Screen", "Matte paper", "Glossy paper"]} />
+                    </ExportRow>
+                    <ExportRow label="Amount">
+                      <SegmentedControl defaultValue="standard" aria-label="Amount" className="kd-wide">
+                        <SegmentedItem value="low">Low</SegmentedItem>
+                        <SegmentedItem value="standard">Standard</SegmentedItem>
+                        <SegmentedItem value="high">High</SegmentedItem>
+                      </SegmentedControl>
+                    </ExportRow>
+                  </Stack>
+                </AccordionPanel>
+              </AccordionItem>
+              <AccordionItem value="meta">
+                <AccordionTrigger>Metadata</AccordionTrigger>
+                <AccordionPanel>
+                  <Stack gap="3" className="kd-wide">
+                    <ExportRow label="Include">
+                      <ExportSelect label="Include" value="Copyright only" options={["Copyright only", "All", "None"]} />
+                    </ExportRow>
+                    <ExportRow label="Copyright">
+                      <TextField defaultValue="© 2026 Kookie Studio" aria-label="Copyright" />
+                    </ExportRow>
+                    <ExportRow label="Location">
+                      <Flex align="center" justify="space-between" className="kd-wide">
+                        <Text size="2" emphasis="quiet">
+                          Remove
+                        </Text>
+                        <Switch aria-label="Remove location" defaultChecked />
+                      </Flex>
+                    </ExportRow>
+                  </Stack>
+                </AccordionPanel>
+              </AccordionItem>
+            </Accordion>
+            <Text size="2" emphasis="quiet">
+              About 2 MB
+            </Text>
+          </Stack>
+        </ShellScroll>
+        <ShellPaneFooter>
+          {/* The step's two answers share the full width, half each (RULES.md 6: a flow's
+              actions are full width; Kushagra, 2026-11-06: "export and cancel should share full
+              width 50%"). */}
+          <Grid columns="repeat(2, minmax(0, 1fr))" gap="3" className="kd-wide">
+            <Button>Cancel</Button>
+            <Button emphasis="loud">Export</Button>
+          </Grid>
+        </ShellPaneFooter>
+      </ShellInspector>
+      <ShellBottom aria-label="Filmstrip" defaultOpen>
+        <Flex gap="2" className="kd-export-strip">
+          {EXPORT_STRIP.map((name) => (
+            <img
+              key={name}
+              src={`/figures/editor/${name}.webp`}
+              alt=""
+              className="kd-export-thumb"
+              data-selected={name === photo || undefined}
+            />
+          ))}
+        </Flex>
+      </ShellBottom>
+    </Shell>
+  );
+}
+
+const EXPORT_PRESETS = [
+  { name: "Web", detail: "JPEG, 2048 px, sRGB" },
+  { name: "Print", detail: "TIFF, full size, Adobe RGB" },
+  { name: "Instagram", detail: "JPEG, 1080 px, sRGB" },
+  { name: "Full size", detail: "JPEG, original, sRGB" },
+];
+
+/** `photo` picks the picture being exported; the title and the outlined thumbnail follow it.
+ *  One app frame with no top bar and no filmstrip (2026-11-06, Kushagra: "lets simplify"): the photo
+ *  edge to edge in the content area, and the export panel beside it, flush.
+ *  Presets do most of the work; the details fold away. */
+export function ExportApp({ photo = "city-hall" }: { photo?: string }) {
+  return (
+    <Shell contained className="kd-band-shell kd-export-shell">
+      <ShellContent>
+        {/* The photo runs edge to edge in the content area. */}
+        <Box m="bleed" className="kd-export-bleed">
+          <img src={`/figures/export/${photo}.webp`} alt="" className="kd-export-cover" />
+        </Box>
+      </ShellContent>
+      <ShellInspector aria-label="Export" defaultOpen presentation="fixed" flush>
+        <ShellPaneHeader>
+          <Toolbar>
+            <ToolbarTitle>Export 1 photo</ToolbarTitle>
+          </Toolbar>
+        </ShellPaneHeader>
+        <ShellScroll fade>
+          <Stack gap="5" className="kd-wide">
+            <ExportGroup title="Preset">
+              <Stack gap="1" className="kd-wide">
+                {EXPORT_PRESETS.map((preset, i) => (
+                  <Row
+                    key={preset.name}
+                    current={i === 0}
+                    trailing={
+                      <Text size="2" emphasis="quiet">
+                        {preset.detail}
+                      </Text>
+                    }
+                  >
+                    {preset.name}
+                  </Row>
+                ))}
+              </Stack>
+            </ExportGroup>
+            <ExportGroup title="Location">
+              <ExportRow label="Folder">
+                <ExportSelect label="Folder" value="Pictures/Valencia" options={["Pictures/Valencia", "Desktop", "Choose…"]} />
+              </ExportRow>
+              <ExportRow label="Name">
+                <TextField defaultValue="Valencia-001" aria-label="Name" />
+              </ExportRow>
+            </ExportGroup>
+            <Accordion multiple defaultValue={["file", "size", "sharpen", "meta"]} className="kd-wide">
+              <AccordionItem value="file">
+                <AccordionTrigger>File settings</AccordionTrigger>
+                <AccordionPanel>
+                  <Stack gap="3" className="kd-wide">
+                    <ExportRow label="Format">
+                      <SegmentedControl defaultValue="jpeg" aria-label="Format" className="kd-wide">
+                        <SegmentedItem value="jpeg">JPEG</SegmentedItem>
+                        <SegmentedItem value="tiff">TIFF</SegmentedItem>
+                        <SegmentedItem value="png">PNG</SegmentedItem>
+                      </SegmentedControl>
+                    </ExportRow>
+                    <ExportRow label="Quality">
+                      <NumberField defaultValue={85} min={0} max={100} aria-label="Quality" />
+                    </ExportRow>
+                  </Stack>
+                </AccordionPanel>
+              </AccordionItem>
+              <AccordionItem value="size">
+                <AccordionTrigger>Image sizing</AccordionTrigger>
+                <AccordionPanel>
+                  <Stack gap="3" className="kd-wide">
+                    <ExportRow label="Resize to">
+                      <ExportSelect label="Resize to" value="Long edge" options={["Long edge", "Short edge", "Width and height"]} />
+                    </ExportRow>
+                    <ExportRow label="Long edge">
+                      <NumberField defaultValue={2048} aria-label="Long edge in pixels" />
+                    </ExportRow>
+                    <ExportRow label="Resolution">
+                      <NumberField defaultValue={72} aria-label="Resolution, pixels per inch" />
+                    </ExportRow>
+                  </Stack>
+                </AccordionPanel>
+              </AccordionItem>
+              <AccordionItem value="sharpen">
+                <AccordionTrigger>Output sharpening</AccordionTrigger>
+                <AccordionPanel>
+                  <Stack gap="3" className="kd-wide">
+                    <ExportRow label="Sharpen for">
+                      <ExportSelect label="Sharpen for" value="Screen" options={["Screen", "Matte paper", "Glossy paper"]} />
+                    </ExportRow>
+                    <ExportRow label="Amount">
+                      <SegmentedControl defaultValue="standard" aria-label="Amount" className="kd-wide">
+                        <SegmentedItem value="low">Low</SegmentedItem>
+                        <SegmentedItem value="standard">Standard</SegmentedItem>
+                        <SegmentedItem value="high">High</SegmentedItem>
+                      </SegmentedControl>
+                    </ExportRow>
+                  </Stack>
+                </AccordionPanel>
+              </AccordionItem>
+              <AccordionItem value="meta">
+                <AccordionTrigger>Metadata</AccordionTrigger>
+                <AccordionPanel>
+                  <Stack gap="3" className="kd-wide">
+                    <ExportRow label="Include">
+                      <ExportSelect label="Include" value="Copyright only" options={["Copyright only", "All", "None"]} />
+                    </ExportRow>
+                    <ExportRow label="Copyright">
+                      <TextField defaultValue="© 2026 Kookie Studio" aria-label="Copyright" />
+                    </ExportRow>
+                    <ExportRow label="Location">
+                      <Flex align="center" justify="space-between" className="kd-wide">
+                        <Text size="2" emphasis="quiet">
+                          Remove
+                        </Text>
+                        <Switch aria-label="Remove location" defaultChecked />
+                      </Flex>
+                    </ExportRow>
+                  </Stack>
+                </AccordionPanel>
+              </AccordionItem>
+            </Accordion>
+            <Text size="2" emphasis="quiet">
+              About 2 MB
+            </Text>
+          </Stack>
+        </ShellScroll>
+        <ShellPaneFooter>
+          {/* The step's two answers share the full width, half each (RULES.md 6: a flow's
+              actions are full width; Kushagra, 2026-11-06: "export and cancel should share full
+              width 50%"). */}
+          <Grid columns="repeat(2, minmax(0, 1fr))" gap="3" className="kd-wide">
+            <Button>Cancel</Button>
+            <Button emphasis="loud">Export</Button>
+          </Grid>
+        </ShellPaneFooter>
+      </ShellInspector>
+    </Shell>
+  );
+}
+
 export function ServeFigure() {
   return (
     <Band name="ServeFigure">
-      <ScaleToBand share={0.94} className="kd-band-devices kd-serve">
+      <ScaleToBand share={1.7} className="kd-band-devices kd-render">
         <div className="kd-device">
-          <Theme size="3" material="3" className="kd-band-window kd-edit-window">
-            <BrowserBar kind="desktop" url="kookie.studio/edit" />
-            <EditorApp timelineEnd />
+          <Theme size="2" material="3" className="kd-band-window kd-export-window">
+            <BrowserBar kind="desktop" url="kookie.studio/photos" />
+            <ExportApp />
           </Theme>
         </div>
       </ScaleToBand>

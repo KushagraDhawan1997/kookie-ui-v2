@@ -1,0 +1,86 @@
+{
+  "AppearanceFigure": {
+    "width": 702,
+    "height": 439
+  },
+  "ColourFigure": {
+    "width": 702,
+    "height": 439
+  },
+  "CompositionFigure": {
+    "width": 702,
+    "height": 439
+  },
+  "CraftFigure": {
+    "width": 702,
+    "height": 439
+  },
+  "DepthFigure": {
+    "width": 702,
+    "height": 439
+  },
+  "FitFigure": {
+    "width": 702,
+    "height": 439
+  },
+  "FitPersonFigure": {
+    "width": 702,
+    "height": 439
+  },
+  "GroupingFigure": {
+    "width": 702,
+    "height": 816
+  },
+  "IconsFigure": {
+    "width": 702,
+    "height": 439
+  },
+  "InteractionFigure": {
+    "width": 702,
+    "height": 439
+  },
+  "MaterialsFigure": {
+    "width": 702,
+    "height": 439
+  },
+  "OneActionFigure": {
+    "width": 702,
+    "height": 816
+  },
+  "OneFormFigure": {
+    "width": 702,
+    "height": 439
+  },
+  "OwnsTheJobFigure": {
+    "width": 702,
+    "height": 816
+  },
+  "RankFigure": {
+    "width": 702,
+    "height": 816
+  },
+  "RealWordsFigure": {
+    "width": 702,
+    "height": 816
+  },
+  "SameSizeFigure": {
+    "width": 702,
+    "height": 816
+  },
+  "ServeFigure": {
+    "width": 702,
+    "height": 439
+  },
+  "ToneFigure": {
+    "width": 702,
+    "height": 816
+  },
+  "TypographyFigure": {
+    "width": 702,
+    "height": 439
+  },
+  "editor": {
+    "width": 1510,
+    "height": 980
+  }
+}

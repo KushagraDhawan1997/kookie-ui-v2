@@ -21,6 +21,7 @@ import {
   RepeatIcon,
   Scissor01Icon,
   Search01Icon,
+  Tick02Icon,
   SearchAddIcon,
   SearchMinusIcon,
   Share08Icon,
@@ -101,6 +102,7 @@ const Icons = {
   Play: glyph(PlayIcon),
   Previous: glyph(PreviousIcon),
   Search: glyph(Search01Icon),
+  Tick: glyph(Tick02Icon),
   ZoomIn: glyph(SearchAddIcon),
   ZoomOut: glyph(SearchMinusIcon),
   Select: glyph(Cursor01Icon),
@@ -286,7 +288,7 @@ export function EditorApp({ timelineEnd = false }: { timelineEnd?: boolean }) {
                   <div
                     className="kd-edit-thumb"
                     data-selected={clip.name === "Cathedral" || undefined}
-                    style={{ backgroundImage: `url(/figures/editor/${clip.image}.jpg)` }}
+                    style={{ backgroundImage: `url(/figures/editor/${clip.image}.webp)` }}
                   >
                     <Chip size="2" className="kd-edit-thumb-time">
                       {clip.time}

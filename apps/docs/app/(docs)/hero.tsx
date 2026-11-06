@@ -1,6 +1,7 @@
 import * as React from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { BrowserBar, FitToStage } from "./browser-chrome";
+import { FigureShot } from "./figure-shot";
 import {
   ComputerIcon,
   PlayIcon,
@@ -99,8 +100,9 @@ const PANE_WIDTHS = { "--shell-sidebar-w": "232px", "--shell-inspector-w": "272p
 
 /** A complex editor in a real Shell, laid out like the Kookie UI builder: layers on the left,
  *  the canvas in the middle with toolbars floating over it, the inspector on the right. The side
- *  panes sit flush with the window edge. */
-function Builder() {
+ *  panes sit flush with the window edge. The hero before the video editor (2026-11-05); kept,
+ *  exported, so it can come back without digging through history. */
+export function Builder() {
   return (
     <Theme size="2" className="kd-hero-window">
       <BrowserBar kind="desktop" url="kookie.studio/builder" />
@@ -270,8 +272,12 @@ export function Hero() {
     <Box mx="bleed" my="10" className="kd-hero" aria-hidden inert>
       <div className="kd-hero-stage">
         <FitToStage>
+          {/* A trial on the local docs only (2026-11-05, Kushagra: "Make the front page also the main
+              image, dont make it live"): the Serve the job editor in place of the builder. */}
           <div className="kd-device">
-            <Builder />
+            <div className="kd-hero-window kd-edit-window">
+              <FigureShot name="editor" />
+            </div>
           </div>
         </FitToStage>
       </div>
