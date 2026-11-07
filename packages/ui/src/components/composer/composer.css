@@ -89,6 +89,10 @@
      is the control's at this index, capped at half the one-line height, so a full-radius world
      reads as a stadium at rest and a box with the stadium's ends once it grows. */
   border-radius: min(var(--kui-cp-line-r, var(--radius-control-2)), calc(var(--kui-cp-line-h, var(--control-height-2)) / 2));
+  /* Round, not the surface's squircle: a squircle spends its curvature along the edge, and a
+     corner that already reaches the midline has no edge left, so a one-line composer read as a
+     lozenge instead of a capsule (2026-11-07, on a phone). Command's pill made the same call. */
+  corner-shape: round;
   --kui-cp-hosted: calc(var(--kui-cp-line-h, var(--control-height-2)) - 2 * var(--border-width) - 2 * var(--kui-cp-slot, var(--slot-inset-2)));
 }
 
