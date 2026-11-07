@@ -82,7 +82,6 @@ import {
 import {
   Avatar,
   Box,
-  Button,
   Chip,
   Heading,
   Shell,
@@ -98,6 +97,7 @@ import {
   Text,
   Toolbar,
   ToolbarButton,
+  ToolbarTitle,
   Tooltip,
   TooltipContent,
   TooltipTrigger,
@@ -143,20 +143,25 @@ export default function Example() {
               publishes the row's reach for the scroller below to spend. The row itself
               paints nothing, so its controls state their own backdrop. */}
           <ShellPaneHeader float>
-            <Wordmark />
-            {/* Top-aligned, not centred: the mark is a display glyph and it defines the row,
-                so centring the button would sink it below the trigger in the pane next door.
-                Aligning to the start puts both at the same offset from their pane's padding. */}
-            <Tooltip>
-              <TooltipTrigger
-                render={
-                  <Button iconOnly backdrop aria-label="New" style={{ alignSelf: "start" }}>
-                    {icon(PlusSignIcon)}
-                  </Button>
-                }
-              />
-              <TooltipContent>New</TooltipContent>
-            </Tooltip>
+            {/* The band's row is a Toolbar: it puts the mark and the button at the two ends. */}
+            <Toolbar backdrop>
+              <ToolbarTitle>
+                <Wordmark />
+              </ToolbarTitle>
+              {/* Top-aligned, not centred: the mark is a display glyph and it defines the row,
+                  so centring the button would sink it below the trigger in the pane next door.
+                  Aligning to the start puts both at the same offset from their pane's padding. */}
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <ToolbarButton iconOnly aria-label="New" style={{ alignSelf: "start" }}>
+                      {icon(PlusSignIcon)}
+                    </ToolbarButton>
+                  }
+                />
+                <TooltipContent>New</TooltipContent>
+              </Tooltip>
+            </Toolbar>
           </ShellPaneHeader>
 
           {/* `fade` is what keeps the rows legible on their way behind the chrome. */}
@@ -225,17 +230,12 @@ export default function Example() {
           <ShellPaneHeader float>
             {/* The one thing that crosses the frame: a button that drives a pane by name.
                 It is the route back once the sidebar closes or overlays. */}
-            <ShellTrigger
-              target="sidebar"
-              render={
-                <Button iconOnly backdrop aria-label="Toggle navigation" />
-              }
-            >
-              {icon(SidebarLeftIcon)}
-            </ShellTrigger>
-            <Button backdrop leading={icon(PlusSignIcon)}>
-              New project
-            </Button>
+            <Toolbar backdrop>
+              <ShellTrigger target="sidebar" render={<ToolbarButton iconOnly aria-label="Toggle navigation" />}>
+                {icon(SidebarLeftIcon)}
+              </ShellTrigger>
+              <ToolbarButton leading={icon(PlusSignIcon)}>New project</ToolbarButton>
+            </Toolbar>
           </ShellPaneHeader>
 
           {/* The work area scrolls itself; the frame never does. */}
@@ -604,6 +604,156 @@ export default function Example() {
             <Code>Compiled 412 modules in 8.4s</Code>
           </Stack>
         </ShellBottom>
+      </Shell>
+    </Box>
+  );
+}
+```
+
+### A second row under the toolbar
+
+A phone's chat list: the title and a New chat button, then All, Unread and Groups under them. The header stacks its children as rows, so the segmented control goes after the `Toolbar`. Both rows float as one, and the list fades out under both before it reaches the second row's edge.
+
+```tsx
+"use client";
+
+import { HugeiconsIcon } from "@hugeicons/react";
+import { PencilEdit02Icon } from "@hugeicons/core-free-icons";
+import {
+  Avatar,
+  Box,
+  Flex,
+  Row,
+  SegmentedControl,
+  SegmentedItem,
+  Shell,
+  ShellContent,
+  ShellPaneHeader,
+  ShellScroll,
+  Stack,
+  Toolbar,
+  ToolbarButton,
+  ToolbarTitle,
+  iconStroke,
+} from "@kushagradhawan/kookie-ui-react";
+
+const CHATS = [
+  ["MP", "Mira Patel"], ["AR", "Arjun Rao"], ["LO", "Lena Ortiz"], ["SB", "Shruti Bhatia"],
+  ["MG", "Marta Gil"], ["LP", "Leo Pons"], ["JK", "Jun Kim"], ["NA", "Nadia Ali"],
+  ["TW", "Tom Weber"], ["EC", "Elena Costa"], ["RS", "Ravi Singh"], ["HB", "Hana Berg"],
+];
+
+// Under a floating band the list starts below it: the pane publishes the band's reach.
+const clearsBand = { paddingBlockStart: "calc(var(--kui-pane-inset-block-start) - var(--kui-sf-p))" };
+
+// A header holds its rows one under the other: the toolbar, then the filter under it. Both rows
+// float as one, and the list scrolls under them. A phone's width.
+export default function Example() {
+  return (
+    <Flex m="bleed" flexGrow="1" height="30rem" justify="center" minWidth="0">
+      <Box width="24rem" maxWidth="100%" minWidth="0">
+        <Shell contained>
+          <ShellContent>
+            <ShellPaneHeader float>
+              <Toolbar backdrop>
+                <ToolbarTitle>Chats</ToolbarTitle>
+                <ToolbarButton iconOnly aria-label="New chat">
+                  <HugeiconsIcon icon={PencilEdit02Icon} strokeWidth={iconStroke} aria-hidden />
+                </ToolbarButton>
+              </Toolbar>
+              <SegmentedControl backdrop defaultValue="all" aria-label="Show">
+                <SegmentedItem value="all">All</SegmentedItem>
+                <SegmentedItem value="unread">Unread</SegmentedItem>
+                <SegmentedItem value="groups">Groups</SegmentedItem>
+              </SegmentedControl>
+            </ShellPaneHeader>
+            <ShellScroll fade>
+              <Stack style={clearsBand}>
+                {CHATS.map(([initials, name]) => (
+                  <Row key={name} leading={<Avatar fallback={initials} />} render={<a href={`#${initials}`} />}>
+                    {name}
+                  </Row>
+                ))}
+              </Stack>
+            </ShellScroll>
+          </ShellContent>
+        </Shell>
+      </Box>
+    </Flex>
+  );
+}
+```
+
+### A time ruler under a timeline's toolbar
+
+The tools, then the ruler. The ruler is any content placed after the `Toolbar`, and it spans the toolbar's edges. The tracks scroll under both rows.
+
+```tsx
+"use client";
+
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Scissor01Icon, ZoomInAreaIcon, ZoomOutAreaIcon } from "@hugeicons/core-free-icons";
+import {
+  Box,
+  Flex,
+  Row,
+  Shell,
+  ShellContent,
+  ShellPaneHeader,
+  ShellScroll,
+  Stack,
+  Text,
+  Toolbar,
+  ToolbarButton,
+  ToolbarTitle,
+  iconStroke,
+} from "@kushagradhawan/kookie-ui-react";
+
+const icon = (glyph: typeof Scissor01Icon) => <HugeiconsIcon icon={glyph} strokeWidth={iconStroke} aria-hidden />;
+
+const MARKS = ["0:00", "0:05", "0:10", "0:15", "0:20", "0:25", "0:30"];
+const TRACKS = [
+  "V3 Titles", "V2 B-roll", "V1 Interview", "A1 Interview", "A2 Room tone", "A3 Music",
+  "A4 Effects", "A5 Voice-over", "A6 Ambience", "A7 Foley",
+];
+
+// Under a floating band the tracks start below it: the pane publishes the band's reach.
+const clearsBand = { paddingBlockStart: "calc(var(--kui-pane-inset-block-start) - var(--kui-sf-p))" };
+
+// A timeline's toolbar, then the time ruler under it. The ruler stays with the toolbar while
+// the tracks scroll under both.
+export default function Example() {
+  return (
+    <Box m="bleed" flexGrow="1" height="24rem">
+      <Shell contained>
+        <ShellContent>
+          <ShellPaneHeader float>
+            <Toolbar backdrop>
+              <ToolbarTitle>Timeline</ToolbarTitle>
+              <Flex gap="1">
+                <ToolbarButton iconOnly aria-label="Split clip">{icon(Scissor01Icon)}</ToolbarButton>
+                <ToolbarButton iconOnly aria-label="Zoom out">{icon(ZoomOutAreaIcon)}</ToolbarButton>
+                <ToolbarButton iconOnly aria-label="Zoom in">{icon(ZoomInAreaIcon)}</ToolbarButton>
+              </Flex>
+            </Toolbar>
+            <Flex justify="space-between" aria-label="Time ruler">
+              {MARKS.map((mark) => (
+                <Text key={mark} size="2" emphasis="medium">
+                  {mark}
+                </Text>
+              ))}
+            </Flex>
+          </ShellPaneHeader>
+          <ShellScroll fade>
+            <Stack style={clearsBand}>
+              {TRACKS.map((track) => (
+                <Row key={track} render={<div />}>
+                  {track}
+                </Row>
+              ))}
+            </Stack>
+          </ShellScroll>
+        </ShellContent>
       </Shell>
     </Box>
   );
@@ -1135,7 +1285,7 @@ The part of a pane that scrolls. The pane's other children stay in place, and th
 
 #### ShellPaneHeader
 
-A header row at the top of a pane. It is one control row tall at the pane's size, so it lines up with the rail and the app header beside it. With `float`, the pane's content scrolls behind it
+The band at the top of a pane. Its first row is a `Toolbar`, one control row tall at the pane's size, so it lines up with the rail and the app header beside it. Anything after the toolbar is a row under it, such as a filter or a time ruler. With `float`, the pane's content scrolls behind every row
 
 | Prop | Type | What it does |
 | --- | --- | --- |
@@ -1145,7 +1295,7 @@ It also takes every prop of a `<div>`.
 
 #### ShellPaneFooter
 
-The same kind of row at the bottom of a pane. With `float`, the pane's content scrolls behind it
+The same kind of band at the bottom of a pane, its rows stacked the same way. With `float`, the pane's content scrolls behind it
 
 | Prop | Type | What it does |
 | --- | --- | --- |

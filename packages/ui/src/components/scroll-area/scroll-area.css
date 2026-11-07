@@ -93,7 +93,16 @@
     linear-gradient(
       to bottom,
       transparent 0%,
-      black min(var(--scroll-area-overflow-y-start, 0px), var(--kui-sa-fade-start, var(--scrollbar-fade))),
+      /* The hold (a two-row band, shell.css) is not capped by how far the content has scrolled:
+         at rest the content starts below it, so it hides nothing, and once anything moves under
+         the band it must be gone at once, not after the scroll distance has caught up. */
+      transparent var(--kui-sa-hold-start, 0px),
+      /* Under a hold, the ramp always spans from the hold to the band's edge, so content passing
+         beneath the last row is never cut hard at the hold. */
+      black max(
+        min(var(--scroll-area-overflow-y-start, 0px), var(--kui-sa-fade-start, var(--scrollbar-fade))),
+        var(--kui-sa-ramp-end, 0px)
+      ),
       black calc(100% - min(var(--scroll-area-overflow-y-end, 0px), var(--kui-sa-fade-end, var(--scrollbar-fade)))),
       transparent 100%
     );
@@ -123,6 +132,8 @@
 .kui-scroll-area .kui-scroll-area {
   --kui-sa-fade-start: initial;
   --kui-sa-fade-end: initial;
+  --kui-sa-hold-start: initial;
+  --kui-sa-ramp-end: initial;
 }
 
 /* THE ONE FOCUSABLE ELEMENT THIS COMPONENT MAKES OWES A RING (§8, 2026-08-26). A standalone

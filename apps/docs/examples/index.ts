@@ -106,6 +106,8 @@ import SelectExample from "./select";
 import SeparatorExample from "./separator";
 import SheetExample from "./sheet";
 import ShellExample from "./shell";
+import ShellTwoRowsExample from "./shell.two-rows";
+import ShellTimelineExample from "./shell.timeline";
 import SliderExample from "./slider";
 import SpinnerExample from "./spinner";
 import StackExample from "./stack";
@@ -810,6 +812,8 @@ export const EXAMPLES: Record<string, React.ComponentType> = {
   "sheet.controlled": SheetControlledExample,
   "sheet.long-content": SheetLongContentExample,
   "sheet.rtl": SheetRtlExample,
+  "shell.two-rows": ShellTwoRowsExample,
+  "shell.timeline": ShellTimelineExample,
   "shell.notice": ShellNoticeExample,
   "shell.header": ShellHeaderExample,
   "shell.rail": ShellRailExample,

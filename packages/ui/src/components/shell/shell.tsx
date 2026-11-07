@@ -2280,10 +2280,35 @@ export type ShellPaneHeaderProps = ComponentRefusals & Omit<React.ComponentProps
   float?: boolean;
 };
 
-/** A pane's own header row: one control row at the pane's index, pinned above the scroller —
-    or floating over it with `float`, its reach published for the pane's content to spend. */
+/* A BAND STACKS ITS CHILDREN AS ROWS (2026-11-07). A header written the old way, with loose
+   clusters meant to sit side by side, now stacks them with no error, so in development it says
+   so: more than one child and the first is not a Toolbar. Read from the DOM after paint, for
+   `useNameWarning`'s reason: what the children render is only known there. */
+function useRowsWarning(what: string): React.RefCallback<HTMLDivElement> {
+  const seen = React.useRef(false);
+  return React.useCallback(
+    (band: HTMLDivElement | null) => {
+      if (!DEV || !band || seen.current) return;
+      requestAnimationFrame(() => {
+        if (seen.current || !band.isConnected) return;
+        const rows = band.children;
+        if (rows.length < 2 || rows[0]?.classList.contains("kui-toolbar")) return;
+        seen.current = true;
+        console.warn(
+          `[kookie-ui] A <${what}> stacks its children as rows, and this one's first row is not a ` +
+            `Toolbar. To put controls side by side, wrap them in one <Toolbar>.`,
+        );
+      });
+    },
+    [what],
+  );
+}
+
+/** A pane's own band: its children stack as rows, the first a Toolbar one control row tall at
+    the pane's index, anything after it a row under it. Pinned above the scroller, or floating
+    over it with `float`, its reach (every row) published for the pane's content to spend. */
 export function ShellPaneHeader({ className, float, ref, ...props }: ShellPaneHeaderProps & { ref?: React.Ref<HTMLDivElement> }) {
-  const measured = useMergedRefs(ref, useBandMeasure(float ? "start" : null));
+  const measured = useMergedRefs(ref, useBandMeasure(float ? "start" : null), useRowsWarning("ShellPaneHeader"));
   return (
     <ChromeSize>
       <div
@@ -2300,7 +2325,7 @@ export type ShellPaneFooterProps = ComponentRefusals & ShellPaneHeaderProps;
 
 /** The same row at the pane's other end; with `float` it publishes `--kui-pane-inset-block-end`. */
 export function ShellPaneFooter({ className, float, ref, ...props }: ShellPaneFooterProps & { ref?: React.Ref<HTMLDivElement> }) {
-  const measured = useMergedRefs(ref, useBandMeasure(float ? "end" : null));
+  const measured = useMergedRefs(ref, useBandMeasure(float ? "end" : null), useRowsWarning("ShellPaneFooter"));
   return (
     <ChromeSize>
       <div

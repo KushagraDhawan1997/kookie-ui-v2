@@ -1422,21 +1422,33 @@
   initial-value: 0px;
 }
 
-/* THE PART IS THE ROW (2026-08-30): it lays its children out itself — ends apart, centred
-   on the row — so a caller places CLUSTERS, never a full-width wrapper. That is what makes
-   the floating posture's pointer split workable at all: the part is transparent to the
-   pointer and each child takes itself back, so a full-width wrapper as the only child would
-   re-swallow the very band the split opens. One child sits at the start; ends-apart is only
-   visible with two, which is what every consumer writes. */
+/* EACH CHILD IS A ROW (2026-11-07, Kushagra: "Yes" to a header that stacks its rows; it was
+   "THE PART IS THE ROW" from 2026-08-30). Laying controls side by side is the Toolbar's job
+   (RULES.md 2), so the band does not do it a second time: its children stack, the first is the
+   toolbar row and anything after it is a row under it — a segmented control under a chat
+   list's title, a time ruler under an editor's toolbar. Both rows stick and float as one glass
+   region. A lone child sits at the row's start, as it always did; a toolbar, and every row of a
+   band with more than one, spans the band so its edges are the toolbar's. */
 .kui-pane-header,
 .kui-pane-footer {
   box-sizing: content-box;
   min-block-size: var(--kui-shell-row);
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--kui-sf-p);
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: var(--layout-space-3);
   min-inline-size: 0;
+}
+
+/* A Toolbar grows to fill a band row (toolbar.css). In a column that growth would go downward,
+   so it spans the band and keeps its own height. */
+.kui-pane-header > .kui-toolbar,
+.kui-pane-footer > .kui-toolbar,
+.kui-pane-header > :not(:only-child),
+.kui-pane-footer > :not(:only-child) {
+  align-self: stretch;
+  flex: none;
 }
 
 .kui-pane-header[data-float],
@@ -1523,6 +1535,15 @@
   --kui-sa-fade-start: var(--kui-pane-inset-block-start);
 }
 
+/* A TWO-ROW BAND HOLDS THE FADE UNDER BOTH ROWS (2026-11-07, Kushagra: content must reach
+   full fade "before the second row's bottom edge" and never run through either row's text).
+   Under a stacked band the content is fully faded down to the bottom edge of its last row and
+   ramps in only across the band's own padding below it. A one-row band keeps its ramp. */
+.kui-shell-pane:has(> .kui-pane-header[data-float] > :nth-child(2)) > .kui-shell-scroll {
+  --kui-sa-hold-start: calc(var(--kui-pane-inset-block-start) - var(--kui-sf-p));
+  --kui-sa-ramp-end: var(--kui-pane-inset-block-start);
+}
+
 .kui-shell-pane:has(> .kui-pane-footer[data-float]) > .kui-shell-scroll {
   --kui-sa-fade-end: var(--kui-pane-inset-block-end);
 }
@@ -1536,6 +1557,14 @@
 .kui-shell-pane:has(> .kui-pane-header[data-float]) {
   --kui-pane-inset-block-start: calc(
     max(var(--kui-shell-row), var(--kui-pane-band-row-start)) + 2 * var(--kui-sf-p)
+  );
+}
+
+/* A second row reserves a second control row from first paint, before the band has measured
+   itself, so a two-row band does not jump on load. The measurement still wins once it lands. */
+.kui-shell-pane:has(> .kui-pane-header[data-float] > :nth-child(2)) {
+  --kui-pane-inset-block-start: calc(
+    max(2 * var(--kui-shell-row) + var(--layout-space-3), var(--kui-pane-band-row-start)) + 2 * var(--kui-sf-p)
   );
 }
 

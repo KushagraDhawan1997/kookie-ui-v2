@@ -8,6 +8,10 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-11-07 A pane's band stacks its rows
+
+Kushagra asked for a second row in a floating pane header. First proposal: a `ShellPaneHeaderRow` part. He asked why the first row is a bare Toolbar and the second needs a wrapper; the only reason was that the header laid its children side by side, which is the Toolbar's job already. Chose: the band stacks its children as rows. Audited first (3 of 89 bands held loose clusters, all moved into a Toolbar; the dev warning found the third). Rejected: the part (asymmetric), wrapping both rows (rewrites every header for nothing), a `below` prop (two places to write one band). The fade now holds fully under a two-row band, per his spec, instead of ramping across it.
+
 ## 2026-11-07 A one-line composer's controls keep their height
 
 The one-line composer shipped as one control high with its controls hosted inside, the way a button sits in a TextField's slot. On a phone that put a 34px attach and Send beside 44px controls everywhere else (Kushagra: "too small on a phone"). Reversed: the controls keep a control's full height at the composer's index and the box grows by the slot inset and its border, about 54px at size 2 under touch. Rejected: keeping the hosted size and growing only the hit area, which leaves the drawn buttons visibly smaller than every other button. The same day the corner moved from the surface's squircle to `round`, because a squircle on a capsule reads as a lozenge.

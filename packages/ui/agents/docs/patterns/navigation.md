@@ -30,7 +30,6 @@ import {
 import {
   Avatar,
   Box,
-  Button,
   Chip,
   Heading,
   Shell,
@@ -46,6 +45,7 @@ import {
   Text,
   Toolbar,
   ToolbarButton,
+  ToolbarTitle,
   Tooltip,
   TooltipContent,
   TooltipTrigger,
@@ -91,20 +91,25 @@ export default function Example() {
               publishes the row's reach for the scroller below to spend. The row itself
               paints nothing, so its controls state their own backdrop. */}
           <ShellPaneHeader float>
-            <Wordmark />
-            {/* Top-aligned, not centred: the mark is a display glyph and it defines the row,
-                so centring the button would sink it below the trigger in the pane next door.
-                Aligning to the start puts both at the same offset from their pane's padding. */}
-            <Tooltip>
-              <TooltipTrigger
-                render={
-                  <Button iconOnly backdrop aria-label="New" style={{ alignSelf: "start" }}>
-                    {icon(PlusSignIcon)}
-                  </Button>
-                }
-              />
-              <TooltipContent>New</TooltipContent>
-            </Tooltip>
+            {/* The band's row is a Toolbar: it puts the mark and the button at the two ends. */}
+            <Toolbar backdrop>
+              <ToolbarTitle>
+                <Wordmark />
+              </ToolbarTitle>
+              {/* Top-aligned, not centred: the mark is a display glyph and it defines the row,
+                  so centring the button would sink it below the trigger in the pane next door.
+                  Aligning to the start puts both at the same offset from their pane's padding. */}
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <ToolbarButton iconOnly aria-label="New" style={{ alignSelf: "start" }}>
+                      {icon(PlusSignIcon)}
+                    </ToolbarButton>
+                  }
+                />
+                <TooltipContent>New</TooltipContent>
+              </Tooltip>
+            </Toolbar>
           </ShellPaneHeader>
 
           {/* `fade` is what keeps the rows legible on their way behind the chrome. */}
@@ -173,17 +178,12 @@ export default function Example() {
           <ShellPaneHeader float>
             {/* The one thing that crosses the frame: a button that drives a pane by name.
                 It is the route back once the sidebar closes or overlays. */}
-            <ShellTrigger
-              target="sidebar"
-              render={
-                <Button iconOnly backdrop aria-label="Toggle navigation" />
-              }
-            >
-              {icon(SidebarLeftIcon)}
-            </ShellTrigger>
-            <Button backdrop leading={icon(PlusSignIcon)}>
-              New project
-            </Button>
+            <Toolbar backdrop>
+              <ShellTrigger target="sidebar" render={<ToolbarButton iconOnly aria-label="Toggle navigation" />}>
+                {icon(SidebarLeftIcon)}
+              </ShellTrigger>
+              <ToolbarButton leading={icon(PlusSignIcon)}>New project</ToolbarButton>
+            </Toolbar>
           </ShellPaneHeader>
 
           {/* The work area scrolls itself; the frame never does. */}

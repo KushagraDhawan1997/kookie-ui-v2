@@ -38,6 +38,7 @@ import type { Size } from "../../system/axes.ts";
 import { Button } from "../button/button.tsx";
 import { Row } from "../row/row.tsx";
 import { Toolbar, ToolbarButton } from "../toolbar/toolbar.tsx";
+import { SegmentedControl, SegmentedItem } from "../segmented-control/segmented-control.tsx";
 import { Separator } from "../separator/separator.tsx";
 import { Box } from "../box/box.tsx";
 import { Card } from "../card/card.tsx";
@@ -3302,9 +3303,12 @@ describe("the derivation: what a non-flush pane BECOMES is read off the content 
     const shell = mounted(
       <Shell contained style={{ height: 400, width: 900 }}>
         <ShellContent style={{ position: "relative" }}>
+          {/* The band's row is a Toolbar (2026-11-07: a band stacks its children as rows). */}
           <ShellPaneHeader float>
-            <Button data-testid="chrome">Chrome</Button>
-            <Button>Other</Button>
+            <Toolbar>
+              <ToolbarButton data-testid="chrome">Chrome</ToolbarButton>
+              <ToolbarButton>Other</ToolbarButton>
+            </Toolbar>
           </ShellPaneHeader>
           <ShellScroll>
             <Box data-testid="under">content that passes beneath the band</Box>
@@ -4799,6 +4803,85 @@ describe("the scroller fades across the band it passes under (§27, 2026-09-06)"
     expect(parseFloat(tokenOn(scroller, "--kui-sa-fade-start"))).toBeGreaterThan(
       parseFloat(tokenOn(scroller, "--scrollbar-fade")),
     );
+  });
+});
+
+/**
+ * A BAND STACKS ITS ROWS (§27, 2026-11-07, Kushagra: a phone chat list's segmented control under
+ * its title, an editor's time ruler under its toolbar). The fixture is a real two-row band over a
+ * real scroller, because a reach or a fade that only one row produces passes on a one-row band.
+ */
+describe("a floating band can hold a second row, and both rows float as one (§27, 2026-11-07)", () => {
+  const Frame = () => (
+    <Shell contained style={{ height: 500, width: 600 }}>
+      <ShellContent>
+        <ShellPaneHeader float>
+          <Toolbar>
+            <ToolbarButton>Chats</ToolbarButton>
+          </Toolbar>
+          <SegmentedControl defaultValue="all" aria-label="Show" data-testid="row2">
+            <SegmentedItem value="all">All</SegmentedItem>
+            <SegmentedItem value="unread">Unread</SegmentedItem>
+          </SegmentedControl>
+        </ShellPaneHeader>
+        <ShellScroll fade>
+          <div style={{ blockSize: "2000px" }}>body</div>
+        </ShellScroll>
+      </ShellContent>
+    </Shell>
+  );
+  const reach = (root: HTMLElement) =>
+    parseFloat(tokenOn(root.querySelector(".kui-shell-content")!, "--kui-pane-inset-block-start"));
+
+  it("the second row sits under the toolbar, on the toolbar's edges", () => {
+    const root = mounted(<Frame />, { theme: {}, select: ".kui-shell" });
+    const bar = root.querySelector(".kui-pane-header > .kui-toolbar")!.getBoundingClientRect();
+    const row = within(root, "[data-testid='row2']").getBoundingClientRect();
+    expect(row.top).toBeGreaterThanOrEqual(bar.bottom - 0.5);
+    expect(row.left).toBeCloseTo(bar.left, 0);
+    expect(row.right).toBeCloseTo(bar.right, 0);
+  });
+
+  it("the pane's reach covers both rows, so the first item starts below the second", async () => {
+    const root = mounted(<Frame />, { theme: {}, select: ".kui-shell" });
+    const band = root.querySelector(".kui-pane-header")!;
+    await until(() => Math.abs(reach(root) - band.getBoundingClientRect().height) < 1);
+    const pane = root.querySelector(".kui-shell-content")!.getBoundingClientRect();
+    const row = within(root, "[data-testid='row2']").getBoundingClientRect();
+    expect(pane.top + reach(root)).toBeGreaterThan(row.bottom);
+  });
+
+  it("the content is fully faded down to the second row's bottom edge, and ramps in below it", async () => {
+    const root = mounted(<Frame />, { theme: {}, select: ".kui-shell" });
+    const band = root.querySelector(".kui-pane-header")!;
+    await until(() => Math.abs(reach(root) - band.getBoundingClientRect().height) < 1);
+    const scroller = root.querySelector(".kui-shell-scroll")!;
+    const hold = parseFloat(tokenOn(scroller, "--kui-sa-hold-start"));
+    const fade = parseFloat(tokenOn(scroller, "--kui-sa-fade-start"));
+    const top = root.querySelector(".kui-shell-content")!.getBoundingClientRect().top;
+    const rowBottom = within(root, "[data-testid='row2']").getBoundingClientRect().bottom - top;
+    expect(hold, "the fade holds through the second row").toBeGreaterThanOrEqual(rowBottom - 0.5);
+    expect(fade, "and finishes at the band's edge").toBeCloseTo(reach(root), 1);
+    expect(fade).toBeGreaterThan(hold);
+  });
+
+  it("a one-row band keeps its ramp from the top — the hold is only a two-row fact", () => {
+    const root = mounted(
+      <Shell contained style={{ height: 500, width: 600 }}>
+        <ShellContent>
+          <ShellPaneHeader float>
+            <Toolbar>
+              <ToolbarButton>Chats</ToolbarButton>
+            </Toolbar>
+          </ShellPaneHeader>
+          <ShellScroll fade>
+            <div style={{ blockSize: "2000px" }}>body</div>
+          </ShellScroll>
+        </ShellContent>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+    expect(parseFloat(tokenOn(root.querySelector(".kui-shell-scroll")!, "--kui-sa-hold-start")) || 0).toBe(0);
   });
 });
 
