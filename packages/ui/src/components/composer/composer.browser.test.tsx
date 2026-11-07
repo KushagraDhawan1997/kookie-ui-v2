@@ -833,27 +833,44 @@ describe("with no row, a composer is one line (2026-11-07)", () => {
   );
   const box = (el: Element, sel: string) => within(el, sel).getBoundingClientRect();
 
-  it("at rest it is as tall as a control at its index, at every index", () => {
+  /* THE CONTROLS KEEP THEIR HEIGHT (amended 2026-11-07, Kushagra: "too small on a phone"). The
+     first cut hosted them inside a control-high box, so under touch they fell to 34px beside a
+     screen of 44px controls. The law reads the ladder at every index, against a Button outside
+     the composer at the same index, so a hosted control fails wherever it shrinks. */
+  it("a control inside it is never shorter than a control at the same index", () => {
     for (const size of ["1", "2", "3", "4"] as const) {
       const el = mounted(
         <Box>
           {inline(size)}
-          <Button size={size}>Beside</Button>
+          <Button size={size} data-outside>
+            Beside
+          </Button>
         </Box>,
         { theme: {} },
       );
-      const composer = box(el, ".kui-composer").height;
-      const control = (within(el, ".kui-composer-frame + .kui-control") ?? within(el, "button:last-of-type")).getBoundingClientRect().height;
-      expect(composer, `size ${size}`).toBeCloseTo(control, 0);
+      const outside = box(el, "[data-outside]").height;
+      expect(box(el, ".kui-composer-send").height, `size ${size}: send`).toBeGreaterThanOrEqual(outside - 0.5);
+      expect(box(el, "button[aria-label='Add']").height, `size ${size}: add`).toBeGreaterThanOrEqual(outside - 0.5);
     }
   });
 
-  it("its controls are hosted: the same inset above and below, and on the text's line", () => {
+  it("at rest the box is the control's height, plus the inset and border around it, at every index", () => {
+    for (const size of ["1", "2", "3", "4"] as const) {
+      const el = mounted(inline(size), { theme: {} });
+      const composer = within(el, ".kui-composer");
+      const c = composer.getBoundingClientRect();
+      const send = box(el, ".kui-composer-send");
+      const inset = parseFloat(computed(composer, "padding-top")) + parseFloat(computed(composer, "border-top-width"));
+      expect(inset, `size ${size}: there is an inset`).toBeGreaterThan(0);
+      expect(c.height, `size ${size}`).toBeCloseTo(send.height + 2 * inset, 0);
+    }
+  });
+
+  it("its controls stand in by the same inset above and below, on the text's line", () => {
     const el = mounted(inline("2"), { theme: {} });
     const c = box(el, ".kui-composer");
     const send = box(el, ".kui-composer-send");
     const add = box(el, "button[aria-label='Add']");
-    expect(send.height).toBeLessThan(c.height);
     expect(send.top - c.top, "top inset").toBeCloseTo(c.bottom - send.bottom, 0);
     expect(add.top, "the leading control shares the send's line").toBeCloseTo(send.top, 0);
     expect(add.right, "leading control, then the text, then send").toBeLessThan(box(el, ".kui-composer-input").left + 1);

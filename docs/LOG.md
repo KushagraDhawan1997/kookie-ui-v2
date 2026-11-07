@@ -8,6 +8,10 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-11-07 A one-line composer's controls keep their height
+
+The one-line composer shipped as one control high with its controls hosted inside, the way a button sits in a TextField's slot. On a phone that put a 34px attach and Send beside 44px controls everywhere else (Kushagra: "too small on a phone"). Reversed: the controls keep a control's full height at the composer's index and the box grows by the slot inset and its border, about 54px at size 2 under touch. Rejected: keeping the hosted size and growing only the hit area, which leaves the drawn buttons visibly smaller than every other button. The same day the corner moved from the surface's squircle to `round`, because a squircle on a capsule reads as a lozenge.
+
 ## 2026-11-07 A composer with no row is one line
 
 Kushagra asked for a one-line composer for phone chats and comment boxes. Two APIs were open: a `layout="inline"` prop on `Composer`, or the layout following from the children. Chose the children: a `ComposerRow` means controls under the text, no row means controls on the text's line. A prop would have been a second way to say what the markup already says, and could contradict it (a prop saying inline beside a `ComposerRow`). Rejected with it: hosting full-size buttons in the one line (it would be taller than a control and read as a pane, not a field), and a corner that stays a pill as the text grows (it reads as a bubble swelling; the ends stay the one line's). Cost accepted: a bare composer with only an input, which used to render stacked, now renders as one line. §30 records it.
