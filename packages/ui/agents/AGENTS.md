@@ -133,7 +133,7 @@ system wrong. The reason each one was refused is on the component's own page —
 - **CodeBlock** — Highlighting; A switch for wrapping; A copy button, line numbers, and a collapse; `tone` and `emphasis`; A Card as the panel
 - **Combobox** — Free text with suggestions; `multiple`; A custom matcher, a result limit and inline completion; `disabled`, `readOnly`, `name`, `required` and `form` on the input; A Separator inside the panel; `render` on the input; A clear button
 - **Command** — A footer; `modal`; Re-sorting results as you type; A Separator inside the panel; An edge-to-edge results panel
-- **Composer** — The conversation; Keeping the conversation scrolled to the bottom; An attach button; Holding the files; Named slots for the start and end of the row; A compact or collapsed mode; `submitOnEnter`
+- **Composer** — The conversation; Keeping the conversation scrolled to the bottom; An attach button; Holding the files; Named slots for the start and end of the row; `submitOnEnter`
 - **ContextMenu** — `ContextMenuItem` and a second set of parts; `side`, `align` and an offset; A style for the trigger area; Opening on a left click
 - **Dialog** — `DialogHeader` and `DialogFooter`; A prop to choose the presentation, and dragging to close; A height prop; A close button in the corner; `modal` and `disablePointerDismissal`; A shadow of its own; `size` on the title
 - **Field** — `FieldControl`; `orientation`; A choice about where the error goes; An error that replaces the description; `Form`

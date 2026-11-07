@@ -176,7 +176,19 @@ export function Composer({
           // The composer's own inset and corner, published for the context ground beside it by
           // the frame's size join in surfaces.css.
           data-size={size}
-          style={style}
+          // The control ladder at this index, for the one-line layout (composer.css, "ONE
+          // LINE"): a component stylesheet may not name an axis attribute, so the steps arrive
+          // as hooks, the way `--kui-cp-font` reaches the input. On the frame, so the context
+          // ground below can read them too.
+          style={
+            {
+              "--kui-cp-line-h": `var(--control-height-${size})`,
+              "--kui-cp-slot": `var(--slot-inset-${size})`,
+              "--kui-cp-line-px": `var(--control-px-${size})`,
+              "--kui-cp-line-r": `var(--radius-control-${size})`,
+              ...style,
+            } as React.CSSProperties
+          }
         >
           {notices ? (
             <BackdropContext.Provider value={backdrop ?? region}>

@@ -70,6 +70,82 @@
   min-inline-size: 0;
 }
 
+/* ── ONE LINE (2026-11-07, Kushagra: "Phone chats and comment boxes need a one-line composer")
+   A composer with no `ComposerRow` is one line: its controls stand beside the input instead of
+   under it, in the order they are written. The arrangement IS the API (§30, "ONE LINE"): a row
+   means a row of controls under the text, and no row means the controls share the text's line.
+
+   At rest it is as tall as a control at its index, and the controls inside are HOSTED, the way
+   a button in a TextField's slot is (§4): the same slot inset above, below and beside them, and
+   their height that inset subtracted. When the text wraps, the input grows upward and the
+   controls stay on its last line, until the input's own ceiling makes it scroll. */
+.kui-composer:not(:has(> .kui-composer-row)) {
+  flex-direction: row;
+  align-items: flex-end;
+  gap: var(--layout-space-2);
+  padding: var(--kui-cp-slot, var(--slot-inset-2));
+  min-block-size: var(--kui-cp-line-h, var(--control-height-2));
+  /* One line is a capsule; more lines keep that capsule's END, not a taller pill. The corner
+     is the control's at this index, capped at half the one-line height, so a full-radius world
+     reads as a stadium at rest and a box with the stadium's ends once it grows. */
+  border-radius: min(var(--kui-cp-line-r, var(--radius-control-2)), calc(var(--kui-cp-line-h, var(--control-height-2)) / 2));
+  --kui-cp-hosted: calc(var(--kui-cp-line-h, var(--control-height-2)) - 2 * var(--border-width) - 2 * var(--kui-cp-slot, var(--slot-inset-2)));
+}
+
+/* The hosted controls, flat or grouped in a cluster. */
+.kui-composer:not(:has(> .kui-composer-row)) > .kui-control,
+.kui-composer:not(:has(> .kui-composer-row)) > :not(.kui-composer-input) > .kui-control {
+  min-height: var(--kui-cp-hosted);
+  height: var(--kui-cp-hosted);
+  min-inline-size: var(--kui-cp-hosted);
+}
+
+/* The text sits on the hosted line: centred in it at rest, the same air above and below every
+   line after. Its inline start keeps a control's own padding when nothing stands before it. */
+.kui-composer:not(:has(> .kui-composer-row)) > .kui-composer-input {
+  flex: 1;
+  align-self: stretch;
+  padding-block: calc((var(--kui-cp-hosted) - 1lh) / 2);
+  /* The ceiling counts that air, so the box still stops at eight lines of text. */
+  box-sizing: border-box;
+  min-block-size: var(--kui-cp-hosted);
+  max-block-size: calc(8lh + var(--kui-cp-hosted) - 1lh);
+}
+/* Beside a control the text keeps a step of its own air, so it never sits as close to the
+   control as the control sits to the edge. */
+.kui-composer:not(:has(> .kui-composer-row)) > .kui-composer-input {
+  padding-inline: var(--layout-space-2);
+}
+.kui-composer:not(:has(> .kui-composer-row)) > .kui-composer-input:first-child {
+  padding-inline-start: calc(var(--kui-cp-line-px, var(--control-px-2)) - var(--kui-cp-slot, var(--slot-inset-2)));
+}
+.kui-composer:not(:has(> .kui-composer-row)) > .kui-composer-input:last-child {
+  padding-inline-end: calc(var(--kui-cp-line-px, var(--control-px-2)) - var(--kui-cp-slot, var(--slot-inset-2)));
+}
+
+/* Touch: the hosted controls are drawn small and pressed whole. Their hit area reaches the
+   composer's edge above and below, the same rule as a button hosted in a field (§16). */
+@media (pointer: coarse) {
+  .kui-composer:not(:has(> .kui-composer-row)) > .kui-control,
+  .kui-composer:not(:has(> .kui-composer-row)) > :not(.kui-composer-input) > .kui-control {
+    position: relative;
+  }
+  .kui-composer:not(:has(> .kui-composer-row)) > .kui-control::after,
+  .kui-composer:not(:has(> .kui-composer-row)) > :not(.kui-composer-input) > .kui-control::after {
+    content: "";
+    position: absolute;
+    inset-block: calc(-1 * (var(--kui-cp-slot, var(--slot-inset-2)) + var(--border-width)));
+    inset-inline: 0;
+  }
+}
+
+/* The context ground under a one-line composer tucks under that composer's corner and stands in
+   by its padding, the same two facts as under a full one. */
+.kui-composer-frame:has(> .kui-composer:not(:has(> .kui-composer-row))) > .kui-composer-context {
+  --kui-cp-r: min(var(--kui-cp-line-r, var(--radius-control-2)), calc(var(--kui-cp-line-h, var(--control-height-2)) / 2));
+  --kui-cp-inset: var(--kui-cp-slot, var(--slot-inset-2));
+}
+
 /* ── The ring (§30) ───────────────────────────────────────────────────────────────────────────
    Every interactive-surface rule in surfaces.css sits on `:where(button, a, label:has(...))`,
    and that selector means PRESSABLE: it carries the pointer cursor and the hover and press

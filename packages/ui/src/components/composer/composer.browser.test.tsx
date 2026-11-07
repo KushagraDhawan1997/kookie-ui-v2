@@ -41,8 +41,13 @@ describe("it is a form, and a surface (§30)", () => {
   it("it wears the surface identity, and its corner is concentric with the controls it holds", () => {
     const el = mounted(
       <Box>
+        {/* A row under the text: the full composer. A bare one is one line (below), and its
+            corner is the control's, not the pane's. */}
         <Composer size="3">
           <ComposerInput aria-label="Message" />
+          <ComposerRow>
+            <ComposerSend />
+          </ComposerRow>
         </Composer>
         <Card size="3">card</Card>
       </Box>,
@@ -782,6 +787,9 @@ describe("the frame: notices above, the context ground below (§30)", () => {
       const el = mounted(
         <Composer size={size} context={<span>Model · 12% context left</span>}>
           <ComposerInput aria-label="Message" />
+          <ComposerRow>
+            <ComposerSend />
+          </ComposerRow>
         </Composer>,
         { theme: {} },
       );
@@ -806,5 +814,105 @@ describe("the frame: notices above, the context ground below (§30)", () => {
     const ground = within(el, ".kui-composer-context");
     expect(computed(ground, "margin-top")).toBe("0px");
     expect(computed(ground, "border-bottom-left-radius")).toBe("0px");
+  });
+});
+
+/**
+ * ONE LINE (2026-11-07, Kushagra: "Phone chats and comment boxes need a one-line composer").
+ * A composer with no `ComposerRow` puts its controls on the text's line. The fixtures hold a
+ * real leading button and a real send, because a law about hosted controls with no control in
+ * it cannot fail.
+ */
+describe("with no row, a composer is one line (2026-11-07)", () => {
+  const inline = (size: "1" | "2" | "3" | "4", value = "", extra: Partial<Parameters<typeof Composer>[0]> = {}) => (
+    <Composer size={size} {...extra}>
+      <Button iconOnly aria-label="Add" emphasis="medium" />
+      <ComposerInput aria-label="Message" defaultValue={value} />
+      <ComposerSend />
+    </Composer>
+  );
+  const box = (el: Element, sel: string) => within(el, sel).getBoundingClientRect();
+
+  it("at rest it is as tall as a control at its index, at every index", () => {
+    for (const size of ["1", "2", "3", "4"] as const) {
+      const el = mounted(
+        <Box>
+          {inline(size)}
+          <Button size={size}>Beside</Button>
+        </Box>,
+        { theme: {} },
+      );
+      const composer = box(el, ".kui-composer").height;
+      const control = (within(el, ".kui-composer-frame + .kui-control") ?? within(el, "button:last-of-type")).getBoundingClientRect().height;
+      expect(composer, `size ${size}`).toBeCloseTo(control, 0);
+    }
+  });
+
+  it("its controls are hosted: the same inset above and below, and on the text's line", () => {
+    const el = mounted(inline("2"), { theme: {} });
+    const c = box(el, ".kui-composer");
+    const send = box(el, ".kui-composer-send");
+    const add = box(el, "button[aria-label='Add']");
+    expect(send.height).toBeLessThan(c.height);
+    expect(send.top - c.top, "top inset").toBeCloseTo(c.bottom - send.bottom, 0);
+    expect(add.top, "the leading control shares the send's line").toBeCloseTo(send.top, 0);
+    expect(add.right, "leading control, then the text, then send").toBeLessThan(box(el, ".kui-composer-input").left + 1);
+    expect(box(el, ".kui-composer-input").right).toBeLessThan(send.left + 1);
+  });
+
+  it("it grows upward as the text wraps, and the controls stay on the last line", () => {
+    const one = mounted(inline("2", "hi"), { theme: {} });
+    const three = mounted(inline("2", "one\ntwo\nthree"), { theme: {} });
+    const c1 = box(one, ".kui-composer");
+    const c3 = box(three, ".kui-composer");
+    const line = parseFloat(computed(within(three, ".kui-composer-input"), "line-height"));
+    expect(c3.height - c1.height, "two more lines, two more line boxes").toBeCloseTo(2 * line, 0);
+    const s3 = box(three, ".kui-composer-send");
+    expect(c3.bottom - s3.bottom, "the send stays on the last line").toBeCloseTo(box(one, ".kui-composer").bottom - box(one, ".kui-composer-send").bottom, 0);
+    expect(s3.top - c3.top, "and does not stretch with the text").toBeGreaterThan(2 * line - 1);
+  });
+
+  it("and stops at the ceiling, where the text scrolls", () => {
+    const el = mounted(inline("2", "line\n".repeat(60)), { theme: {} });
+    const input = within(el, ".kui-composer-input") as HTMLTextAreaElement;
+    const line = parseFloat(computed(input, "line-height"));
+    expect(input.scrollHeight).toBeGreaterThan(input.clientHeight);
+    expect(input.getBoundingClientRect().height).toBeLessThan(9 * line + 1);
+  });
+
+  it("one line is a capsule; more lines keep its ends, not a taller pill", () => {
+    const one = mounted(inline("2", "hi"), { theme: { radius: "full" } });
+    const three = mounted(inline("2", "one\ntwo\nthree"), { theme: { radius: "full" } });
+    const c1 = within(one, ".kui-composer");
+    const c3 = within(three, ".kui-composer");
+    const r1 = parseFloat(computed(c1, "border-top-left-radius"));
+    expect(r1, "a capsule at rest").toBeCloseTo(c1.getBoundingClientRect().height / 2, 0);
+    expect(parseFloat(computed(c3, "border-top-left-radius")), "the same ends at three lines").toBeCloseTo(r1, 0);
+  });
+
+  it("Enter sends from the one line, and Shift+Enter adds a line", () => {
+    let submitted = 0;
+    const el = mounted(inline("2", "hello", { onSubmit: () => (submitted += 1) }), { theme: {} });
+    const input = within(el, ".kui-composer-input") as HTMLTextAreaElement;
+    input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", shiftKey: true, bubbles: true }));
+    expect(submitted).toBe(0);
+    input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+    expect(submitted).toBe(1);
+  });
+
+  it("streaming turns the send into Stop on the one line", () => {
+    let stopped = 0;
+    let submitted = 0;
+    const el = mounted(
+      <Composer onSubmit={() => (submitted += 1)}>
+        <ComposerInput aria-label="Message" />
+        <ComposerSend status="streaming" onStop={() => (stopped += 1)} />
+      </Composer>,
+      { theme: {} },
+    );
+    const send = within(el, ".kui-composer-send") as HTMLButtonElement;
+    expect(send.getAttribute("aria-label")).toBe("Stop");
+    send.click();
+    expect([stopped, submitted]).toEqual([1, 0]);
   });
 });

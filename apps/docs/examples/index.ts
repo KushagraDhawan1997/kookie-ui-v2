@@ -91,6 +91,7 @@ import LinkExample from "./link";
 import ListExample from "./list";
 import MenuExample from "./menu";
 import ComposerExample from "./composer";
+import ComposerOneLineExample from "./composer.one-line";
 import NoticeExample from "./notice";
 import NumberFieldExample from "./number-field";
 import PopoverExample from "./popover";
@@ -673,6 +674,7 @@ export const EXAMPLES: Record<string, React.ComponentType> = {
   "command.places": CommandPlacesExample,
   "command.app-filtering": CommandAppFilteringExample,
   "command.stays-open": CommandStaysOpenExample,
+  "composer.one-line": ComposerOneLineExample,
   "composer.with-notices": ComposerWithNoticesExample,
   "composer.confirmation": ComposerConfirmationExample,
   "composer.with-context": ComposerWithContextExample,

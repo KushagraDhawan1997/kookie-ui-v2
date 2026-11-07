@@ -16,7 +16,7 @@ Job: Converse. Talk back and forth. A pattern: it owns the decisions this job ne
 
 ## Overview
 
-A Composer is the box people type a message into. It holds a text area that grows as you type, a row of controls under it, and a send button. Use it for an AI chat, a support inbox, a team thread or a comment field, which all share this shape. For one line of text in a form, use a `TextField`, and for a longer answer in a form, use a `TextArea`.
+A Composer is the box people type a message into. It holds a text area that grows as you type, a row of controls under it, and a send button. Leave out `ComposerRow` and the controls share the text's line instead, as in a phone chat. Use it for an AI chat, a support inbox, a team thread or a comment field, which all share this shape. For one line of text in a form, use a `TextField`, and for a longer answer in a form, use a `TextArea`.
 
 The Composer is a real `<form>`, and `onSubmit` runs when someone sends. Enter sends and Shift+Enter starts a new line, as in most chat apps. Enter doesn't send while someone is still composing Japanese, Chinese or Korean characters, and it doesn't send again while a request is running.
 
@@ -35,7 +35,6 @@ Set `backdrop` when content scrolls behind the Composer, so it uses the theme's 
 - An attach button — Your app decides which files it accepts and how it uploads them, so add your own `Button` with your own icon. Files that people drop or paste still reach `onFiles`.
 - Holding the files — The Composer never stores files, previews or uploads, because your app owns them. Show each file with an `Attachment` tile, and set its `state` from your own upload code.
 - Named slots for the start and end of the row — Which controls go on the left and which go on the right depends on what they mean in your app. Put each group of controls in a `Flex` inside `ComposerRow`.
-- A compact or collapsed mode — The Composer has no compact mode yet, because nothing in it can fold away. It may arrive when the Composer holds something that can.
 - `submitOnEnter` — Enter always sends and Shift+Enter always adds a line, as in most chat apps, so there is nothing to switch. Enter never sends while someone is composing Japanese, Chinese or Korean characters.
 
 ## Examples
@@ -134,6 +133,60 @@ export default function Example({ size = "2", backdrop = false }: { size?: Size;
         </Flex>
       </ComposerRow>
     </Composer>
+  );
+}
+```
+
+### One line, as on a phone
+
+With no `ComposerRow`, the controls share the text's line: an add button, the text, then send. At rest it is as tall as a button. It grows upward as the text wraps, the controls stay on the last line, and the corners keep the shape of one line.
+
+```tsx
+"use client";
+
+import * as React from "react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { ArrowUp02Icon, PlusSignIcon, ReloadIcon, StopIcon } from "@hugeicons/core-free-icons";
+import {
+  Box,
+  Button,
+  Composer,
+  ComposerInput,
+  ComposerSend,
+  iconStroke,
+  type ComposerStatus,
+} from "@kushagradhawan/kookie-ui-react";
+
+const icon = (glyph: typeof ArrowUp02Icon) => <HugeiconsIcon icon={glyph} strokeWidth={iconStroke} aria-hidden />;
+
+// No `ComposerRow`, so the controls share the text's line: add, the text, send. A phone's width.
+export default function Example() {
+  const [status, setStatus] = React.useState<ComposerStatus>("ready");
+  const [value, setValue] = React.useState("");
+  return (
+    <Box style={{ inlineSize: "24rem", maxInlineSize: "100%" }}>
+      <Composer
+        onSubmit={() => {
+          setStatus("streaming");
+          setValue("");
+        }}
+      >
+        <Button iconOnly emphasis="medium" aria-label="Add attachment">
+          {icon(PlusSignIcon)}
+        </Button>
+        <ComposerInput
+          aria-label="Message"
+          placeholder="Message"
+          value={value}
+          onChange={(event) => setValue(event.target.value)}
+        />
+        <ComposerSend
+          status={status}
+          onStop={() => setStatus("ready")}
+          icons={{ ready: icon(ArrowUp02Icon), streaming: icon(StopIcon), error: icon(ReloadIcon) }}
+        />
+      </Composer>
+    </Box>
   );
 }
 ```
@@ -503,7 +556,7 @@ It also takes every prop of a `<textarea>`.
 
 #### ComposerRow
 
-The row of controls under the text. It sets their alignment and spacing, and a `Flex` inside it groups controls that belong together
+The row of controls under the text. It sets their alignment and spacing, and a `Flex` inside it groups controls that belong together. Leave it out and the controls share the text's line
 
 It declares no props of its own. It takes every prop of a `<div>`.
 
