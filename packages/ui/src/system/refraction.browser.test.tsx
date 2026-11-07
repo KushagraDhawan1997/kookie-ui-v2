@@ -25,10 +25,11 @@ import { cdp } from "vitest/browser";
 import { Chip } from "../components/chip/chip.tsx";
 import { Button } from "../components/button/button.tsx";
 import { Card } from "../components/card/card.tsx";
+import { Dialog, DialogContent, DialogTitle } from "../components/dialog/dialog.tsx";
 import { Popover, PopoverContent, PopoverTrigger } from "../components/popover/popover.tsx";
 import { Theme } from "../theme/theme.tsx";
 import { GLASS_MATERIALS, lensBlurOf, render, until } from "../test/browser.tsx";
-import { glint } from "../tokens/config.ts";
+import { glassBlur, glint } from "../tokens/config.ts";
 import { glassStep } from "./axes.ts";
 import {
   __genPaths,
@@ -37,6 +38,7 @@ import {
   glintMap,
   lensFamily,
   cornerExponent,
+  floatingFrost,
   physicalMap,
   type LensParams,
   type LensScale,
@@ -601,14 +603,20 @@ describe("the corner exponent is read off any spelling of corner-shape", () => {
 });
 
 /**
- * THE LENS BLURS NOTHING (§10, 2026-11-05, Kushagra: "remove blur everywhere"). A floating pane
- * carried a frost in place of a scrim, and every other pane blurred by its step; both ran on the
- * backdrop inside the filter on every frame the page moved. Both halves in one fixture: a rule that
- * kept the blur on either kind of pane fails here.
+ * A FLOATING PANE CARRIES THE SCRIM'S BLUR ITSELF (§10, 2026-09-21, Kushagra: dialogs and the
+ * command palette "get the perfect look" because of the blurry scrim; "menus and popover should
+ * have that"), by the rung's amount (`floatingFrost`: "Even the blur needs to be less for thin").
+ * EVERY OTHER PANE blurs by the step's own `glassBlur` since 2026-11-05 (a track's title read sharp
+ * through a glass mini player at every step); from 2026-09-23 until then it blurred by nothing.
+ *
+ * Both halves in one fixture, under one Theme. Each pane is the other's control: a rule that gave
+ * every pane the frost, or every pane the step's blur, fails one of the two.
  */
-describe("no pane's lens blurs, floating or not (§10)", () => {
+describe("a floating pane's lens blurs by the rung's frost, every other pane by the step's blur (§10)", () => {
+  const blurOf = lensBlurOf;
+
   for (const material of GLASS_MATERIALS) {
-    it(`${material}: neither the popover's lens nor the card's blurs`, async () => {
+    it(`${material}: the popover's lens blurs by the frost, the card's by the step's blur`, async () => {
       const box = { inlineSize: "24rem", blockSize: "16rem" };
       render(
         <Theme material={material}>
@@ -628,11 +636,64 @@ describe("no pane's lens blurs, floating or not (§10)", () => {
       const popup = popups[popups.length - 1]!;
       const lensed = (el: Element) => /url\(/.test(getComputedStyle(el).backdropFilter);
       expect(await until(() => lensed(card) && lensed(popup)), "a pane never took its lens").toBe(true);
+      // The premise: this really is a floating pane and that really is not.
       expect(popup.classList.contains("kui-floating")).toBe(true);
-      expect(lensBlurOf(card), "the card's lens blurs").toBe(0);
-      expect(lensBlurOf(popup), "the popover's lens blurs").toBe(0);
+      expect(card.classList.contains("kui-floating")).toBe(false);
+
+      expect(blurOf(card)).toBeCloseTo((glassBlur as Record<string, number>)[glassStep(material)]!, 5);
+      expect(blurOf(popup)).toBeCloseTo((floatingFrost as Record<string, number>)[glassStep(material)]!, 5);
+      // And the blur runs on the SOURCE, BEFORE the bend (the mirror pass, 2026-09-21): the chain
+      // is `lens, then filter`, so a blur after the displacement erases the lip it paid for.
+      const id = getComputedStyle(popup).backdropFilter.match(/url\("?#([^")]+)/)![1]!;
+      const graph = [...document.getElementById(id)!.children];
+      const soften = graph.findIndex((n) => n.tagName === "feGaussianBlur" && n.getAttribute("in") === "SourceGraphic");
+      const bend = graph.findIndex((n) => n.tagName === "feDisplacementMap");
+      expect(soften, "the popover's lens blurs after it bends").toBeLessThan(bend);
+      expect(graph[bend]!.getAttribute("in"), "the popover bends the unblurred source").toBe(graph[soften]!.getAttribute("result"));
     });
   }
+});
+
+/**
+ * WHO BLURS (§10, 2026-11-07, Kushagra: "controls are smaller and they dont overlay like panes
+ * do"). The blur costs a pass on every frame the page moves, so it stays only where content is
+ * read through the glass. A glass control takes none, and nor does a pane on a scrim: the scrim
+ * already blurs the page behind a dialog. Each is held at a step where the card beside it blurs,
+ * so a rule that dropped the blur everywhere fails the card, not these.
+ */
+describe("a glass control, a chip and a pane on a scrim blur nothing; the card beside them does (§10)", () => {
+  const material = GLASS_MATERIALS[GLASS_MATERIALS.length - 1]!;
+  it(`${material}: the button's, the chip's and the dialog's lenses do not blur`, async () => {
+    render(
+      <Theme material={material}>
+        <Card backdrop data-t="card" style={{ inlineSize: "24rem", blockSize: "16rem" }}>
+          pane
+        </Card>
+        <Button backdrop data-t="button">
+          Go
+        </Button>
+        <Chip backdrop data-t="chip">
+          00:18
+        </Chip>
+        <Dialog defaultOpen>
+          <DialogContent>
+            <DialogTitle>Title</DialogTitle>
+          </DialogContent>
+        </Dialog>
+      </Theme>,
+    );
+    const card = document.querySelector<HTMLElement>('[data-t="card"]')!;
+    const button = document.querySelector<HTMLElement>('[data-t="button"]')!;
+    const chip = document.querySelector<HTMLElement>('[data-t="chip"]')!;
+    const dialogs = document.querySelectorAll<HTMLElement>(".kui-dialog-popup");
+    const dialog = dialogs[dialogs.length - 1]!;
+    const lensed = (el: Element) => /url\(/.test(getComputedStyle(el).backdropFilter);
+    expect(await until(() => lensed(card) && lensed(button) && lensed(chip) && lensed(dialog)), "a piece never took its lens").toBe(true);
+    expect(lensBlurOf(card), "the premise: a card blurs at this step").toBeGreaterThan(0);
+    expect(lensBlurOf(button), "a glass control's lens blurs").toBe(0);
+    expect(lensBlurOf(chip), "a glass chip's lens blurs").toBe(0);
+    expect(lensBlurOf(dialog), "a dialog's lens blurs over a scrim that already does").toBe(0);
+  });
 });
 
 /**
@@ -681,6 +742,7 @@ describe("a thin and a thick pane bend alike (§10)", () => {
       return JSON.stringify({ map: map?.getAttribute("href") ?? map?.getAttribute("xlink:href"), shift });
     };
     expect(bendOf(at("thin")), "the rung reached the bend").toBe(bendOf(at("thick")));
+    expect(lensId(at("thin")), "the rung's blur never reached the lens").not.toBe(lensId(at("thick")));
     expect(bendOf(at("other")), "every pane bends alike — the instrument cannot tell lenses apart").not.toBe(bendOf(at("thick")));
   });
 });

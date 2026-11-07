@@ -41,7 +41,7 @@
 import * as React from "react";
 
 import { ON_GLASS, type SurfaceMaterial } from "../theme/theme.tsx";
-import { glint, type GlassStep } from "../tokens/config.ts";
+import { glint, glassBlur, glassFloatingFrost, type GlassStep } from "../tokens/config.ts";
 
 /** Signed distance to a rounded-rect border: negative inside, positive outside. */
 function sdRoundedRect(x: number, y: number, w: number, h: number, r: number): number {
@@ -195,6 +195,14 @@ const PROFILE_P = 4;
 /** The bend points INWARD (2026-09-17) — see `lensFamily`. */
 const CONCAVE = true;
 /**
+ * What a FLOATING pane blurs its backdrop by before the bend, in px (2026-09-21, Kushagra: dialogs
+ * and the command palette "get the perfect look" because a blurry scrim sits behind them; "menus
+ * and popover should have that"). A menu, select, popover or combobox has no scrim, so it carries a
+ * little of that softening itself. Per rung, never more than the scrim blurs. Keyed on
+ * `kui-floating`, the class every anchored panel wears. `measure()` says who blurs at all.
+ */
+export const floatingFrost: Record<LensThickness, number> = glassFloatingFrost;
+/**
  * The most of a box's short side a lip may take (2026-09-21). The old bound was half the box,
  * which is all the room there is — and at the bend this ladder now carries, a lip that fills
  * the box leaves no flat middle: a 110px card at thick (44px lip) warped its whole body.
@@ -304,8 +312,8 @@ export type LensParams = {
   boost: number;
   /** px of blur applied to the SOURCE before the bend, inside the filter, so the lip stays crisp
       (2026-09-21, Kushagra: "the blur needs to be uniform, what is on the rim is good amount").
-      Nothing sets it since 2026-11-05 (the lens blurs nothing); the bench's `preBlur` dial is
-      the one way to judge a blur again. The families carried their own until 2026-09-23 (0.9 / 1.4 /
+      Resolved per element by `measure()`, never by a family: only glass that overlays content
+      with nothing blurred behind it. The families carried their own until 2026-09-23 (0.9 / 1.4 /
       2.2 in the mirror pass, then 0 while the bend was judged alone, and judged there), and
       with it went the rule that a control blurs by the share of its lip it has room for. */
   blur?: number;
@@ -1286,11 +1294,22 @@ export function useLens(material: SurfaceMaterial): (node: HTMLElement | null) =
         if (!box) return;
         const base = lensFor(material, box.scale);
         if (!base) return;
-        // THE LENS BLURS NOTHING (2026-11-05, Kushagra: "remove blur everywhere"). A floating
-        // pane's frost and every other pane's step blur ran on the backdrop inside the filter,
-        // again on every frame the page moved, for every glass box on screen; on the docs hero
-        // that was a third of the glass's cost on scroll. The bend and the veil remain.
-        const params = base;
+        // ONLY GLASS THAT OVERLAYS CONTENT BLURS (2026-11-07, Kushagra: "its not that controls
+        // are many, but that controls are smaller and they dont overlay like panes do"). The blur
+        // runs on the backdrop inside the filter on every frame the page moves, so it went from
+        // every lens on 2026-11-05 for speed, and what passes behind a pane read sharp again. It
+        // comes back where it is read through: a floating pane by its frost, every other pane by
+        // the step's blur. A control or a chip takes none: it is small and covers no content. Nor does a
+        // pane on a scrim (dialog, alert, sheet, the palette's field and list): the scrim already
+        // blurs the page behind it.
+        const onScrim = node.classList.contains("kui-overlay") || node.classList.contains("kui-command-panel");
+        const blur =
+          box.scale === "control" || node.classList.contains("kui-atom") || onScrim
+            ? 0
+            : node.classList.contains("kui-floating")
+              ? (floatingFrost[material as LensThickness] ?? 0)
+              : (glassBlur[material as LensThickness] ?? 0);
+        const params = { ...base, blur };
         /**
          * ROUNDED BEFORE ANYTHING READS IT (2026-09-11 audit). `getBoundingClientRect` returns
          * sub-pixel floats, and above the cap `scale` is derived from them and then multiplies

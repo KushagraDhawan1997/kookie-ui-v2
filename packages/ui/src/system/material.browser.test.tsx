@@ -20,6 +20,7 @@ import { describe, expect, it } from "vitest";
 
 import { APPEARANCES, GLASS_MATERIALS, asksForContrast, asksForSolidity, colorOn, computed, mounted, render, until } from "../test/browser.tsx";
 import { glassStep } from "./axes.ts";
+import { glassBlur } from "../tokens/config.ts";
 import { Card } from "../components/card/card.tsx";
 import { Button } from "../components/button/button.tsx";
 import { Row } from "../components/row/row.tsx";
@@ -620,13 +621,20 @@ describe("the filter row forks on the lens, and the default is the defended one 
         expect(clear, `${material} stamped chain carries no lens`).toMatch(/^url\(/);
         // The lens row carries NO stylesheet blur: one after the lens softens the bend.
         expect(clear, `${material} stamped chain blurs AFTER the bend`).not.toContain("blur(");
-        // And the lens itself blurs nothing since 2026-11-05 (it ran on every frame of a scroll).
+        // And a CARD's lens blurs by its step since 2026-11-05 (from 2026-09-23 until then, by
+        // nothing): none at the clearest step, and always on the source, before the bend —
+        // refraction.browser.test.tsx reads the amount.
         const id = clear.match(/url\("?#([^")]+)/)![1]!;
         const graph = [...document.getElementById(id)!.children];
         const soften = graph.findIndex((n) => n.tagName === "feGaussianBlur" && n.getAttribute("in") === "SourceGraphic");
         const bend = graph.findIndex((n) => n.tagName === "feDisplacementMap");
         expect(bend, `${material}: the stamped chain's lens bends nothing`).toBeGreaterThan(-1);
-        expect(soften, `${material}: the lens blurs its source`).toBe(-1);
+        const step = (glassBlur as Record<string, number>)[glassStep(material)]!;
+        if (step === 0) expect(soften, `${material}: the clearest step's lens blurs its source`).toBe(-1);
+        else expect(soften, `${material}: a card's lens blurs after it bends`).toBeGreaterThan(-1);
+        if (soften > -1) expect(soften, `${material}: a card's lens blurs after it bends`).toBeLessThan(bend);
+        // Frost still defends harder than the lensed blur: it stands in for the bend as well.
+        expect(blurOf(frost), `${material} frost is softer than the lens's own blur`).toBeGreaterThan(step);
         // The whole point: the engine that cannot bend light hides more instead.
         expect(blurOf(frost), `${material} frost does not defend`).toBeGreaterThan(0);
         // And ONLY the blur moves — saturation and brightness are the judged values in both,

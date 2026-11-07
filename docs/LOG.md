@@ -36,6 +36,14 @@ Kushagra found the app header too tall. It padded like any other pane, 24px on e
 
 ---
 
+## 2026-11-07 The blur comes back where content is read through glass
+
+Removing the lens's blur everywhere (below) made what passes behind a pane hard to read again. Kushagra: "its not that controls are many, but that controls are smaller and they dont overlay like panes do". So the blur returns on glass that overlays content with nothing blurred behind it: a floating pane (menu, select, popover, combobox) by its frost, and a card, a floating toolbar or shell pane, a notice by the step's blur. A glass control or chip takes none. Nor does a pane on a scrim (dialog, alert, sheet, the command palette): the scrim already blurs the page behind it, so a second blur there only costs.
+
+**Measured** (headless Chrome, scroll on the live figure pages, graphics work): the editor window, 20 glass controls and no panes, 242ms, the same as with no blur at all; the Craft figure, two glass cards, 113ms with their blur and 94ms without. The blur's cost follows the panes that overlay content, and those are few.
+
+---
+
 ## 2026-11-05 Glass is cheap to scroll: the lens bakes its map, bends once and blurs nothing
 
 The docs home lagged on scroll. Measured in Chrome over the hero (a video editor with about 20 glass controls): the page's own script was idle, and the cost was the GPU re-running every glass filter on every frame the page moved. Same scroll, graphics work: 874ms as it was, 175ms with no glass.
