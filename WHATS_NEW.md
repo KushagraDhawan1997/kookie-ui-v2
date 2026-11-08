@@ -2,6 +2,44 @@
 
 Each day groups its changes as Major, Minor or Quiet. Major is a new product or a change to what it is. Minor is a change you notice when you use it. Quiet is a small touch, or how the work is made.
 
+## November 8
+
+### Minor
+
+- **Multi-row bands.** A pane's header or footer can hold more rows under its toolbar, all in one floating glass band, and the content fades out under every row.
+
+## November 7
+
+### Minor
+
+- **One-line composer.** A Composer with no ComposerRow is a single line with its controls beside the text, like a chat on a phone. It grows upward as you type.
+
+### Quiet
+
+- **Glass blurs less.** Only glass that sits over content blurs it. Glass controls and panes over a scrim no longer blur.
+
+## November 5
+
+### Minor
+
+- **Slimmer app header.** The Shell's header takes half as much space above and below as a pane.
+
+### Quiet
+
+- **Principles rewritten.** The six principles open with patterns, and each says what to do in your product and how Kookie helps.
+- **Photographed figures.** Docs figures and the front-page hero are now pictures of live figures, in light and dark, so pages load faster. The hero is a video editor.
+
+## November 4
+
+### Minor
+
+- **AI in the product.** A new Patterns page shows two layouts for AI in an app: the chat app and the assistant.
+- **Panel top rows.** A Dialog, Sheet or Popover places a toolbar at its top, with Close, in the right spot for you.
+
+### Quiet
+
+- **Composition figure.** The Composition chapter shows a full 3D editor in place of a lone dialog.
+
 ## November 3
 
 ### Minor
