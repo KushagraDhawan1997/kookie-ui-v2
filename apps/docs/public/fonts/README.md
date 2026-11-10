@@ -1,6 +1,6 @@
 # Fonts
 
-The three faces this site uses are **licensed and deliberately not in the repository**.
+The two licensed faces this site uses are **deliberately not in the repository**.
 
 `Fontshare-FFL.txt`, beside this file, is the licence they travel under. Section 02 forbids
 making the font software available "through another font website, font library, marketplace,
@@ -18,12 +18,12 @@ fully readable; only the typeface is wrong. `app/fonts.css` carries the mechanis
 
 ## To render the real faces locally
 
-Download from [fontshare.com](https://www.fontshare.com) and drop the `.woff2` files here:
+Drop the `.woff2` files here, under exactly these names. `app/fonts.css` asks for them by name:
 
 | File | Family |
 | --- | --- |
-| `Boska-Medium.woff2` | Boska, the wordmark |
-| `Switzer.woff2`, `Switzer-Italic.woff2` | Switzer, reading and headings |
+| `PPAcma-Semibold.woff2` | PP Acma, the wordmark |
 | `NeueMontrealMono.woff2`, `NeueMontrealMono-Medium.woff2` | Neue Montreal Mono, code |
 
-Neue Montreal Mono is Pangram Pangram's rather than ITF's and comes from its own starter pack.
+Both are Pangram Pangram's. The reading and heading face is Inter, which is open source and
+arrives with `pnpm install`, so it needs no file here.
