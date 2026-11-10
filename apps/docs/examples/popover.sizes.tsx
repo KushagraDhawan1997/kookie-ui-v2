@@ -9,7 +9,6 @@ import {
   PopoverDescription,
   PopoverTitle,
   PopoverTrigger,
-  Stack,
   Toolbar,
   ToolbarButton,
   ToolbarTitle,
