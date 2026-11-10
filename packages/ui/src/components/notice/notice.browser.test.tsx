@@ -15,7 +15,7 @@ import { Card } from "../card/card.tsx";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "../dialog/dialog.tsx";
 import { Stack } from "../stack/stack.tsx";
 import { Text } from "../text/text.tsx";
-import { Composer, ComposerInput } from "../composer/composer.tsx";
+import { Composer, ComposerInput, ComposerRow, ComposerSend } from "../composer/composer.tsx";
 import { Confirmation, Notice } from "./notice.tsx";
 
 describe("it is a condition stated in place: it takes space and never floats (§29)", () => {
@@ -161,8 +161,13 @@ describe("the box is the surface layer's, not the component's (§10)", () => {
     for (const size of ["1", "2", "3", "4"] as const) {
       const notice = mounted(<Notice size={size}>Approaching weekly usage limit</Notice>, { theme: {} });
       const composer = mounted(
+        // A row under the text: the full composer. A bare one is one line, and its padding and
+        // corner are the control's, not the pane's.
         <Composer size={size}>
           <ComposerInput aria-label="Message" />
+          <ComposerRow>
+            <ComposerSend />
+          </ComposerRow>
         </Composer>,
         { theme: {}, select: ".kui-composer" },
       );
