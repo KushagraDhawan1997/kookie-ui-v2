@@ -18,7 +18,8 @@
     "lint": "turbo run lint",
     "measure": "turbo run measure",
     "lint:root": "eslint .",
-    "ci": "turbo run build test lint measure && pnpm run lint:root",
+    "test:eval": "node --disable-warning=ExperimentalWarning --experimental-strip-types --test eval/agents/test/*.ts",
+    "ci": "turbo run build test lint measure && pnpm run lint:root && pnpm run test:eval",
     "changeset": "changeset"
   },
   "devDependencies": {
