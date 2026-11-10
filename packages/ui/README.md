@@ -26,8 +26,8 @@ The stylesheet holds the whole system: the generated token layer, the shared con
 every component's rules. There is no per-component import, and a component you add tomorrow
 needs no new CSS.
 
-`Theme` writes seven app-level values onto one element: appearance, density, radius, contrast,
-pointer, depth and material. Everything inside reads them through CSS inheritance.
+`Theme` holds eight app-level settings: appearance, density, radius, contrast, pointer, depth,
+material and size. Everything inside it reads them.
 
 ## An example
 
@@ -82,8 +82,8 @@ component, and your `style` merges last.
 
 ## Documentation
 
-The documentation site lives in `apps/docs` in the repository. It holds 21 guideline chapters,
-the reference for 31 components with the refusals beside the props, and a composition editor
+The documentation site lives in `apps/docs` in the repository. It holds 26 guideline chapters,
+the reference for 64 components with the refusals beside the props, and a composition editor
 that exports React code.
 
 ## Licence
