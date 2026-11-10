@@ -58,9 +58,9 @@ const GROUPS = new Set(["Field", "FieldItem", "Fieldset", "Card"]);
 const PANEL_CONTROLS = new Set(["TextField", "TextArea", "Checkbox", "Switch", "Select", "Combobox", "NumberField", "RadioGroup"]);
 /** Controls that take `emphasis`. */
 const EMPHASIS_CONTROLS = new Set(["Button", "SplitButton", "ToolbarButton", "AlertDialogAction", "ComposerSend"]);
-/** composition.md:66 names the two that rest loud. */
+/** composition.md:33 names the two that rest loud. */
 const DEFAULT_LOUD = new Set(["AlertDialogAction", "ComposerSend"]);
-/** composition.md:70-71: a dialog is a screen of its own. */
+/** composition.md:38: a dialog is a pane of its own. */
 const SCREEN_OF_ITS_OWN = new Set(["DialogContent", "AlertDialogContent"]);
 const DATA_TONES = new Set(["blue", "green", "orange", "amber"]);
 const MEANING_TONES = new Set(["success", "warning", "info", "destructive"]);
@@ -142,13 +142,13 @@ export const CHECKS: Check[] = [
     id: "one-loud-per-screen",
     title: "At most one loud control in a pane",
     cites: [
-      { page: "start/composition.md", line: 17, quote: "Give each pane one loud control, and make it the action the pane exists for." },
-      { page: "start/composition.md", line: 30, quote: "Count loud controls per pane: the sidebar, the work area and the inspector each get their own." },
-      { page: "start/composition.md", line: 31, quote: "A dialog counts as a pane of its own, because it covers the page." },
-      { page: "start/composition.md", line: 31, quote: "Two tab panels never compete either, because only one is visible at a time." },
+      { page: "start/composition.md", line: 24, quote: "Give each pane one loud control, and make it the action the pane exists for." },
+      { page: "start/composition.md", line: 37, quote: "Count loud controls per pane: the sidebar, the work area and the inspector each get their own." },
+      { page: "start/composition.md", line: 38, quote: "A dialog counts as a pane of its own, because it covers the page." },
+      { page: "start/composition.md", line: 38, quote: "Two tab panels never compete either, because only one is visible at a time." },
       {
         page: "start/composition.md",
-        line: 26,
+        line: 33,
         quote:
           "The two exceptions are `AlertDialogAction` and the send button in a `Composer`, which default to loud because each is the only action in its component.",
       },
@@ -175,13 +175,13 @@ export const CHECKS: Check[] = [
     id: "group-gap-steps",
     title: "The gap inside a group is at least two steps smaller than the gap around it",
     cites: [
-      { page: "start/composition.md", line: 41, quote: "Make the gap inside a group at least two steps smaller than the gap around it." },
+      { page: "start/composition.md", line: 48, quote: "Make the gap inside a group at least two steps smaller than the gap around it." },
       {
         page: "start/composition.md",
-        line: 47,
+        line: 54,
         quote: "Two levels that both separate groups can sit one step apart: a section at gap 6 can hold groups at gap 5.",
       },
-      { page: "start/composition.md", line: 41, quote: "Compare only gaps that" },
+      { page: "start/composition.md", line: 48, quote: "Compare only gaps that" },
     ],
     run(project) {
       const problems = new Map<string, string>();
@@ -193,7 +193,7 @@ export const CHECKS: Check[] = [
           if (!LAYOUT.has(inner.tag)) continue;
           const inside = gapOf(inner);
           if (inside === undefined) continue;
-          // composition.md:81: compare only gaps that run the same way. A row's gap inside a
+          // composition.md:48: compare only gaps that run the same way. A row's gap inside a
           // column is not measured against the column's gap.
           const outerAxis = axisOf(outer);
           const innerAxis = axisOf(inner);
@@ -456,7 +456,7 @@ export const CHECKS: Check[] = [
       { page: "patterns/feedback.md", line: 175, quote: "Choose the tone by its meaning: write `success`, not `green`." },
       {
         page: "start/composition.md",
-        line: 68,
+        line: 82,
         quote: "`blue`, `green`, `orange` and `amber` are for colour as data, such as a chart series or a category.",
       },
     ],
