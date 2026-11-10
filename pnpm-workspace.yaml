@@ -9,3 +9,5 @@ allowBuilds:
 overrides:
   source-map-js: ">=1.2.2"
   "@modelcontextprotocol/server": ">=2.3.0"
+  # GHSA-mrhx-c7xc-m3w5 (2026-11-10): zod below 4.6.6 can exhaust memory on oversized collections.
+  zod: ">=4.6.6"
