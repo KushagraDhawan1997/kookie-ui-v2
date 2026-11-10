@@ -190,11 +190,12 @@ describe("a page-shaped route gets the page chrome — including the one Next re
     // "lab" and "lab2" are the material scratch surfaces — temporary judging routes,
     // deleted when the recipes they exist to find move into config. "scratch-region" and
     // "scratch-composer" are the same kind of thing for the region scale and the composer's
-    // frame — mock-ups judged by eye, deleted when what they judge has shipped.
+    // frame — mock-ups judged by eye, deleted when what they judge has shipped. "scratch-export"
+    // is the Serve the job export app on its own, and it answers 404 in production.
     // "builder" is the composition editor (2026-08-19): a full-height three-pane app that
     // owns its viewport the way /preview does — site chrome around an editor would nest a
     // scroll inside a scroll.
-    const BARE = new Set(["preview", "lab", "lab2", "lab3", "scratch-region", "scratch-composer", "builder"]);
+    const BARE = new Set(["preview", "lab", "lab2", "lab3", "scratch-region", "scratch-composer", "scratch-export", "builder"]);
     const outside = readdirSync(app, { withFileTypes: true })
       .filter((e) => e.isDirectory() && !e.name.startsWith("(") && !e.name.startsWith("_"))
       .filter((e) => {
