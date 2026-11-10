@@ -1,5 +1,6 @@
 "use client";
 // SCRATCH — a picture of the composer "tray" proposal, to decide from. Not the implementation.
+import { notFound } from "next/navigation";
 import * as React from "react";
 import {
   Theme,
@@ -244,6 +245,8 @@ function GlassScenes() {
 }
 
 export default function Page() {
+  // A scratch surface, never shipped: the live site answers 404 (as scratch-export does).
+  if (process.env.NODE_ENV === "production") notFound();
   return (
     <>
       <style>{CSS}</style>

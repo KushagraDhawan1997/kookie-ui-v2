@@ -5,6 +5,7 @@
  * so the lock and the free-reign recipe are judged on identical ground. SCRATCH.
  */
 
+import { notFound } from "next/navigation";
 import { Button, Flex, Heading, Stack, Text, Theme } from "@kushagradhawan/kookie-ui-react";
 
 import "./lab3.css";
@@ -147,6 +148,8 @@ function Panel({ appearance }: { appearance: "light" | "dark" }) {
 }
 
 export default function Lab3Page() {
+  // A scratch surface, never shipped: the live site answers 404 (as scratch-export does).
+  if (process.env.NODE_ENV === "production") notFound();
   return (
     <div className="l3">
       <Stack gap="2" p="5">

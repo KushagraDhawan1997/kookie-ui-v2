@@ -9,6 +9,7 @@
  * and the calm bed (the collapse: glass over nothing reads as solid).
  */
 
+import { notFound } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
 import {
   AlertDialog,
@@ -1386,6 +1387,8 @@ function LensSlider({
 }
 
 export default function Lab2Page() {
+  // A scratch surface, never shipped: the live site answers 404 (as scratch-export does).
+  if (process.env.NODE_ENV === "production") notFound();
   // Kube's parameter set, live. Squircle is Apple's profile; strength derives from physics.
   // Defaults judged 2026-08-14 (Kushagra) — the material is DIAMOND, not glass: wide
   // bezel, thick, index 2.4, heavy fringe, full specular, frost pulled back to 80%.

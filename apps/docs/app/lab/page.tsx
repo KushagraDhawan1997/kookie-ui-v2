@@ -12,6 +12,7 @@
  * When the numbers settle they move into config.ts and this route dies.
  */
 
+import { notFound } from "next/navigation";
 import { useState } from "react";
 import { Button, Flex, Heading, Slider, Stack, Text, Theme } from "@kushagradhawan/kookie-ui-react";
 
@@ -238,6 +239,8 @@ function KnobRow({
 }
 
 export default function LabPage() {
+  // A scratch surface, never shipped: the live site answers 404 (as scratch-export does).
+  if (process.env.NODE_ENV === "production") notFound();
   // The candidate numbers, per mode. Each is a percentage the CSS turns into a mix.
   // Defaults judged 2026-08-12 (Kushagra): light leans on the rim and face light,
   // dark keeps the rim modest and drops the bottom shade entirely.

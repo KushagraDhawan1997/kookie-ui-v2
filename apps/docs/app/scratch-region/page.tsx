@@ -1,5 +1,6 @@
 "use client";
 // SCRATCH — deleted at ship. The three scales of one material over the photograph.
+import { notFound } from "next/navigation";
 import * as React from "react";
 import { Theme, Card, Button, Composer, ComposerInput, ComposerRow, ComposerSend, Shell, ShellSidebar, ShellContent, Stack, Flex, Text, Heading, Box, Popover, PopoverTrigger, PopoverContent, Menu, MenuTrigger, MenuContent, MenuItem } from "@kushagradhawan/kookie-ui-react";
 import { BedSurface, PHOTO_BED } from "../preview/beds";
@@ -49,6 +50,8 @@ function Scene({ appearance }: { appearance: "light" | "dark" }) {
 }
 
 export default function Page() {
+  // A scratch surface, never shipped: the live site answers 404 (as scratch-export does).
+  if (process.env.NODE_ENV === "production") notFound();
   return (
     <Stack gap="0">
       <div id="light"><Scene appearance="light" /></div>
