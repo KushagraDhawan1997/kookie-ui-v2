@@ -172,7 +172,7 @@ export const THEME_REFUSALS = {
     "KookieUI has no `accentColor`. The accent is generated: set `accent` in the colour config and the whole palette is re-derived from it.",
   grayColor: "KookieUI has no `grayColor`. The neutrals derive their hue from the accent, so there is nothing to choose here.",
   panelBackground:
-    "KookieUI has no `panelBackground`. Use `material` for translucency — `solid`, `thin`, `regular` or `thick`.",
+    "KookieUI has no `panelBackground`. Use `material` for translucency — a step from `\"1\"`, clear glass, to `\"9\"`, solid.",
   scaling:
     "KookieUI has no `scaling`. Use `density` (`compact`, `default`, `comfortable`), which re-picks designed values rather than multiplying them.",
 } as const;
