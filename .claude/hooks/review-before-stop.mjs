@@ -12,6 +12,15 @@ const input = JSON.parse(readFileSync(0, "utf8"));
 if (input.stop_hook_active || !input.transcript_path) process.exit(0);
 
 const UI = /(apps\/docs\/(app|examples|content|blocks)\/.*\.(tsx|css|mdx)|packages\/ui\/src\/.*\.(tsx|css))$/;
+// This repo only. The hook also runs for sessions started in the folder above (2026-11-11: it
+// was only loaded for sessions started here, and Kushagra's threads start one level up), where
+// another repo's `apps/docs/app` would match the pattern above and be sent to this repo's check.
+const root = join(import.meta.dirname, "../..");
+const cwd = input.cwd ?? process.cwd();
+const mine = (path) => {
+  const full = path.startsWith("/") ? path : join(cwd, path);
+  return full === root || full.startsWith(root + "/");
+};
 const TEST = /\.(test|browser\.test)\.tsx?$/;
 // A real run: the runner itself, given a page to check. Reading the file or running it with no
 // URL is not a review (the 2026-11-03 audit: `cat run.mjs` cleared this gate).
@@ -35,8 +44,8 @@ lines.forEach((line, i) => {
     if (item?.type !== "tool_use") continue;
     const path = item.input?.file_path ?? "";
     const cmd = item.name === "Bash" ? item.input?.command ?? "" : "";
-    const shellPath = SHELL_WRITE.test(cmd) ? cmd.split(/\s+/).find((w) => UI.test(w) && !TEST.test(w)) : undefined;
-    if ((["Edit", "Write", "MultiEdit"].includes(item.name) && UI.test(path) && !TEST.test(path)) || shellPath) {
+    const shellPath = SHELL_WRITE.test(cmd) ? cmd.split(/\s+/).find((w) => UI.test(w) && !TEST.test(w) && mine(w)) : undefined;
+    if ((["Edit", "Write", "MultiEdit"].includes(item.name) && UI.test(path) && !TEST.test(path) && mine(path)) || shellPath) {
       lastEdit = i;
       lastEditAt = Date.parse(entry.timestamp ?? "") || 0;
       edited = shellPath ?? path;
@@ -47,7 +56,7 @@ lines.forEach((line, i) => {
 
 // A clean run of the runner stamps `.claude/.ui-reviewed`; one newer than the last edit means
 // the work was checked and passed, even from another shell.
-const stamp = join(input.cwd ?? process.cwd(), ".claude/.ui-reviewed");
+const stamp = join(root, ".claude/.ui-reviewed");
 const checkedAfter = lastEditAt > 0 && existsSync(stamp) && statSync(stamp).mtimeMs > lastEditAt;
 
 if (lastEdit > lastReview && !checkedAfter)

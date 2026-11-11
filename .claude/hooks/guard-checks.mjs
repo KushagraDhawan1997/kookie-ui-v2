@@ -9,7 +9,7 @@
    and deletes it after. An agent never creates that file. This is a guardrail against a habit,
    not a security boundary. */
 import { existsSync, readFileSync } from "node:fs";
-import { join, relative } from "node:path";
+import { basename, join, relative } from "node:path";
 
 const root = join(import.meta.dirname, "../..");
 // The rule list is protected with the checks: a rule's severity in rules.json decides whether
@@ -26,6 +26,14 @@ const PROTECTED = [
 const input = JSON.parse(readFileSync(0, "utf8"));
 if (existsSync(join(root, ".claude/checks-unlocked"))) process.exit(0);
 
+// The hook also runs for sessions started in the folder above this repo (2026-11-11: it was
+// only loaded for sessions started here, and Kushagra's threads start one level up). A shell
+// command is matched by the words in it, so it is read only when it is about THIS repo: the
+// session is working inside it, or the command names it. Another repo's own RULES.md or hooks
+// folder is not this file's to guard.
+const repoName = basename(root);
+const inRepo = (dir) => dir === root || dir.startsWith(root + "/");
+
 const hit = (path) => {
   const rel = relative(root, path.startsWith("/") ? path : join(input.cwd ?? root, path));
   return PROTECTED.find((p) => rel === p || rel.startsWith(p));
@@ -34,7 +42,7 @@ const hit = (path) => {
 let found;
 const { tool_name: tool, tool_input: args = {} } = input;
 if (["Edit", "Write", "MultiEdit", "NotebookEdit"].includes(tool)) found = hit(args.file_path ?? args.notebook_path ?? "");
-else if (tool === "Bash") {
+else if (tool === "Bash" && (inRepo(input.cwd ?? "") || (args.command ?? "").includes(repoName))) {
   const cmd = args.command ?? "";
   // The unlock is Kushagra's switch; an agent never throws it.
   if (/checks-unlocked/.test(cmd) && /(\btouch\b|>|\bcp\b|\bmv\b|\btee\b|\bln\b)/.test(cmd)) found = ".claude/checks-unlocked";
