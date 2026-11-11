@@ -69,7 +69,7 @@ export function SiteFooter() {
             /* The NAME MATCHES WHAT IS DRAWN. The glyph is `aria-hidden`, so the link states the
                name — and a link whose visible words and announced name disagree is the failure
                SC 2.5.3 is about, even where the visible words are decoration. The sidebar says
-               "KookieUI" because that is the form it draws. */
+               "Kookie UI" because that is the form it draws. */
             aria-label="Kookie User Interface"
             style={{ color: "inherit", textDecoration: "none" }}
           >

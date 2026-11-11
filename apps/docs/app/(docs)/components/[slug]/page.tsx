@@ -76,11 +76,11 @@ export async function generateMetadata({
   const entry = BY_SLUG.get(slug);
   return entry
     ? {
-        title: `${humanLabel(entry.name)} — KookieUI`,
+        title: `${humanLabel(entry.name)} — Kookie UI`,
         description: entry.abstract,
         alternates: { canonical: `/components/${entry.slug}` },
       }
-    : { title: "KookieUI" };
+    : { title: "Kookie UI" };
 }
 
 /**

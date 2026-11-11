@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * The playground sections — the Radix Themes playground's structure in KookieUI vocabulary:
+ * The playground sections — the Radix Themes playground's structure in Kookie UI vocabulary:
  * ONE long page, one section per component in alphabetical order. Where Radix varies
  * `variant × (accent | gray | disabled)`, we vary the axes this system actually has:
  * emphasis rungs, tones, sizes, states.

@@ -38,7 +38,7 @@ import { Heading } from "@kushagradhawan/kookie-ui-react";
  * file, which would hand that request a whole axis to land on.
  *
  * ALWAYS `aria-hidden`, and the word does not change that. It is a picture of the name rather
- * than a second copy of it: in the sidebar the anchor around it carries `aria-label="KookieUI"`
+ * than a second copy of it: in the sidebar the anchor around it carries `aria-label="Kookie UI"`
  * and on the front door the page's own title says the name in the next line, so announcing it
  * here would say the name twice in both placements. `render={<span/>}` for the same reason it
  * is a span in the chrome — this is a mark, not a heading, so it must not put an entry in the

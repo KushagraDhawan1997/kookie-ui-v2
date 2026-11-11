@@ -452,7 +452,7 @@ export const thumbLabel = {
  *
  * THE SUBJECT IS THE COMPONENT NAME (2026-09-06, Kushagra: the theme "doesnt have a lot of
  * highlight for compoennt names etc"). Until that day every identifier sat on `--color-text`,
- * on the argument that a component name and a prop name are both the subject of a KookieUI
+ * on the argument that a component name and a prop name are both the subject of a Kookie UI
  * sample and the subject reads at full strength. Half of that is right, and the half that is
  * not is what he was looking at: when the tag, its props, its types and its function names all
  * read at full strength, none of them is emphasised.
@@ -483,7 +483,7 @@ export const codeTheme = {
   /* Prop names, type names, function names: the supporting cast, stood down one rung so the
      component name beside them is the thing that reads (2026-09-06). */
   "token-function": "var(--color-text-muted)",
-  /* Component names, and numeric literals riding the same slot: what a KookieUI sample is
+  /* Component names, and numeric literals riding the same slot: what a Kookie UI sample is
      ABOUT (2026-09-06). The third and last family this palette spends. */
   "token-constant": "var(--orange-ink)",
   "token-parameter": "var(--color-text)",

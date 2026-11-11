@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const preview = COMPONENT_PREVIEWS.find((p) => p.slug === slug);
   return {
-    title: preview ? `${preview.name} preview · KookieUI` : "Preview · KookieUI",
+    title: preview ? `${preview.name} preview · Kookie UI` : "Preview · Kookie UI",
     description: preview
       ? `${preview.name}: every size, state, material and permutation, standalone.`
       : undefined,

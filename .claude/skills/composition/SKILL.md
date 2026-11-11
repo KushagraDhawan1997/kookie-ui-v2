@@ -1,6 +1,6 @@
 ---
 name: composition
-description: Gestalt and classic design principles, stated as checkable rules in KookieUI's own vocabulary. Run this before shipping ANY composed surface — preview specimens, showcase screens, docs examples, real app UI. Catches the basic mistakes (flat rhythm, split focus, filler text, drifting alignment) that primitives cannot catch for you.
+description: Gestalt and classic design principles, stated as checkable rules in Kookie UI's own vocabulary. Run this before shipping ANY composed surface — preview specimens, showcase screens, docs examples, real app UI. Catches the basic mistakes (flat rhythm, split focus, filler text, drifting alignment) that primitives cannot catch for you.
 ---
 
 # Composition

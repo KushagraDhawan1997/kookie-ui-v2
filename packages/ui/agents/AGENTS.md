@@ -4,7 +4,7 @@
      apps/docs/scripts/generate-agents.ts, which also writes agents/docs/.
      Regenerate with `pnpm --filter docs run agents`. A law regenerates and compares. -->
 
-# KookieUI, for coding agents
+# Kookie UI, for coding agents
 
 Rules for writing `@kushagradhawan/kookie-ui-react`. Its API is not the one you remember from
 Radix Themes, shadcn or MUI, so read this before you write a component.

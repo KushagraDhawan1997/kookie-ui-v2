@@ -1008,7 +1008,7 @@ export function generatePreview(): string {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>KookieUI density x size</title>
+<title>Kookie UI density x size</title>
 <!-- The entry point, not a hand-kept list: it @imports every sheet the package ships, so a new
      component stylesheet reaches this page without anyone remembering to add it here. It did
      not, once, and the Button grid rendered as bare native buttons. -->
@@ -1128,7 +1128,7 @@ export function generatePreview(): string {
 </head>
 <body>
 <header><div class="bar">
-  <span class="brand">KookieUI <em>tokens</em></span>
+  <span class="brand">Kookie UI <em>tokens</em></span>
   <nav class="toc">
     <a href="#matrix">Matrix</a>
     <a href="#button">Button</a>

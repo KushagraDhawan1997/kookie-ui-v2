@@ -1,6 +1,6 @@
 # Layout
 
-In KookieUI, the space between two things is set by the container that holds them, not by the
+In Kookie UI, the space between two things is set by the container that holds them, not by the
 things themselves. Four layout components place content on the screen, one spacing scale supplies
 the distances, and one theme setting, `density`, tightens or loosens that scale for your whole
 app.

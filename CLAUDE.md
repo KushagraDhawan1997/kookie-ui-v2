@@ -1,6 +1,6 @@
-# KookieUI v2
+# Kookie UI v2
 
-Ground-up rebuild of KookieUI. Base UI primitives behind a Kookie-owned API, generated OKLCH color, token-only styling, semantic axes, hard CSS budget.
+Ground-up rebuild of Kookie UI. Base UI primitives behind a Kookie-owned API, generated OKLCH color, token-only styling, semantic axes, hard CSS budget.
 
 ## Before you build any screen
 

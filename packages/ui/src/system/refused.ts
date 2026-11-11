@@ -38,7 +38,7 @@
  *                                              'never'". Nothing to act on, and it reads as
  *                                              though the prop exists with a bad value.
  *   `variant?: M | undefined`               -> prints the message, and the message is then a
- *                                              LEGAL VALUE: `variant="KookieUI has no…"`
+ *                                              LEGAL VALUE: `variant="Kookie UI has no…"`
  *                                              compiles, and a component that spreads its rest
  *                                              props lands the sentence on the DOM.
  *   `variant?: Refused<M>` (a branded type) -> prints the same message, and NO string is
@@ -103,7 +103,7 @@ type RefusedProps<Messages extends Record<string, string>> = {
 /**
  * The props a model trained on Radix Themes reaches for first.
  *
- * This is the measured corpus risk and it is worth naming precisely: KookieUI v1 is published
+ * This is the measured corpus risk and it is worth naming precisely: Kookie UI v1 is published
  * but tiny, so nothing memorised it. v1 is a FORK OF RADIX THEMES, and Radix Themes is heavily
  * represented in training data — so the wrong code a model writes here is not v1's API, it is
  * Radix's. `variant`, `color` and `highContrast` are Radix Themes props on almost every
@@ -114,10 +114,10 @@ type RefusedProps<Messages extends Record<string, string>> = {
  */
 export const RADIX_REFLEX_REFUSALS = {
   variant:
-    "KookieUI has no `variant`. Use `tone` for what a thing means and `emphasis` for how loud it is — so a quiet destructive button is expressible.",
-  highContrast: 'KookieUI has no `highContrast`. Contrast is an app-wide setting: `<Theme contrast="high">`.',
-  asChild: 'KookieUI has no `asChild`. Pass an element to `render`: `<Button render={<a href="/x" />}>`.',
-  as: "KookieUI has no `as`. Pass an element to `render`: `<Text render={<label />}>`.",
+    "Kookie UI has no `variant`. Use `tone` for what a thing means and `emphasis` for how loud it is — so a quiet destructive button is expressible.",
+  highContrast: 'Kookie UI has no `highContrast`. Contrast is an app-wide setting: `<Theme contrast="high">`.',
+  asChild: 'Kookie UI has no `asChild`. Pass an element to `render`: `<Button render={<a href="/x" />}>`.',
+  as: "Kookie UI has no `as`. Pass an element to `render`: `<Text render={<label />}>`.",
 } as const;
 
 /**
@@ -133,7 +133,7 @@ export const RADIX_REFLEX_REFUSALS = {
  */
 export const PLATFORM_OWNED_REFUSALS = {
   color:
-    "KookieUI has no `color`. Use `tone`, which names a meaning (`destructive`, `success`) and lets the theme resolve the hue.",
+    "Kookie UI has no `color`. Use `tone`, which names a meaning (`destructive`, `success`) and lets the theme resolve the hue.",
 } as const;
 
 /**
@@ -169,12 +169,12 @@ export const SPACING_REFUSALS = {
  */
 export const THEME_REFUSALS = {
   accentColor:
-    "KookieUI has no `accentColor`. The accent is generated: set `accent` in the colour config and the whole palette is re-derived from it.",
-  grayColor: "KookieUI has no `grayColor`. The neutrals derive their hue from the accent, so there is nothing to choose here.",
+    "Kookie UI has no `accentColor`. The accent is generated: set `accent` in the colour config and the whole palette is re-derived from it.",
+  grayColor: "Kookie UI has no `grayColor`. The neutrals derive their hue from the accent, so there is nothing to choose here.",
   panelBackground:
-    "KookieUI has no `panelBackground`. Use `material` for translucency — a step from `\"1\"`, clear glass, to `\"9\"`, solid.",
+    "Kookie UI has no `panelBackground`. Use `material` for translucency — a step from `\"1\"`, clear glass, to `\"9\"`, solid.",
   scaling:
-    "KookieUI has no `scaling`. Use `density` (`compact`, `default`, `comfortable`), which re-picks designed values rather than multiplying them.",
+    "Kookie UI has no `scaling`. Use `density` (`compact`, `default`, `comfortable`), which re-picks designed values rather than multiplying them.",
 } as const;
 
 export type RadixReflexRefusals = RefusedProps<typeof RADIX_REFLEX_REFUSALS>;

@@ -1,9 +1,9 @@
 ---
 name: kookie-ui
-description: How to write @kushagradhawan/kookie-ui-react without fighting it — the refusals and what to use instead, the tone/emphasis/material vocabulary, where spacing lives, and how to look a component up. Run this before writing or editing any UI built on KookieUI, and whenever a prop you expected does not exist.
+description: How to write @kushagradhawan/kookie-ui-react without fighting it — the refusals and what to use instead, the tone/emphasis/material vocabulary, where spacing lives, and how to look a component up. Run this before writing or editing any UI built on Kookie UI, and whenever a prop you expected does not exist.
 ---
 
-# KookieUI
+# Kookie UI
 
 This skill carries only what a lookup cannot: what the system REFUSES, and what to reach for
 instead. Everything else — every prop, every part, every example — is one fetch away, and the
@@ -64,7 +64,7 @@ that child: `<Box mt="6"><Button/></Box>`.
 
 ## Looking a component up
 
-Every page of the KookieUI docs site is served a second time as plain markdown at the same path
+Every page of the Kookie UI docs site is served a second time as plain markdown at the same path
 with `.md` on the end. That twin carries the abstract, the generated prop table, working
 examples and the reason behind every refusal. Fetch it rather than guessing.
 
@@ -78,7 +78,7 @@ There is no site origin written anywhere in this repo, deliberately. Use the hos
 already on — `http://localhost:1403` when `pnpm --filter docs dev` is running, which is the port
 that script pins.
 
-If a KookieUI MCP server is configured in this session, ask it instead: it answers what a
+If a Kookie UI MCP server is configured in this session, ask it instead: it answers what a
 component is, what it refuses, and which tokens exist, without a fetch. If no such tool is
 listed, use the markdown twins above.
 

@@ -20,7 +20,7 @@ import Content from "./whats-new.mdx";
  * months, and a list of months beside a list of months says nothing.
  */
 export const metadata: Metadata = {
-  title: "What's new — KookieUI",
+  title: "What's new — Kookie UI",
   alternates: { canonical: "/whats-new" },
 };
 

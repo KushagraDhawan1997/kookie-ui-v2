@@ -101,7 +101,7 @@ export const rulesText = () =>
 /**
  * The same rules with the repository's own banner taken off the front.
  *
- * That banner tells a KookieUI maintainer not to hand-edit the artifact and names the command
+ * That banner tells a Kookie UI maintainer not to hand-edit the artifact and names the command
  * that regenerates it — `pnpm --filter docs run agents`, which does not exist in the repo this
  * is being copied into. Leaving it in would put an instruction in front of the reader that
  * they cannot follow. The BEGIN marker already carries the sentence that IS true there: this
@@ -116,7 +116,7 @@ export const consumerRules = () => rulesText().replace(/^<!--[\s\S]*?-->\s*/, ""
  * block and leaves whatever the author has since put at the top of their own file.
  */
 const MDC_FRONTMATTER =
-  "---\ndescription: KookieUI API rules — axes, refusals and where spacing lives.\nalwaysApply: true\n---\n\n";
+  "---\ndescription: Kookie UI API rules — axes, refusals and where spacing lives.\nalwaysApply: true\n---\n\n";
 
 function run(argv, cwd, out) {
   const write = argv.includes("--write");
@@ -126,7 +126,7 @@ function run(argv, cwd, out) {
   const block = wrap(consumerRules());
   const plan = planFor((relative) => existsSync(path.join(root, relative)));
 
-  out(`KookieUI rules → ${root}`);
+  out(`Kookie UI rules → ${root}`);
   for (const step of plan) {
     const target = path.join(root, step.file);
     const before =
@@ -140,8 +140,8 @@ function run(argv, cwd, out) {
       step.action === "create"
         ? "create"
         : before.includes(BEGIN)
-          ? "replace the KookieUI block in"
-          : "append a KookieUI block to";
+          ? "replace the Kookie UI block in"
+          : "append a Kookie UI block to";
     if (!write) {
       out(`  would ${verb} ${step.file}`);
       continue;

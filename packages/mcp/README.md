@@ -1,11 +1,11 @@
 # @kookie-ui/mcp
 
-An MCP server for KookieUI. It answers what a component is, what it refuses and why, which
+An MCP server for Kookie UI. It answers what a component is, what it refuses and why, which
 tokens exist, and whether a piece of code breaks the system's rules.
 
 It exists because a model writing code against this system fails one way: it reaches for a prop
 that does not exist. The API most models have memorised is Radix Themes' and shadcn's —
-`variant`, `asChild`, `color`, a margin row on every component — and KookieUI refuses all of
+`variant`, `asChild`, `color`, a margin row on every component — and Kookie UI refuses all of
 them on purpose, with something else to write instead. The package says so at compile time and
 the documentation site says so in prose. Neither reaches a model composing a snippet with no
 checkout to compile. This does.
@@ -107,7 +107,7 @@ or the component's own reference entry.
 
 ```
 ### line 1 — error: `variant` on `<Button>`
-KookieUI has no `variant`. Use `tone` for what a thing means and `emphasis` for how loud
+Kookie UI has no `variant`. Use `tone` for what a thing means and `emphasis` for how loud
 it is — so a quiet destructive button is expressible.
 
 ### line 1 — error: `size` on `<Button>`
@@ -156,7 +156,7 @@ snapshot has drifted:
 | Tokens and values | `packages/ui/src/tokens/tokens.css` |
 
 **It is not shadcn's server.** That one exists to install: its centre of gravity is an add
-command over registries of copyable source. KookieUI is a dependency, so there is nothing to
+command over registries of copyable source. Kookie UI is a dependency, so there is nothing to
 fetch and no install command to compose — a consumer already has the source in `node_modules`.
 What is scarce here is the boundary, not the code. So there is no add tool, no icon search
 (this package ships no icon set, on purpose), no preview URL, and one tool that reads the

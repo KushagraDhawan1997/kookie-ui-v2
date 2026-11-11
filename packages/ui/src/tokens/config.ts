@@ -487,7 +487,7 @@ export const iconSize = {
  * one mismatch a consumer cannot fix from the outside. The system states the weight it draws
  * at; the app passes it to its own set.
  *
- * Why 1.75: it is v1 KookieUI's own settled number, in every documented example, and the
+ * Why 1.75: it is v1 Kookie UI's own settled number, in every documented example, and the
  * ecosystem brackets it (Heroicons and Hugeicons ship 1.5, Lucide and Feather 2). A nominal
  * stroke is not apparent weight — a font stem is rasterized with stem darkening and an SVG
  * stroke is not — so this is an eye value, not an arithmetic one, and no arithmetic is offered

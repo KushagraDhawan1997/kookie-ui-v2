@@ -9,7 +9,7 @@
  * day it existed.
  *
  * WHAT IS EXTRACTED, AND WHY IT IS NOT EVERYTHING. Every component's props type is an
- * intersection of the props KookieUI designed with the native element's own
+ * intersection of the props Kookie UI designed with the native element's own
  * (`React.ComponentPropsWithoutRef<"button">`). Expanding that through the type checker yields
  * several hundred DOM attributes, which buries the six props that carry the design under
  * `onAnimationIterationCapture`. The generator therefore reads the AST and takes only the

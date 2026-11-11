@@ -392,7 +392,7 @@ export function snippetNotes(code: string): string[] {
   // Imported from us and not exported: already reported above, by name, with the better
   // sentence.
   const unknown = foreign.filter((tag) => !local.has(tag) && !named.has(tag));
-  if (unknown.length) notes.push(`Not KookieUI, so not checked: ${unknown.join(", ")}.`);
+  if (unknown.length) notes.push(`Not Kookie UI, so not checked: ${unknown.join(", ")}.`);
   return notes;
 }
 
@@ -497,7 +497,7 @@ export function buildTools(env: ToolEnv): AgentTool[] {
     {
       name: webToolName("list"),
       description:
-        "List the components KookieUI exports, with a one-line abstract and the page path for each. Filter by the job a person is doing or by a word, which also searches what each component refuses.",
+        "List the components Kookie UI exports, with a one-line abstract and the page path for each. Filter by the job a person is doing or by a word, which also searches what each component refuses.",
       inputSchema: {
         type: "object",
         properties: {
@@ -539,7 +539,7 @@ export function buildTools(env: ToolEnv): AgentTool[] {
     {
       name: webToolName("check"),
       description:
-        "Check a snippet of JSX against the KookieUI vocabulary this site is built on: imported names and tag names against the package's export list, and every literal prop value against the closed axis that prop belongs to. A scan, not a compiler.",
+        "Check a snippet of JSX against the Kookie UI vocabulary this site is built on: imported names and tag names against the package's export list, and every literal prop value against the closed axis that prop belongs to. A scan, not a compiler.",
       inputSchema: {
         type: "object",
         properties: { code: { type: "string", description: "The JSX to check." } },
@@ -551,7 +551,7 @@ export function buildTools(env: ToolEnv): AgentTool[] {
     {
       name: webToolName("tokens"),
       description:
-        "Look up KookieUI design tokens by name and read what they resolve to on this page right now, with the reader's own appearance, contrast and density applied.",
+        "Look up Kookie UI design tokens by name and read what they resolve to on this page right now, with the reader's own appearance, contrast and density applied.",
       inputSchema: {
         type: "object",
         properties: {

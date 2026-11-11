@@ -3,7 +3,7 @@
  *
  * Every fixture here is code someone would actually write. The wrong ones are the reflexes
  * `refused.ts` names — Radix Themes' API, which is what a model trained on the web produces
- * for this system — and the right ones are ordinary KookieUI, because a checker that flags
+ * for this system — and the right ones are ordinary Kookie UI, because a checker that flags
  * correct code is worse than no checker.
  */
 import { readFileSync, readdirSync } from "node:fs";
@@ -115,7 +115,7 @@ describe("what it refuses to guess", () => {
     expect(rules(`<Button size={size} />`)).toEqual([]);
   });
 
-  it("passes ordinary, correct KookieUI without a word", () => {
+  it("passes ordinary, correct Kookie UI without a word", () => {
     expect(
       rules(`
         <Theme appearance="dark" density="compact">

@@ -28,9 +28,9 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const chapter = BY_SLUG.get(slug.join("/"));
-  if (!chapter) return { title: "KookieUI" };
+  if (!chapter) return { title: "Kookie UI" };
   return {
-    title: `${chapter.title} — KookieUI`,
+    title: `${chapter.title} — Kookie UI`,
     description: chapter.blurb,
     alternates: { canonical: `/${chapter.slug}` },
   };

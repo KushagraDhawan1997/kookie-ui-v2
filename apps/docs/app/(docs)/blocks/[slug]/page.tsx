@@ -34,11 +34,11 @@ export async function generateMetadata({
   const block = BLOCK_BY_SLUG.get(slug);
   return block
     ? {
-        title: `${block.title} — Blocks — KookieUI`,
+        title: `${block.title} — Blocks — Kookie UI`,
         description: block.blurb,
         alternates: { canonical: `/blocks/${block.slug}` },
       }
-    : { title: "KookieUI" };
+    : { title: "Kookie UI" };
 }
 
 /** The page's sections, named once. The contents column and the headings both read these and

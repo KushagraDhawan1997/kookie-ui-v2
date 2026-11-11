@@ -6,7 +6,7 @@ import { ENTRIES, JOBS } from "./registry";
 import { humanLabel } from "../label";
 
 export const metadata = {
-  title: "Components — KookieUI",
+  title: "Components — Kookie UI",
   alternates: { canonical: "/components" },
 };
 

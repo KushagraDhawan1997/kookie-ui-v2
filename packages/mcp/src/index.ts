@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * The KookieUI MCP server. Four tools over stdio.
+ * The Kookie UI MCP server. Four tools over stdio.
  *
  * WHAT IT IS FOR. A model writing code against this system fails one way: it reaches for a
  * prop we do not have, because the API it has memorised is Radix Themes' and shadcn's. The
@@ -46,9 +46,9 @@ export function createServer(): McpServer {
   server.registerTool(
     TOOL_NAMES.list,
     {
-      title: "List KookieUI components",
+      title: "List Kookie UI components",
       description:
-        "Every component KookieUI exports, as a name and one sentence, grouped by the job a person is doing " +
+        "Every component Kookie UI exports, as a name and one sentence, grouped by the job a person is doing " +
         `(${jobs().join(", ")}). Names and abstracts only — call ` +
         "get_component for the props and the refusals of one. Start here when you do not know " +
         "what this system calls a thing.",
@@ -66,7 +66,7 @@ export function createServer(): McpServer {
   server.registerTool(
     TOOL_NAMES.get,
     {
-      title: "Read one KookieUI component",
+      title: "Read one Kookie UI component",
       description:
         "The full reference for ONE component: what it is, what it refuses and why, a real " +
         "example, and every prop it declares with its type. This is the same document the " +
@@ -86,12 +86,12 @@ export function createServer(): McpServer {
   server.registerTool(
     TOOL_NAMES.check,
     {
-      title: "Check code against KookieUI's rules",
+      title: "Check code against Kookie UI's rules",
       description:
         "Reads a piece of JSX and reports what this system refuses in it: props that do not " +
         'exist (`variant`, `asChild`, `m` on a control), values outside a closed union (`size="5"`), ' +
         "utility classes in className, and raw lengths or colours in style. Every reason it " +
-        "prints is the system's own. Run it on any KookieUI markup you wrote or edited, before " +
+        "prints is the system's own. Run it on any Kookie UI markup you wrote or edited, before " +
         "handing it over.",
       inputSchema: z.object({
         code: z.string().describe("JSX or TSX. A fragment is fine; it does not have to compile."),
@@ -103,7 +103,7 @@ export function createServer(): McpServer {
   server.registerTool(
     TOOL_NAMES.tokens,
     {
-      title: "Look up KookieUI tokens",
+      title: "Look up Kookie UI tokens",
       description:
         "The generated custom properties and the values they resolve to, filtered by a query. " +
         "Use it when you need a real token name for a `style` escape or for app CSS — this " +

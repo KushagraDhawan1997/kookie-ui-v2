@@ -1,7 +1,7 @@
 {
   "name": "@kookie-ui/mcp",
   "version": "0.0.0",
-  "description": "An MCP server for KookieUI. It answers what a component is, what it refuses, which tokens exist, and whether a piece of code breaks the system's rules.",
+  "description": "An MCP server for Kookie UI. It answers what a component is, what it refuses, which tokens exist, and whether a piece of code breaks the system's rules.",
   "license": "MIT",
   "repository": {
     "type": "git",

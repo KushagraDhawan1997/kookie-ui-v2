@@ -1,5 +1,5 @@
 /**
- * The docs site, in KookieUI's own Shell (§27).
+ * The docs site, in Kookie UI's own Shell (§27).
  *
  * This is the second real consumer the Shell has — the builder was the first, and porting it
  * found a hide mechanism that had been dead since the day it shipped. A docs site is the
@@ -87,7 +87,7 @@ import "./prose.css";
  */
 const GITHUB = {
   label: "GitHub",
-  name: "KookieUI on GitHub",
+  name: "Kookie UI on GitHub",
   href: "https://github.com/KushagraDhawan1997/kookie-ui-v2",
 } as const;
 
@@ -101,7 +101,7 @@ const GITHUB = {
 const SOCIALS = [
   {
     label: "X",
-    name: "KookieUI on X",
+    name: "Kookie UI on X",
     href: "https://x.com/kushagradhawan",
     Mark: XSocialIcon,
   },
@@ -192,7 +192,7 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
               THE LOGO IS THE WORD (Kushagra, 2026-09-01). It has been three things: the word
               in a condensed grotesque, then a single drawn capital in a blackletter, and now
               the word again in a script. The middle one was right for the face it was set in —
-              a blackletter's capitals are its ornate half, so "KookieUI" set there had two
+              a blackletter's capitals are its ornate half, so "Kookie UI" set there had two
               adjacent capitals at the end reading as one shape, and a lone initial is what that
               kind of face has always been best at. A script is a face for WRITING a name, so it
               took the word back. `wordmark.tsx` carries the reasoning; what changed here is
@@ -200,7 +200,7 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
 
               THE ACCESSIBLE NAME IS STILL THE LINK'S. The mark is decoration doing a logo's
               job and is `aria-hidden` either way, so the link states `aria-label` and a screen
-              reader announces "KookieUI" — which is what keeps the one route back to the home
+              reader announces "Kookie UI" — which is what keeps the one route back to the home
               page from announcing itself as a picture with no name.
 
               THE GLYPH ITSELF IS `<Wordmark>` (2026-08-29), because the front door now sets
@@ -259,7 +259,7 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
                   collapse trigger next door. prose.css carries the measurement. */}
               <Link
                 href="/"
-                aria-label="KookieUI"
+                aria-label="Kookie UI"
                 className="kd-masthead"
                 style={{ color: "inherit", textDecoration: "none" }}
               >

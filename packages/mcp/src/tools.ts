@@ -99,7 +99,7 @@ export function getComponent({ name }: { name: string }): string {
       .map((row) => `- ${row.name} — ${row.abstract}`)
       .join("\n");
     return budgeted(
-      `KookieUI exports no \`${name}\`.\n\nThe nearest names:\n\n${near}\n\n` +
+      `Kookie UI exports no \`${name}\`.\n\nThe nearest names:\n\n${near}\n\n` +
         `If you are looking for a toast, a banner, an inline alert or a callout: this system ships none of them. ` +
         `Call get_component("Notice") for the one that takes layout space, and get_component("Dialog") for the one that interrupts.`,
     );
@@ -115,7 +115,7 @@ export function checkCode({ code }: { code: string }): string {
       `${spread} spread${spread === 1 ? "" : "s"} in this code. A spread hides the props it carries, so nothing in it was checked.`,
     );
   }
-  if (foreign.length) notes.push(`Not KookieUI, so not checked: ${foreign.join(", ")}.`);
+  if (foreign.length) notes.push(`Not Kookie UI, so not checked: ${foreign.join(", ")}.`);
   const tail = notes.length ? `\n\n${notes.map((note) => `Note: ${note}`).join("\n")}` : "";
   const source = from("refusals", "registry", "axes");
 

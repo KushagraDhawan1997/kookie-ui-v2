@@ -1614,7 +1614,7 @@ export function BuilderApp() {
               ) : null}
               <Link
                 href="/"
-                aria-label="Builder, KookieUI home"
+                aria-label="Builder, Kookie UI home"
                 className="kd-masthead"
                 style={{ color: "inherit", textDecoration: "none" }}
               >

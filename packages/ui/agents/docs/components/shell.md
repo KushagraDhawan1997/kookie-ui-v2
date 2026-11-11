@@ -104,7 +104,7 @@ import {
   iconStroke,
 } from "@kushagradhawan/kookie-ui-react";
 
-// Your logo and your appearance store, not the package's: KookieUI ships no mark, the same
+// Your logo and your appearance store, not the package's: Kookie UI ships no mark, the same
 // way it ships no icon set, and which appearance a person chose is app state the app has to
 // persist. What the package owns is the `Theme` scope those two feed.
 import { AppearanceToggle } from "../app/appearance-toggle";

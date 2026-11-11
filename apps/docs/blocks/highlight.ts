@@ -9,8 +9,8 @@
  * The mechanism is Shiki's CSS-variables theme: instead of baking hexes, the tokenizer emits
  * `var(--code-token-*)` and the package's `CodeBlock` resolves those names against the ten
  * tones' SOLVED ink ladder (§15). That is the load-bearing part. A stock highlight theme is
- * a second colour system living inside the first — the one place on a site made of KookieUI
- * where the pixels would not be KookieUI's — and it would also be the only text on the page
+ * a second colour system living inside the first — the one place on a site made of Kookie UI
+ * where the pixels would not be Kookie UI's — and it would also be the only text on the page
  * held to no contrast target at all.
  *
  * THE PIPELINE IS `codeToHast`, NOT `codeToTokens`, and the reason is a fact about Shiki:

@@ -85,7 +85,7 @@ import { ClaudeMark, MarkdownMark, OpenAIMark } from "../marks";
  */
 export const askAbout = (markdownUrl: string) =>
   encodeURIComponent(
-    `Read ${markdownUrl} so I can ask you questions about it. It is a page of the KookieUI documentation.`,
+    `Read ${markdownUrl} so I can ask you questions about it. It is a page of the Kookie UI documentation.`,
   );
 
 /**

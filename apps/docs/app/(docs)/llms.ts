@@ -6,7 +6,7 @@ import { PAGES, markdownFor } from "./markdown";
  * The half of this work that needs nobody to press anything: an index of the site at a
  * conventional path, so an agent handed only the domain can find every page without guessing a
  * URL or crawling markup. `llms.txt` is the contents; `llms-full.txt` is the whole site in one
- * fetch, which is what an agent asked to "use KookieUI" actually wants.
+ * fetch, which is what an agent asked to "use Kookie UI" actually wants.
  *
  * THE ORIGIN IS AN ARGUMENT, not a constant and not a lookup. This repo has no site URL
  * anywhere — no `metadataBase`, no environment variable — and inventing one here would be a
@@ -27,7 +27,7 @@ const SUMMARY =
   "A design system built on Base UI primitives, with a Kookie-owned API, generated OKLCH colour and token-only styling. Every page below is available as markdown by adding `.md` to its path.";
 
 export function llmsIndex(base: string): string {
-  const out = [`# KookieUI`, ``, `> ${SUMMARY}`, ``];
+  const out = [`# Kookie UI`, ``, `> ${SUMMARY}`, ``];
   // GROUPED BY THE SITE'S OWN CONTEXT, in the site's own order. The spec asks for sections and
   // the sections it wants are the ones a reader already navigates by, so nothing here invents a
   // taxonomy: `PAGES` carries the context each page states about itself.
@@ -46,7 +46,7 @@ export function llmsIndex(base: string): string {
 }
 
 export function llmsFull(base: string): string {
-  const parts = [`# KookieUI`, ``, `> ${SUMMARY}`, ``];
+  const parts = [`# Kookie UI`, ``, `> ${SUMMARY}`, ``];
   for (const page of PAGES) {
     const body = markdownFor(page.path);
     if (!body) continue;

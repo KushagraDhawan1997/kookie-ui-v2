@@ -253,7 +253,7 @@ export function builderTools(env: BuilderAgentEnv): BuilderTool[] {
     {
       name: BUILDER_TOOL_NAMES.catalog,
       description:
-        "List the components a KookieUI builder screen can use, or, given a name, the props it takes with every legal value, what it may hold, and its slots.",
+        "List the components a Kookie UI builder screen can use, or, given a name, the props it takes with every legal value, what it may hold, and its slots.",
       inputSchema: {
         type: "object",
         properties: { name: { type: "string", description: "A component name, such as Card. Leave it out for the list." } },
@@ -264,14 +264,14 @@ export function builderTools(env: BuilderAgentEnv): BuilderTool[] {
     {
       name: BUILDER_TOOL_NAMES.read,
       description:
-        "Read the screen open in the KookieUI builder: its components as a tree, and the review panel's findings about its composition.",
+        "Read the screen open in the Kookie UI builder: its components as a tree, and the review panel's findings about its composition.",
       inputSchema: { type: "object", properties: {} },
       annotations: { readOnlyHint: true },
       execute: async () => read(env),
     },
     {
       name: BUILDER_TOOL_NAMES.write,
-      description: `Replace the screen open in the KookieUI builder with a tree of components, as one undoable edit, and get the review's findings back. Read the screen first and fix every finding. ${NODE_SHAPE}`,
+      description: `Replace the screen open in the Kookie UI builder with a tree of components, as one undoable edit, and get the review's findings back. Read the screen first and fix every finding. ${NODE_SHAPE}`,
       inputSchema: {
         type: "object",
         properties: {

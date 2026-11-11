@@ -109,8 +109,8 @@ describe("the command line", () => {
     symlinkSync(fileURLToPath(new URL("../../agents/install.mjs", import.meta.url)), link);
     const out = spawnSync(process.execPath, [link, "init", "--write"], { cwd: root, encoding: "utf8" });
     expect(out.status).toBe(0);
-    expect(out.stdout).toContain("KookieUI rules");
-    expect(readFileSync(join(root, "AGENTS.md"), "utf8")).toContain("KookieUI, for coding agents");
+    expect(out.stdout).toContain("Kookie UI rules");
+    expect(readFileSync(join(root, "AGENTS.md"), "utf8")).toContain("Kookie UI, for coding agents");
   });
 });
 
@@ -142,7 +142,7 @@ describe("consent", () => {
     expect(written).toEqual(["CLAUDE.md"]);
     const text = readFileSync(join(root, "CLAUDE.md"), "utf8");
     expect(text).toContain("# Mine");
-    expect(text).toContain("KookieUI, for coding agents");
+    expect(text).toContain("Kookie UI, for coding agents");
     // The dry run named one file; the write touched one file.
     expect(dry.filter((line) => line.startsWith("  would ")).length).toBe(1);
   });
