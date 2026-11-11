@@ -2,6 +2,7 @@ import "@kushagradhawan/kookie-ui-react/styles.css";
 import "@fontsource-variable/inter/wght.css";
 import "@fontsource-variable/inter/wght-italic.css";
 import "@fontsource-variable/inter-tight/wght.css";
+import "@fontsource-variable/jetbrains-mono/wght.css";
 import "./fonts.css";
 import "./globals.css";
 
@@ -80,37 +81,13 @@ import { DocsTheme } from "./theme-store";
  */
 
 /**
- * The mono face (2026-08-29, Kushagra — PP Neue Montreal Mono, from the Pangram Pangram
- * starter pack).
+ * The mono face is JetBrains Mono (2026-11-11, Kushagra: "For code, we can use jetbrains mono").
+ * It is open source and arrives with `@fontsource-variable/jetbrains-mono`, imported above, so
+ * every clone and the live site render it. It replaced PP Neue Montreal Mono, a licensed face
+ * that could not travel with the repository and so never loaded on the live site.
  *
- * THIS REVERSES A STATED DECISION, which is why it is written down rather than simply done.
- * The mono slot was left on the system stack on purpose, with the reason recorded in
- * `globals.css`: a code sample is set in whatever the reader's machine calls a monospace, and
- * that is the one place a familiar face beats a chosen one. The counter-argument is that a
- * site whose body and headings are one chosen face and whose code is whatever SF Mono or
- * Consolas happens to be is not one document — the reader's machine gets a vote on a third of
- * the page. The slot is the app's to fill either way, so this is the app changing its mind.
- *
- * TWO WEIGHTS, WHICH IS EVERY WEIGHT THIS SITE ASKS MONO FOR. Code samples set 400; the
- * component reference sets `weight="medium"`, which is 500. This family ships static faces
- * rather than a variable file, so each weight is a file and shipping the ones nobody uses is
- * a download nobody needs. THE GAP IS 600: the type ladder tops at semibold and no file here
- * carries it, so a mono atom asking for semibold matches the 500 file and Chrome may shear
- * it. Nothing on this site asks — bold is refused system-wide and the syntax theme drops it —
- * so the gap is stated rather than papered over with a Bold file declared at a weight it is
- * not.
- *
- * PANGRAM PANGRAM FORBID REDISTRIBUTION, so this is PP Monument's arrangement and not the
- * Fontshare one: the files stay gitignored, they may never be force-added, and no licence
- * text travels beside them because the pack does not ship one to carry. A fresh clone renders
- * the system stack — which is exactly what the package's own default is, so the fallback here
- * is the decision this file just reversed.
- *
- * THE PACKAGE'S OPTICAL CORRECTION WAS JUDGED AGAINST THE SYSTEM STACK. `monoScale` (0.925)
- * exists because mono faces run wider with a taller x-height and read a step large beside the
- * body face; the number was picked by eye in 2026-08-08 against whatever SF Mono resolved to.
- * A chosen face has its own x-height, so the constant may want re-judging now that the face is
- * known — that is a package config line and a taste call, not something this file may take.
+ * One variable file carries every weight the site asks mono for: 400 for code samples and 500
+ * for the component reference.
  */
 
 export const metadata: Metadata = {
