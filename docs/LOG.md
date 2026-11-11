@@ -8,6 +8,17 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-11-11 A closed menu lets go of itself: a Base UI patch
+
+Measured and written on 2026-10-23 on a branch that never merged; it landed on main on this date.
+
+The bench's first run found a closed 300-item menu still holding 1,360 DOM nodes, against v1's 28. A raw Base UI menu with no Kookie code in it held 929, so the fault was upstream, and 1.9.0, the latest release, still has it. A heap snapshot traced three holders, each a closure that kept the popup reachable after it unmounted:
+
+- `useFloating` writes the positioner's context onto the floating tree node and the root's `dataRef` and never clears either, so `context.elements.floating` kept the whole popup.
+- Closures created in one render share one scope in V8. `useListNavigation`'s popup handlers and `MenuRoot`'s trigger props were memoized on dependencies that did not change when the popup went, so they kept the render scope in which the popup element was still a live variable.
+
+`patches/@base-ui__react@1.7.0.patch` clears the tree node and `dataRef` on unmount, and adds the dependencies that refresh those memos once the floating element is gone. The closed menu now holds 38 nodes; the bench's budget records it, so the regression fails CI if it comes back. Tried and dropped: re-rendering Kookie's trigger after a settled close (one of three holders, not enough alone), and syncing the store's floating element with a cleanup (the store was already clean). The patch should go upstream so it can be deleted.
+
 ## 2026-11-07 A pane's band stacks its rows
 
 Kushagra asked for a second row in a floating pane header. First proposal: a `ShellPaneHeaderRow` part. He asked why the first row is a bare Toolbar and the second needs a wrapper; the only reason was that the header laid its children side by side, which is the Toolbar's job already. Chose: the band stacks its children as rows. Audited first (3 of 89 bands held loose clusters, all moved into a Toolbar; the dev warning found the third). Rejected: the part (asymmetric), wrapping both rows (rewrites every header for nothing), a `below` prop (two places to write one band). The fade now holds fully under a two-row band, per his spec, instead of ramping across it.

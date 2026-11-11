@@ -1,0 +1,116 @@
+diff --git a/floating-ui-react/hooks/useFloating.js b/floating-ui-react/hooks/useFloating.js
+index b44e763507a9a1fc0d7b65bf7c236ea5d804b7a7..f46455d6a709c570db3e08d7c9887699bcbd7ce5 100644
+--- a/floating-ui-react/hooks/useFloating.js
++++ b/floating-ui-react/hooks/useFloating.js
+@@ -129,6 +129,17 @@ function useFloatingWithStore(options, store) {
+     if (node) {
+       node.context = context;
+     }
++    // Kookie UI patch: let go of this context when the component holding it unmounts. The
++    // tree node and the root's dataRef both outlive the positioner, so without this a closed
++    // popup's whole DOM stayed reachable through `context.elements.floating`.
++    return () => {
++      if (store.context.dataRef.current.floatingContext === context) {
++        store.context.dataRef.current.floatingContext = undefined;
++      }
++      if (node && node.context === context) {
++        node.context = undefined;
++      }
++    };
+   });
+   return React.useMemo(() => ({
+     ...position,
+diff --git a/floating-ui-react/hooks/useFloating.mjs b/floating-ui-react/hooks/useFloating.mjs
+index fbba6d9e2c3c32112b95dc6c5243d37377bbe209..ff932ecf21b0430531e634cac13cd09564947cf3 100644
+--- a/floating-ui-react/hooks/useFloating.mjs
++++ b/floating-ui-react/hooks/useFloating.mjs
+@@ -123,6 +123,17 @@ function useFloatingWithStore(options, store) {
+     if (node) {
+       node.context = context;
+     }
++    // Kookie UI patch: let go of this context when the component holding it unmounts. The
++    // tree node and the root's dataRef both outlive the positioner, so without this a closed
++    // popup's whole DOM stayed reachable through `context.elements.floating`.
++    return () => {
++      if (store.context.dataRef.current.floatingContext === context) {
++        store.context.dataRef.current.floatingContext = undefined;
++      }
++      if (node && node.context === context) {
++        node.context = undefined;
++      }
++    };
+   });
+   return React.useMemo(() => ({
+     ...position,
+diff --git a/floating-ui-react/hooks/useListNavigation.js b/floating-ui-react/hooks/useListNavigation.js
+index 98085eaf6f4aeb3af2822d770e0d0ea5b999c34a..e0bd6425c1e5b1bbcf639da17bbcb7a27bfbe3c1 100644
+--- a/floating-ui-react/hooks/useListNavigation.js
++++ b/floating-ui-react/hooks/useListNavigation.js
+@@ -510,7 +510,10 @@ function useListNavigation(context, props) {
+         isPointerModalityRef.current = true;
+       }
+     };
+-  }, [ariaActiveDescendantProp, commonOnKeyDown, floatingFocusElementRef, orientation, typeableComboboxReference, store, open, virtual, domReferenceElement]);
++  }, [ariaActiveDescendantProp, commonOnKeyDown, floatingFocusElementRef, orientation, typeableComboboxReference, store, open, virtual, domReferenceElement,
++  // Kookie UI patch: refresh when the floating element goes, so these handlers stop holding a
++  // closed popup through the render scope they share with it.
++  floatingElement]);
+   const trigger = React.useMemo(() => {
+     function openOnNavigationKeyDown(event) {
+       store.setOpen(true, (0, _createBaseUIEventDetails.createChangeEventDetails)(_reasons.REASONS.listNavigation, event.nativeEvent, event.currentTarget));
+diff --git a/floating-ui-react/hooks/useListNavigation.mjs b/floating-ui-react/hooks/useListNavigation.mjs
+index 02eda22c1a1301f51275c3c7fc1616812c3b79e4..2e68e9a241bdb83cc2de0d9b87d8d09aff354dd4 100644
+--- a/floating-ui-react/hooks/useListNavigation.mjs
++++ b/floating-ui-react/hooks/useListNavigation.mjs
+@@ -503,7 +503,10 @@ export function useListNavigation(context, props) {
+         isPointerModalityRef.current = true;
+       }
+     };
+-  }, [ariaActiveDescendantProp, commonOnKeyDown, floatingFocusElementRef, orientation, typeableComboboxReference, store, open, virtual, domReferenceElement]);
++  }, [ariaActiveDescendantProp, commonOnKeyDown, floatingFocusElementRef, orientation, typeableComboboxReference, store, open, virtual, domReferenceElement,
++  // Kookie UI patch: refresh when the floating element goes, so these handlers stop holding a
++  // closed popup through the render scope they share with it.
++  floatingElement]);
+   const trigger = React.useMemo(() => {
+     function openOnNavigationKeyDown(event) {
+       store.setOpen(true, createChangeEventDetails(REASONS.listNavigation, event.nativeEvent, event.currentTarget));
+diff --git a/menu/root/MenuRoot.js b/menu/root/MenuRoot.js
+index dde04eddca58a7c55b4a997708628cb37c2f06d4..cc0d087a4f3cb64dfa483e0440aa26ec8ac37e38 100644
+--- a/menu/root/MenuRoot.js
++++ b/menu/root/MenuRoot.js
+@@ -337,13 +337,13 @@ const MenuRoot = exports.MenuRoot = (0, _fastHooks.fastComponent)(function MenuR
+     mergedProps['aria-haspopup'] = 'menu';
+     mergedProps['aria-expanded'] = open;
+     return mergedProps;
+-  }, [store, typeahead.reference, listNavigation.reference, dismiss.reference, interactionTypeProps, open]);
++  }, [store, typeahead.reference, listNavigation.reference, dismiss.reference, interactionTypeProps, open, /* Kookie UI patch: share no stale render scope with the popup props. */ typeahead.floating, listNavigation.floating, dismiss.floating]);
+   const inactiveTriggerProps = React.useMemo(() => {
+     const mergedProps = (0, _mergeProps.mergeProps)(listNavigation.trigger, dismiss.trigger, interactionTypeProps);
+     mergedProps['aria-haspopup'] = 'menu';
+     mergedProps['aria-expanded'] = false;
+     return mergedProps;
+-  }, [listNavigation.trigger, dismiss.trigger, interactionTypeProps]);
++  }, [listNavigation.trigger, dismiss.trigger, interactionTypeProps, /* Kookie UI patch: share no stale render scope with the popup props. */ typeahead.floating, listNavigation.floating, dismiss.floating]);
+   const popupProps = React.useMemo(() => (0, _mergeProps.mergeProps)(_popups.FOCUSABLE_POPUP_PROPS, {
+     id: floatingId,
+     role: 'menu',
+diff --git a/menu/root/MenuRoot.mjs b/menu/root/MenuRoot.mjs
+index 96dc92bb57451320ab8b68b6dfa028748ddda088..955475941f568e337f1190911a020bca800fdcd0 100644
+--- a/menu/root/MenuRoot.mjs
++++ b/menu/root/MenuRoot.mjs
+@@ -332,13 +332,13 @@ export const MenuRoot = fastComponent(function MenuRoot(props) {
+     mergedProps['aria-haspopup'] = 'menu';
+     mergedProps['aria-expanded'] = open;
+     return mergedProps;
+-  }, [store, typeahead.reference, listNavigation.reference, dismiss.reference, interactionTypeProps, open]);
++  }, [store, typeahead.reference, listNavigation.reference, dismiss.reference, interactionTypeProps, open, /* Kookie UI patch: share no stale render scope with the popup props. */ typeahead.floating, listNavigation.floating, dismiss.floating]);
+   const inactiveTriggerProps = React.useMemo(() => {
+     const mergedProps = mergeProps(listNavigation.trigger, dismiss.trigger, interactionTypeProps);
+     mergedProps['aria-haspopup'] = 'menu';
+     mergedProps['aria-expanded'] = false;
+     return mergedProps;
+-  }, [listNavigation.trigger, dismiss.trigger, interactionTypeProps]);
++  }, [listNavigation.trigger, dismiss.trigger, interactionTypeProps, /* Kookie UI patch: share no stale render scope with the popup props. */ typeahead.floating, listNavigation.floating, dismiss.floating]);
+   const popupProps = React.useMemo(() => mergeProps(FOCUSABLE_POPUP_PROPS, {
+     id: floatingId,
+     role: 'menu',

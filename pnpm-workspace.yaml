@@ -11,3 +11,8 @@ overrides:
   "@modelcontextprotocol/server": ">=2.3.0"
   # GHSA-mrhx-c7xc-m3w5 (2026-11-10): zod below 4.6.6 can exhaust memory on oversized collections.
   zod: ">=4.6.6"
+
+# Base UI keeps a closed menu's whole popup in memory (LOG 2026-10-23). Delete this with the
+# patch file once the fix is upstream.
+patchedDependencies:
+  "@base-ui/react@1.7.0": patches/@base-ui__react@1.7.0.patch
