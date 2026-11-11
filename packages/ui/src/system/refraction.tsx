@@ -1203,7 +1203,13 @@ export function useLens(material: SurfaceMaterial): (node: HTMLElement | null) =
 
       /** The box the map is built for: the element's own. */
       const target = (): { w: number; h: number; r: Corners; k: number; sealed: boolean; ringDown: boolean; glinted: boolean; scale: LensScale } | null => {
-        const rect = node.getBoundingClientRect();
+        // THE ELEMENT'S OWN SPACE, not the screen's (2026-11-12). This read `getBoundingClientRect`,
+        // which answers after every transform above the element, beside a corner read from the
+        // computed style, which answers before them. Under a parent drawn at half size the map
+        // was built for a half-size box with a full-size corner and then stretched over the real
+        // box, so the shine's corner came out twice as round as the box's. The mask and the lens
+        // are both laid in the element's own space, so the layout box is the one to measure.
+        const rect = { width: node.offsetWidth, height: node.offsetHeight };
         const cs = getComputedStyle(node);
         // Which piece of glass this is (see `lensFamily`). A region is read off the cascade (the
         // region rule in surfaces.css publishes it, registered non-inheriting so only the pane

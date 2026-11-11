@@ -746,3 +746,42 @@ describe("a thin and a thick pane bend alike (§10)", () => {
     expect(bendOf(at("other")), "every pane bends alike — the instrument cannot tell lenses apart").not.toBe(bendOf(at("thick")));
   });
 });
+
+/* ── the glass is measured in its own space, not the screen's (§10, 2026-11-12) ──────────────
+   A figure draws a whole screen at half size with `transform: scale()`, and the menu on it
+   showed a shine whose corner was rounder than the menu's own. The hook read the box with
+   `getBoundingClientRect`, which answers in screen pixels AFTER the transform, and read the
+   corner from the computed style, which answers BEFORE it. A map built for a half-size box
+   with a full-size corner is then stretched over the real box, so the corner doubles.
+
+   The mask and the lens are both laid in the element's own space, so a transform on a parent
+   must not change either. The law is that identity: the same card, plain and inside a scaled
+   parent, carries the same mask. */
+describe("a transform on a parent does not change the glass (§10, 2026-11-12)", () => {
+  it("a card inside a half-size parent carries the mask of the same card outside it", async () => {
+    const card = (
+      <Card backdrop style={{ width: 320, height: 200 }}>
+        pane
+      </Card>
+    );
+    const host = render(
+      <Theme material="3">
+        <div data-plain>{card}</div>
+        <div data-scaled style={{ transform: "scale(0.5)", transformOrigin: "0 0" }}>
+          {card}
+        </div>
+      </Theme>,
+    );
+    const plain = host.querySelector<HTMLElement>("[data-plain] .kui-surface")!;
+    const scaled = host.querySelector<HTMLElement>("[data-scaled] .kui-surface")!;
+    const mask = (el: HTMLElement) => el.style.getPropertyValue("--kui-glint");
+    expect(await until(() => mask(plain) !== "" && mask(scaled) !== ""), "the cards never measured").toBe(true);
+    // Vacuity: the parent really is scaled, so the two boxes differ on screen and agree in layout.
+    expect(scaled.getBoundingClientRect().width).toBeCloseTo(plain.getBoundingClientRect().width / 2, 0);
+    expect(scaled.offsetWidth).toBe(plain.offsetWidth);
+    expect(mask(scaled), "the scaled card's shine was built for its size on screen").toBe(mask(plain));
+    expect(getComputedStyle(scaled).backdropFilter, "the scaled card's lens was built for its size on screen").toBe(
+      getComputedStyle(plain).backdropFilter,
+    );
+  });
+});
