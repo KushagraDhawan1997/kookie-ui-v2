@@ -339,7 +339,7 @@ export type PopoverDescriptionProps = ComponentRefusals & Omit<
 export function PopoverDescription({ children, ...props }: PopoverDescriptionProps) {
   const size = React.use(PopoverSizeContext);
   return (
-    <BasePopover.Description render={<Text size={OWNED_BODY_STEP[size]} emphasis="medium" />} {...props}>
+    <BasePopover.Description render={<Text size={OWNED_BODY_STEP[size]} emphasis="medium" render={<p />} />} {...props}>
       {children}
     </BasePopover.Description>
   );

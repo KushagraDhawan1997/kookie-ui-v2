@@ -314,6 +314,16 @@ describe("the parts exist because the wiring forces them (§10, §31)", () => {
     expect(document.getElementById(describedBy!)?.textContent).toBe("Narrow the list.");
   });
 
+  it("the description is a paragraph, as a dialog's is (2026-11-11)", () => {
+    // It rendered as inline text while Dialog, Sheet and AlertDialog rendered a `<p>`. A
+    // paragraph brings no space of its own here: the panel's gap sets the distance.
+    const { popup } = openPopover({}, "2");
+    const description = document.getElementById(popup.getAttribute("aria-describedby")!)!;
+    expect(description.tagName).toBe("P");
+    expect(getComputedStyle(description).marginTop).toBe("0px");
+    expect(getComputedStyle(description).marginBottom).toBe("0px");
+  });
+
   it("a panel with no name says so in dev — and a title or a label silences it", async () => {
     /**
      * Base UI's popup renders `role="dialog"`, so a panel with neither a `PopoverTitle` nor an
