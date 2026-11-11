@@ -398,7 +398,7 @@ ContextMenu opens a menu at the pointer when someone right-clicks an area, or lo
 | --- | --- | --- |
 | `children?` | `React.ReactNode` | A `<ContextMenuTrigger>` and a `<ContextMenuContent>`. |
 | `defaultOpen?` | `boolean` | Uncontrolled starting state. |
-| `onOpenChange?` | `(open: boolean) => void` | Fires on every open and close, including the dismissals the menu handles itself. |
+| `onOpenChange?` | `(open: boolean, details: MenuOpenChangeDetails) => void` | Fires on every open and close, including the dismissals the menu handles itself. |
 | `open?` | `boolean` | Controls whether the menu is open. |
 | `size?` | `"1" \| "2" \| "3" \| "4"` | The size step of the menu. |
 

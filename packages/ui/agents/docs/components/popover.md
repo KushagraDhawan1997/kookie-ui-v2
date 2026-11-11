@@ -429,7 +429,7 @@ Popover opens a small panel beside the control that opened it, while the rest of
 | --- | --- | --- |
 | `children?` | `React.ReactNode` | The `PopoverTrigger` and the `PopoverContent`, in that order. |
 | `defaultOpen?` | `boolean` | Uncontrolled starting state. |
-| `onOpenChange?` | `(open: boolean) => void` | Called when the panel opens or closes. |
+| `onOpenChange?` | `(open: boolean, details: PopoverOpenChangeDetails) => void` | Called when the panel opens or closes. |
 | `open?` | `boolean` | Controlled open state. |
 | `size?` | `"1" \| "2" \| "3" \| "4"` | Sets the size step of the panel's padding and corner. |
 

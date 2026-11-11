@@ -11,7 +11,9 @@ import {
   FloatingDirectionContext,
   PortalScope,
   SIDE_OFFSET,
+  openChange,
   useAmbientDirection,
+  type OpenChangeDetails,
 } from "../../system/floating.tsx";
 import { useMergedRefs } from "../../system/render.ts";
 import { Text } from "../text/text.tsx";
@@ -49,13 +51,26 @@ export function TooltipProvider(props: TooltipProviderProps) {
   return <BaseTooltip.Provider delay={DELAY} closeDelay={CLOSE_DELAY} {...props} />;
 }
 
+/** Why a tooltip is opening or closing. */
+export type TooltipOpenChangeReason =
+  | "trigger-hover"
+  | "trigger-focus"
+  | "trigger-press"
+  | "outside-press"
+  | "escape-key"
+  | "disabled"
+  | "imperative-action"
+  | "none";
+/** The second argument to a tooltip's `onOpenChange`: the reason, the native event, and `cancel()`. */
+export type TooltipOpenChangeDetails = OpenChangeDetails<TooltipOpenChangeReason>;
+
 export type TooltipProps = ComponentRefusals & {
   /** Whether the tooltip is open. Use it with `onOpenChange` to control the tooltip. */
   open?: boolean;
   /** Whether the tooltip starts open, when you don't control it. */
   defaultOpen?: boolean;
-  /** Called when the tooltip opens or closes. */
-  onOpenChange?: (open: boolean) => void;
+  /** Called when the tooltip opens or closes. `details.reason` says why, and `details.cancel()` refuses the change. */
+  onOpenChange?: (open: boolean, details: TooltipOpenChangeDetails) => void;
   /** A `TooltipTrigger` and a `TooltipContent`, in that order. */
   children?: React.ReactNode;
 };
@@ -85,7 +100,7 @@ export type TooltipProps = ComponentRefusals & {
  * not a `FieldDescription` (that is a sentence a form owes you, and it stays on screen), and
  * never a place to put something you cannot say anywhere else.
  */
-export function Tooltip({ children, ...props }: TooltipProps) {
+export function Tooltip({ onOpenChange, children, ...props }: TooltipProps) {
   // THE DIRECTION CONTEXT IS NOT OPTIONAL WIRING (§20, added 2026-08-26, ultracode audit) —
   // Popover's sentence, one family member over, and the failure is identical. It carries the
   // direction `PortalScope` STAMPS on the wrapper (unprovided, a tooltip in an
@@ -99,7 +114,9 @@ export function Tooltip({ children, ...props }: TooltipProps) {
       {/* Base UI mirrors an anchored panel's side and alignment from its own direction
           context, not from CSS (§20). */}
       <DirectionProvider direction={dir.direction}>
-        <BaseTooltip.Root {...props}>{children}</BaseTooltip.Root>
+        <BaseTooltip.Root {...props} {...(onOpenChange !== undefined ? { onOpenChange: openChange(onOpenChange) } : {})}>
+          {children}
+        </BaseTooltip.Root>
       </DirectionProvider>
     </FloatingDirectionContext.Provider>
   );

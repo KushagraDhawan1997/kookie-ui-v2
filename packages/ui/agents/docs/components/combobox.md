@@ -497,7 +497,7 @@ Combobox lets people type to narrow a long list of options and then pick one.
 | `form?` | `string` | The `id` of the form that the field belongs to. |
 | `items` | `readonly (T \| ComboboxOptionGroup<T>)[]` | All the options, as a flat list or as groups (`{ value, items }`). |
 | `name?` | `string` | The name of the field when a form is submitted. |
-| `onOpenChange?` | `(open: boolean) => void` | Called when the panel opens or closes. |
+| `onOpenChange?` | `(open: boolean, details: ComboboxOpenChangeDetails) => void` | Called when the panel opens or closes. |
 | `onValueChange?` | `(value: T \| null) => void` | Called when the chosen option changes. |
 | `open?` | `boolean` | Whether the panel is open, when you control it. |
 | `readOnly?` | `boolean` | Shows and submits the value, but you can't change it. |

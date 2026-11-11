@@ -34,6 +34,8 @@ import {
   PortalScope,
   useAmbientDirection,
   SIDE_OFFSET,
+  openChange,
+  type OpenChangeDetails,
 } from "../../system/floating.tsx";
 import { CHECK_PATH } from "../../system/glyphs.ts";
 import type { Size } from "../../system/axes.ts";
@@ -129,6 +131,24 @@ const SummonedContext = React.createContext(false);
 
 /* ── Root ─────────────────────────────────────────────────────────────────────────────── */
 
+/** Why a menu, a submenu or a context menu is opening or closing. */
+export type MenuOpenChangeReason =
+  | "trigger-hover"
+  | "trigger-focus"
+  | "trigger-press"
+  | "outside-press"
+  | "focus-out"
+  | "list-navigation"
+  | "escape-key"
+  | "item-press"
+  | "close-press"
+  | "sibling-open"
+  | "cancel-open"
+  | "imperative-action"
+  | "none";
+/** The second argument to a menu's `onOpenChange`: the reason, the native event, and `cancel()`. */
+export type MenuOpenChangeDetails = OpenChangeDetails<MenuOpenChangeReason>;
+
 export type MenuProps = ComponentRefusals & {
   /** The size step of the menu. The rows, icons and text all use it. */
   size?: Size;
@@ -141,9 +161,10 @@ export type MenuProps = ComponentRefusals & {
   defaultOpen?: boolean;
   /**
    * Fires on every open and close, controlled or not, including the dismissals the menu handles
-   * itself: Escape, an outside press, and choosing a row.
+   * itself: Escape, an outside press, and choosing a row. `details.reason` says which, and
+   * `details.cancel()` refuses the change.
    */
-  onOpenChange?: (open: boolean) => void;
+  onOpenChange?: (open: boolean, details: MenuOpenChangeDetails) => void;
   /**
    * A `<MenuTrigger>` and a `<MenuContent>`. `Menu` renders no element of its own.
    */
@@ -163,7 +184,7 @@ export function Menu({ size: sizeProp, open, defaultOpen, onOpenChange, children
           <BaseMenu.Root
             {...(open !== undefined ? { open } : {})}
             {...(defaultOpen !== undefined ? { defaultOpen } : {})}
-            {...(onOpenChange !== undefined ? { onOpenChange } : {})}
+            {...(onOpenChange !== undefined ? { onOpenChange: openChange(onOpenChange) } : {})}
           >
             {children}
           </BaseMenu.Root>
@@ -745,8 +766,9 @@ export type MenuSubProps = ComponentRefusals & {
   /** Uncontrolled starting state. Mutually exclusive with `open`. */
   defaultOpen?: boolean;
   /** Fires on every open and close of this submenu, including the ones it handles itself
-      (the pointer leaving its row, Escape, choosing a row inside it). */
-  onOpenChange?: (open: boolean) => void;
+      (the pointer leaving its row, Escape, choosing a row inside it). `details.reason` says
+      which, and `details.cancel()` refuses the change. */
+  onOpenChange?: (open: boolean, details: MenuOpenChangeDetails) => void;
   /**
    * A `MenuSubTrigger` and a `MenuSubContent`. `MenuSub` renders no element of its own.
    */
@@ -767,7 +789,7 @@ export function MenuSub({ open, defaultOpen, onOpenChange, children }: MenuSubPr
     <BaseMenu.SubmenuRoot
       {...(open !== undefined ? { open } : {})}
       {...(defaultOpen !== undefined ? { defaultOpen } : {})}
-      {...(onOpenChange !== undefined ? { onOpenChange } : {})}
+      {...(onOpenChange !== undefined ? { onOpenChange: openChange(onOpenChange) } : {})}
     >
       {children}
     </BaseMenu.SubmenuRoot>
@@ -902,8 +924,9 @@ export type ContextMenuProps = ComponentRefusals & {
   open?: boolean;
   /** Uncontrolled starting state. Mutually exclusive with `open`. */
   defaultOpen?: boolean;
-  /** Fires on every open and close, including the dismissals the menu handles itself. */
-  onOpenChange?: (open: boolean) => void;
+  /** Fires on every open and close, including the dismissals the menu handles itself.
+      `details.reason` says which, and `details.cancel()` refuses the change. */
+  onOpenChange?: (open: boolean, details: MenuOpenChangeDetails) => void;
   /** A `<ContextMenuTrigger>` and a `<ContextMenuContent>`. `ContextMenu` renders no element of its own. */
   children?: React.ReactNode;
 };
@@ -927,7 +950,7 @@ export function ContextMenu({
             <BaseContextMenu.Root
               {...(open !== undefined ? { open } : {})}
               {...(defaultOpen !== undefined ? { defaultOpen } : {})}
-              {...(onOpenChange !== undefined ? { onOpenChange } : {})}
+              {...(onOpenChange !== undefined ? { onOpenChange: openChange(onOpenChange) } : {})}
             >
               {children}
             </BaseContextMenu.Root>

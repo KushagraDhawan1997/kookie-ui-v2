@@ -313,6 +313,32 @@ export type OverlayOpenChangeDetails = {
   cancel: () => void;
 };
 
+/**
+ * The same three members for a panel whose reasons are its own. Popover, Menu, Select, Combobox
+ * and Tooltip each open and close for reasons a dialog never has (a hover, a chosen row, a typed
+ * letter), so each declares its own union and shares this shape (2026-11-11: they reported only
+ * open or closed, so a guard a Dialog could write could not be written on a Popover).
+ */
+export type OpenChangeDetails<Reason extends string> = {
+  /** Why it is changing. */
+  reason: Reason;
+  /** The native event behind it. */
+  event: Event;
+  /** Refuse the change. */
+  cancel: () => void;
+};
+
+/**
+ * Base UI's details, narrowed to the three members, for any reason union. The parameter is typed
+ * with the package's union, so a reason Base UI adds upstream fails to compile here until the
+ * union names it.
+ */
+export function openChange<Reason extends string>(
+  handler: (open: boolean, details: OpenChangeDetails<Reason>) => void,
+): (open: boolean, details: { reason: Reason; event: Event; cancel: () => void }) => void {
+  return (open, details) => handler(open, { reason: details.reason, event: details.event, cancel: details.cancel });
+}
+
 /** Base UI's details, narrowed to what this package publishes. Structural, not a copy: the
     fields are read straight off the object Base UI passes, never rebuilt from a table. */
 export function overlayOpenChange(

@@ -398,7 +398,7 @@ Select is a form control that lets someone choose one option from a list.
 | `disabled?` | `boolean` | Turns off the whole control. |
 | `items?` | `Record<string, React.ReactNode>` | Maps each value to the label that the closed trigger shows. |
 | `name?` | `string` | The name of the field when a form is submitted. |
-| `onOpenChange?` | `(open: boolean) => void` | Called when the panel opens or closes. |
+| `onOpenChange?` | `(open: boolean, details: SelectOpenChangeDetails) => void` | Called when the panel opens or closes. |
 | `onValueChange?` | `(value: string \| null) => void` | Called when the chosen value changes. |
 | `open?` | `boolean` | Whether the panel is open, when you control it. |
 | `required?` | `boolean` | Makes a value necessary before the form can submit, as on a native `<select>`. |

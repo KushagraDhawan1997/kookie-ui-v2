@@ -42,7 +42,9 @@ import {
   FloatingDirectionContext,
   PortalScope,
   SIDE_OFFSET,
+  openChange,
   useAmbientDirection,
+  type OpenChangeDetails,
 } from "../../system/floating.tsx";
 import { filled, useMergedRefs } from "../../system/render.ts";
 import type { Size, SlotName } from "../../system/axes.ts";
@@ -95,6 +97,25 @@ export type ComboboxOptionGroup<T extends ComboboxOption = ComboboxOption> = {
   items: readonly T[];
 };
 
+/** Why a combobox's panel is opening or closing. */
+export type ComboboxOpenChangeReason =
+  | "trigger-press"
+  | "input-press"
+  | "outside-press"
+  | "item-press"
+  | "close-press"
+  | "escape-key"
+  | "list-navigation"
+  | "focus-out"
+  | "input-change"
+  | "input-clear"
+  | "clear-press"
+  | "chip-remove-press"
+  | "cancel-open"
+  | "none";
+/** The second argument to a combobox's `onOpenChange`: the reason, the native event, and `cancel()`. */
+export type ComboboxOpenChangeDetails = OpenChangeDetails<ComboboxOpenChangeReason>;
+
 export type ComboboxProps<T extends ComboboxOption = ComboboxOption> = ComponentRefusals & {
   /**
    * Sets the size step of the field and the panel. The rows, the icons and the text all use it.
@@ -139,8 +160,11 @@ export type ComboboxProps<T extends ComboboxOption = ComboboxOption> = Component
   open?: boolean;
   /** Whether the panel is open at the start, when the combobox controls it. Don't use it with `open`. */
   defaultOpen?: boolean;
-  /** Called when the panel opens or closes. It isn't called when the value changes. */
-  onOpenChange?: (open: boolean) => void;
+  /**
+   * Called when the panel opens or closes. It isn't called when the value changes.
+   * `details.reason` says why, and `details.cancel()` refuses the change.
+   */
+  onOpenChange?: (open: boolean, details: ComboboxOpenChangeDetails) => void;
   /** A `<ComboboxInput>` and a `<ComboboxContent>`. `Combobox` renders no element of its own. */
   children?: React.ReactNode;
 };
@@ -215,6 +239,7 @@ const sameOption = (a: unknown, b: unknown) => Object.is(optionKey(a), optionKey
 export function Combobox<T extends ComboboxOption = ComboboxOption>({
   size: sizeProp,
   onValueChange,
+  onOpenChange,
   items,
   children,
   ...props
@@ -239,6 +264,7 @@ export function Combobox<T extends ComboboxOption = ComboboxOption>({
               autoHighlight
               isItemEqualToValue={sameOption}
               {...report}
+              {...(onOpenChange !== undefined ? { onOpenChange: openChange(onOpenChange) } : {})}
               {...(props as Record<string, unknown>)}
             >
               {children}

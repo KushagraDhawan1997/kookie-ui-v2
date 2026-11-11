@@ -14,9 +14,12 @@ import {
   FloatingDirectionContext,
   PortalScope,
   SIDE_OFFSET,
+  openChange,
   useAmbientDirection,
   useCloseWarning,
   useNameWarning,
+  type OpenChangeDetails,
+  type OverlayOpenChangeReason,
 } from "../../system/floating.tsx";
 import { useLensRef } from "../../system/refraction.tsx";
 import {
@@ -40,6 +43,11 @@ import { useSize } from "../../system/size.ts";
    rest that the app can now move (2026-09-05). */
 const PopoverSizeContext = React.createContext<Size>(themeDefaults.size);
 
+/** Why a popover is opening or closing. A dialog's reasons, plus a hover or a focus on the trigger. */
+export type PopoverOpenChangeReason = OverlayOpenChangeReason | "trigger-hover" | "trigger-focus";
+/** The second argument to a popover's `onOpenChange`: the reason, the native event, and `cancel()`. */
+export type PopoverOpenChangeDetails = OpenChangeDetails<PopoverOpenChangeReason>;
+
 export type PopoverProps = ComponentRefusals & {
   /**
    * Sets the size step of the panel's padding and corner.
@@ -51,8 +59,11 @@ export type PopoverProps = ComponentRefusals & {
   open?: boolean;
   /** Uncontrolled starting state. */
   defaultOpen?: boolean;
-  /** Called when the panel opens or closes. */
-  onOpenChange?: (open: boolean) => void;
+  /**
+   * Called when the panel opens or closes. `details.reason` says why, and `details.cancel()`
+   * refuses the change.
+   */
+  onOpenChange?: (open: boolean, details: PopoverOpenChangeDetails) => void;
   /** The `PopoverTrigger` and the `PopoverContent`, in that order. The panel attaches to the
       trigger. */
   children?: React.ReactNode;
@@ -78,7 +89,7 @@ export type PopoverProps = ComponentRefusals & {
  * which side to prefer: a panel that could be placed anywhere is a panel every call site places
  * differently.
  */
-export function Popover({ size: sizeProp, children, ...props }: PopoverProps) {
+export function Popover({ size: sizeProp, onOpenChange, children, ...props }: PopoverProps) {
   const size = useSize(sizeProp);
   // THE DIRECTION CONTEXT IS NOT OPTIONAL WIRING (§20, added 2026-08-26, ultracode audit).
   // This component once provided none, so it took the context's default: a `direction` that
@@ -95,7 +106,9 @@ export function Popover({ size: sizeProp, children, ...props }: PopoverProps) {
             panel's side and alignment are mirrored there, so the provider is what makes
             `side="left"` mean the reader's left. */}
         <DirectionProvider direction={dir.direction}>
-          <BasePopover.Root {...props}>{children}</BasePopover.Root>
+          <BasePopover.Root {...props} {...(onOpenChange !== undefined ? { onOpenChange: openChange(onOpenChange) } : {})}>
+            {children}
+          </BasePopover.Root>
         </DirectionProvider>
       </FloatingDirectionContext.Provider>
     </PopoverSizeContext.Provider>

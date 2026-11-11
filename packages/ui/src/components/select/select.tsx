@@ -22,7 +22,9 @@ import {
   FloatingDirectionContext,
   PortalScope,
   SIDE_OFFSET,
+  openChange,
   useAmbientDirection,
+  type OpenChangeDetails,
 } from "../../system/floating.tsx";
 import { useMergedRefs } from "../../system/render.ts";
 import type { Size, SlotName } from "../../system/axes.ts";
@@ -39,6 +41,20 @@ import { CHECK_PATH, CHEVRON_DOWN_PATH, GLYPH_VIEWBOX } from "../../system/glyph
 const SelectSizeContext = React.createContext<Size>(themeDefaults.size);
 
 /* ── Root ─────────────────────────────────────────────────────────────────────────────── */
+
+/** Why a select's panel is opening or closing. */
+export type SelectOpenChangeReason =
+  | "trigger-press"
+  | "outside-press"
+  | "escape-key"
+  | "window-resize"
+  | "item-press"
+  | "focus-out"
+  | "list-navigation"
+  | "cancel-open"
+  | "none";
+/** The second argument to a select's `onOpenChange`: the reason, the native event, and `cancel()`. */
+export type SelectOpenChangeDetails = OpenChangeDetails<SelectOpenChangeReason>;
 
 export type SelectProps = ComponentRefusals & {
   /**
@@ -84,9 +100,10 @@ export type SelectProps = ComponentRefusals & {
   defaultOpen?: boolean;
   /**
    * Called when the panel opens or closes. It isn't called when the value changes. Use
-   * `onValueChange` for that.
+   * `onValueChange` for that. `details.reason` says why, and `details.cancel()` refuses the
+   * change.
    */
-  onOpenChange?: (open: boolean) => void;
+  onOpenChange?: (open: boolean, details: SelectOpenChangeDetails) => void;
   /**
    * A `<SelectTrigger>` and a `<SelectContent>`. `Select` renders no element of its own.
    */
@@ -110,7 +127,7 @@ export type SelectProps = ComponentRefusals & {
  */
 
 /** Renders no DOM — state and wiring only (Base UI Root, the size context, direction). */
-export function Select({ size: sizeProp, onValueChange, children, ...props }: SelectProps) {
+export function Select({ size: sizeProp, onValueChange, onOpenChange, children, ...props }: SelectProps) {
   // §28 — a Field states the whole unit's index; an explicit prop here always wins.
   const size = useSize(sizeProp);
   const dir = useAmbientDirection();
@@ -127,6 +144,7 @@ export function Select({ size: sizeProp, onValueChange, children, ...props }: Se
         <DirectionProvider direction={dir.direction}>
           <BaseSelect.Root
             {...report}
+            {...(onOpenChange !== undefined ? { onOpenChange: openChange(onOpenChange) } : {})}
             {...props}
           >
             {children}

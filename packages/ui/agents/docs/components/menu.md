@@ -524,7 +524,7 @@ Menu opens a floating list of actions from a button, such as Rename or Delete fo
 | --- | --- | --- |
 | `children?` | `React.ReactNode` | A `<MenuTrigger>` and a `<MenuContent>`. |
 | `defaultOpen?` | `boolean` | Uncontrolled starting state. |
-| `onOpenChange?` | `(open: boolean) => void` | Fires on every open and close, controlled or not, including the dismissals the menu handles itself: Escape, an outside press, and choosing a row. |
+| `onOpenChange?` | `(open: boolean, details: MenuOpenChangeDetails) => void` | Fires on every open and close, controlled or not, including the dismissals the menu handles itself: Escape, an outside press, and choosing a row. |
 | `open?` | `boolean` | Controls whether the menu is open. |
 | `size?` | `"1" \| "2" \| "3" \| "4"` | The size step of the menu. |
 
@@ -658,7 +658,7 @@ Wraps a submenu's trigger row and panel. It renders no element of its own
 | --- | --- | --- |
 | `children?` | `React.ReactNode` | A `MenuSubTrigger` and a `MenuSubContent`. |
 | `defaultOpen?` | `boolean` | Uncontrolled starting state. |
-| `onOpenChange?` | `(open: boolean) => void` | Fires on every open and close of this submenu, including the ones it handles itself (the pointer leaving its row, Escape, choosing a row inside it). |
+| `onOpenChange?` | `(open: boolean, details: MenuOpenChangeDetails) => void` | Fires on every open and close of this submenu, including the ones it handles itself (the pointer leaving its row, Escape, choosing a row inside it). |
 | `open?` | `boolean` | Controls whether this submenu is open. |
 
 #### MenuSubTrigger

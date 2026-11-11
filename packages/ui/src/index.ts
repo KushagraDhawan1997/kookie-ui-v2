@@ -38,6 +38,11 @@ export { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogDescription, D
 // was `Parameters<NonNullable<DialogProps["onOpenChange"]>>[1]`. They live on their own line
 // because they are the OVERLAY family's, not Dialog's: AlertDialog's signature names them too.
 export type { OverlayOpenChangeReason, OverlayOpenChangeDetails } from "./system/floating.tsx";
+export type { PopoverOpenChangeReason, PopoverOpenChangeDetails } from "./components/popover/popover.tsx";
+export type { MenuOpenChangeReason, MenuOpenChangeDetails } from "./components/menu/menu.tsx";
+export type { SelectOpenChangeReason, SelectOpenChangeDetails } from "./components/select/select.tsx";
+export type { ComboboxOpenChangeReason, ComboboxOpenChangeDetails } from "./components/combobox/combobox.tsx";
+export type { TooltipOpenChangeReason, TooltipOpenChangeDetails } from "./components/tooltip/tooltip.tsx";
 export { Heading, type HeadingProps } from "./components/heading/heading.tsx";
 export { Kbd, type KbdProps } from "./components/kbd/kbd.tsx";
 export { Link, type LinkProps } from "./components/link/link.tsx";

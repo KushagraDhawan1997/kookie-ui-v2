@@ -1574,9 +1574,9 @@ export const API: Record<string, ApiEntry> = {
       },
       {
         "name": "onOpenChange",
-        "type": "(open: boolean) => void",
+        "type": "(open: boolean, details: ComboboxOpenChangeDetails) => void",
         "optional": true,
-        "doc": "Called when the panel opens or closes. It isn't called when the value changes."
+        "doc": "Called when the panel opens or closes. It isn't called when the value changes. `details.reason` says why, and `details.cancel()` refuses the change."
       },
       {
         "name": "onValueChange",
@@ -2129,9 +2129,9 @@ export const API: Record<string, ApiEntry> = {
       },
       {
         "name": "onOpenChange",
-        "type": "(open: boolean) => void",
+        "type": "(open: boolean, details: MenuOpenChangeDetails) => void",
         "optional": true,
-        "doc": "Fires on every open and close, including the dismissals the menu handles itself."
+        "doc": "Fires on every open and close, including the dismissals the menu handles itself. `details.reason` says which, and `details.cancel()` refuses the change."
       },
       {
         "name": "open",
@@ -3074,9 +3074,9 @@ export const API: Record<string, ApiEntry> = {
       },
       {
         "name": "onOpenChange",
-        "type": "(open: boolean) => void",
+        "type": "(open: boolean, details: MenuOpenChangeDetails) => void",
         "optional": true,
-        "doc": "Fires on every open and close, controlled or not, including the dismissals the menu handles itself: Escape, an outside press, and choosing a row."
+        "doc": "Fires on every open and close, controlled or not, including the dismissals the menu handles itself: Escape, an outside press, and choosing a row. `details.reason` says which, and `details.cancel()` refuses the change."
       },
       {
         "name": "open",
@@ -3238,9 +3238,9 @@ export const API: Record<string, ApiEntry> = {
       },
       {
         "name": "onOpenChange",
-        "type": "(open: boolean) => void",
+        "type": "(open: boolean, details: MenuOpenChangeDetails) => void",
         "optional": true,
-        "doc": "Fires on every open and close of this submenu, including the ones it handles itself (the pointer leaving its row, Escape, choosing a row inside it)."
+        "doc": "Fires on every open and close of this submenu, including the ones it handles itself (the pointer leaving its row, Escape, choosing a row inside it). `details.reason` says which, and `details.cancel()` refuses the change."
       },
       {
         "name": "open",
@@ -4038,9 +4038,9 @@ export const API: Record<string, ApiEntry> = {
       },
       {
         "name": "onOpenChange",
-        "type": "(open: boolean) => void",
+        "type": "(open: boolean, details: PopoverOpenChangeDetails) => void",
         "optional": true,
-        "doc": "Called when the panel opens or closes."
+        "doc": "Called when the panel opens or closes. `details.reason` says why, and `details.cancel()` refuses the change."
       },
       {
         "name": "open",
@@ -4502,9 +4502,9 @@ export const API: Record<string, ApiEntry> = {
       },
       {
         "name": "onOpenChange",
-        "type": "(open: boolean) => void",
+        "type": "(open: boolean, details: SelectOpenChangeDetails) => void",
         "optional": true,
-        "doc": "Called when the panel opens or closes. It isn't called when the value changes. Use `onValueChange` for that."
+        "doc": "Called when the panel opens or closes. It isn't called when the value changes. Use `onValueChange` for that. `details.reason` says why, and `details.cancel()` refuses the change."
       },
       {
         "name": "onValueChange",
@@ -6626,9 +6626,9 @@ export const API: Record<string, ApiEntry> = {
       },
       {
         "name": "onOpenChange",
-        "type": "(open: boolean) => void",
+        "type": "(open: boolean, details: TooltipOpenChangeDetails) => void",
         "optional": true,
-        "doc": "Called when the tooltip opens or closes."
+        "doc": "Called when the tooltip opens or closes. `details.reason` says why, and `details.cancel()` refuses the change."
       },
       {
         "name": "open",

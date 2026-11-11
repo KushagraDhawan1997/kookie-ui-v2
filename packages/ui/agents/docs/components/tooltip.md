@@ -313,7 +313,7 @@ Tooltip shows the name of a control when the pointer rests on it or the control 
 | --- | --- | --- |
 | `children?` | `React.ReactNode` | A `TooltipTrigger` and a `TooltipContent`, in that order. |
 | `defaultOpen?` | `boolean` | Whether the tooltip starts open, when you don't control it. |
-| `onOpenChange?` | `(open: boolean) => void` | Called when the tooltip opens or closes. |
+| `onOpenChange?` | `(open: boolean, details: TooltipOpenChangeDetails) => void` | Called when the tooltip opens or closes. |
 | `open?` | `boolean` | Whether the tooltip is open. |
 
 #### TooltipTrigger
