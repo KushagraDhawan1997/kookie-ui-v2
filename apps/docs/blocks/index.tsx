@@ -46,6 +46,11 @@ export type BlockEntry = {
   /** File names under `apps/docs/blocks/` — the set a consumer copies, in reading order. */
   files: readonly string[];
   /**
+   * Does the usage example bring its own pane? `false` for a block whose usage is already a
+   * figure on a ground, so the page does not set it on more paper. Stated, like a demo's `pane`.
+   */
+  usagePane?: boolean;
+  /**
    * The block, running. Several of them, and the plural is the design (2026-09-01, Kushagra:
    * "each block page can feature many blocks, no? how do I think about footer, there is no
    * 'one' footer, is it?").
@@ -308,6 +313,9 @@ export const BLOCKS: readonly BlockEntry[] = [
   {
     slug: "specimen",
     title: "Specimen",
+    /* The usage example IS a specimen, a ground holding paper, so the page must not put it on
+       more paper (the package's own warning fired: a Card inside a Card). */
+    usagePane: false,
     blurb:
       "A live component and its source code, shown as one figure. If the example has more than one file, each file gets a tab. A ground holds the running component on paper, with its code below it. Thus the pair looks like one thing and its source, not like two unrelated boxes. This arrangement follows the rule of the system for grounds and objects. The surface sizes give the ground larger corners than the paper, so you do not pick a number. The code half is the full code-sample block, so it includes annotations, the copy button, line numbers and the line limit. If the example is already a panel, say so, because a card on paper is the problem that this figure avoids.",
     /* `file-tabs.tsx` joined on 2026-09-01: the code half takes tabs when a block is several

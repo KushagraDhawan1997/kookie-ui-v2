@@ -196,6 +196,7 @@ export default async function BlockPage({ params }: { params: Promise<{ slug: st
                   >
                     <Specimen
                       fill
+                      {...(block.usagePane === undefined ? {} : { pane: block.usagePane })}
                       sources={[{ code: readBlockUsageSource(block.slug), lang: "tsx" }]}
                     >
                       {await Usage()}
