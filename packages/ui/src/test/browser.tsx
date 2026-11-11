@@ -89,6 +89,7 @@ import layoutCss from "../system/layout.css?raw";
 import recipesCss from "../system/recipes.css?raw";
 import surfacesCss from "../system/surfaces.css?raw";
 import typeCss from "../system/type.css?raw";
+import useSurfaceCss from "../system/use-surface.css?raw";
 import tokensCss from "../tokens/tokens.css?raw";
 
 let installed = false;
@@ -103,6 +104,7 @@ export function installStyles(): void {
     recipesCss,
     surfacesCss,
     typeCss,
+    useSurfaceCss,
     spinnerCss,
     accordionCss,
     alertDialogCss,

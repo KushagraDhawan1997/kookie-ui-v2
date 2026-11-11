@@ -6,7 +6,9 @@
 import * as React from "react";
 import { describe, expect, it } from "vitest";
 
-import { colorOn, computed, mounted, within } from "../test/browser.tsx";
+import { userEvent } from "vitest/browser";
+
+import { colorOn, computed, holdPress, mounted, within } from "../test/browser.tsx";
 import { Button } from "../components/button/button.tsx";
 import { Card } from "../components/card/card.tsx";
 import { Text } from "../components/text/text.tsx";
@@ -104,5 +106,71 @@ describe("a loud surface on glass keeps a fill its text can stand on (2026-11-11
     const inner = within(outer, "[data-inner]");
     expect(inner.getAttribute("data-material"), "vacuity: the inner card has to be glass").toBe("g3");
     expect(computed(inner, "background-color")).toBe(computed(alone, "background-color"));
+  });
+});
+
+describe("the control family is a button's box (2026-11-11)", () => {
+  function Piece({ as = "span", children, ...options }: UseSurfaceOptions & { as?: "span" | "button"; children?: React.ReactNode }) {
+    const surface = useSurface({ family: "control", ...options });
+    const Tag = as;
+    return (
+      <Tag data-piece {...(surface.props as object)}>
+        {surface.scope(children)}
+      </Tag>
+    );
+  }
+  const piece = (ui: React.ReactElement, theme = {}) => mounted(ui, { theme, select: "[data-piece]" });
+  const paint = (el: Element) =>
+    [computed(el, "background-color"), computed(el, "box-shadow"), computed(el, "backdrop-filter")].join(" | ");
+
+  it("at every size it is as tall as a Button and wears its corner, and `iconOnly` makes it as wide as it is tall", () => {
+    for (const size of ["1", "2", "3", "4"] as const) {
+      const button = mounted(<Button size={size}>Review</Button>, { theme: {} });
+      const pill = piece(<Piece size={size}>Review</Piece>);
+      expect(pill.getBoundingClientRect().height, `size ${size}`).toBe(button.getBoundingClientRect().height);
+      expect(computed(pill, "border-top-left-radius"), `size ${size}`).toBe(computed(button, "border-top-left-radius"));
+      expect(computed(pill, "padding-left"), `size ${size}`).toBe(computed(button, "padding-left"));
+      const dot = piece(<Piece size={size} iconOnly>14</Piece>).getBoundingClientRect();
+      expect(dot.width, `size ${size}: the mark is not a circle`).toBe(dot.height);
+      expect(dot.height, `size ${size}`).toBe(button.getBoundingClientRect().height);
+    }
+  });
+
+  it("it takes the control's fills and the control's glass, as a Button does", () => {
+    const button = mounted(<Button tone="accent" emphasis="loud" backdrop>x</Button>, { theme: { material: "3" } });
+    const el = piece(<Piece tone="accent" emphasis="loud" backdrop>x</Piece>, { material: "3" });
+    expect(el.getAttribute("data-material")).toBe("g3");
+    expect(computed(el, "background-color")).toBe(computed(button, "background-color"));
+    expect(computed(el, "color")).toBe(computed(button, "color"));
+  });
+
+  // Falsified: with use-surface.css's rules removed, the hovered and pressed fills differ from rest.
+  for (const material of ["9", "3"] as const) {
+    for (const emphasis of ["loud", "medium", "quiet"] as const) {
+      it(`a piece nobody can press stays at rest under the pointer: ${emphasis}, material ${material}`, async () => {
+        const el = piece(<Piece tone="accent" emphasis={emphasis} backdrop>Review</Piece>, { material });
+        expect(el.hasAttribute("data-static")).toBe(true);
+        expect(computed(el, "cursor")).not.toBe("pointer");
+        const rest = paint(el);
+        const release = await holdPress(el);
+        const pressed = paint(el);
+        await release();
+        const hovered = paint(el);
+        await userEvent.unhover(el);
+        expect(hovered, "it lit under the pointer").toBe(rest);
+        expect(pressed, "it pressed in").toBe(rest);
+      });
+    }
+  }
+
+  it("the same props on a real button answer the pointer, and carry no static mark", async () => {
+    const el = piece(<Piece as="button" tone="accent" emphasis="medium">Review</Piece>);
+    expect(el.hasAttribute("data-static")).toBe(false);
+    expect(computed(el, "cursor")).toBe("pointer");
+    const rest = computed(el, "background-color");
+    await userEvent.hover(el);
+    const hovered = computed(el, "background-color");
+    await userEvent.unhover(el);
+    expect(hovered, "vacuity: a pressable piece has to light").not.toBe(rest);
   });
 });

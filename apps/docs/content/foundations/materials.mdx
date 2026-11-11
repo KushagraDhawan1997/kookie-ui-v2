@@ -74,6 +74,11 @@ Spread `props` on your element, and wrap its children in `scope`, so a control i
 glass does not ask for glass a second time. The element's layout stays yours: pass your own
 `className` to the hook.
 
+An element is a panel unless you say otherwise: it takes a card's padding and corner. Set
+`family: "control"` for something the size of a button, such as the days above. It then takes a
+button's height, padding and corner, and `iconOnly` makes it as wide as it is tall. If the
+element can't be pressed, it doesn't light up under the pointer.
+
 ```tsx
 function Today({ children }: { children: React.ReactNode }) {
   const surface = useSurface({ tone: "accent", emphasis: "loud", backdrop: true });

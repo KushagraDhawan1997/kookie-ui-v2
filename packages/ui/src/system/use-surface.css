@@ -1,0 +1,47 @@
+/* useSurface, the CONTROL family (2026-11-11). An app's own element asks for a control's box:
+   its height, padding and corner for the size, its fill for the tone and the rung, its glass.
+   All of that is the control layer's and arrives with the classes the hook stamps, so this
+   sheet adds no number.
+
+   What it states is the one thing only this case has. A control answers the pointer, and the
+   element an app spreads these props on may be something nobody can press: a calendar's today
+   mark drawn as a `span`, an event in a figure. Lighting it under the pointer, pressing it in
+   and showing the button cursor would promise an action that is not there. The hook marks such
+   an element `data-static` (it is not a link, a button, a label, and carries no role and no
+   tabindex), and these rules hold it at rest. tree.css makes the same repair for a nav row
+   with nowhere to go.
+
+   Each rule mirrors the selector it stands down, so it ties on weight and wins by coming
+   later; a law reads the computed fill, cast and filter at rest, under a real hover and under
+   a real press, and asserts they are one value. */
+.kui-control[data-static] {
+  cursor: revert;
+  -webkit-user-select: revert;
+  user-select: revert;
+}
+
+@media (hover: hover) {
+  .kui-control[data-static]:hover:not([data-disabled], [data-loading], :disabled) {
+    background-color: var(--kui-ct-fill, var(--kui-ct-fill-src));
+  }
+}
+
+.kui-control[data-static]:active:not([data-disabled]):not([data-loading]) {
+  background-color: var(--kui-ct-fill, var(--kui-ct-fill-src));
+}
+
+/* The loud rung's cast presses in, and glass brightens its filter under the pointer. Both are
+   answers to the pointer too, so both are held at their resting values: the loud rung's own
+   cast, and the glass filter the control already wears. Loud glass is left out of the second
+   rule because its filter is one value in both states already. */
+.kui-control[data-static][data-emphasis="loud"]:active:not([data-disabled], [data-loading]) {
+  --kui-ct-cast: var(--kui-ct-cast-glass, var(--kui-control-chrome, none));
+}
+
+@supports (backdrop-filter: blur(1px)) {
+  @media (hover: hover) {
+    .kui-control[data-static][data-material^="g"]:not([data-emphasis="loud"]):hover:not(:where([data-disabled], :disabled)) {
+      backdrop-filter: var(--kui-lens, ) var(--kui-ct-glass-filter);
+    }
+  }
+}

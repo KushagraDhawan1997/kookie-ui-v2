@@ -123,6 +123,23 @@ function CalendarEvent({ title, time, tone, loud }: { title: string; time: strin
   );
 }
 
+// A day in the calendar's header. The `control` family gives it a button's height and round
+// corner, and `iconOnly` makes it as wide as it is tall. Today is the loud one.
+function Day({ date, today }: { date: string; today?: boolean }) {
+  const surface = useSurface({
+    family: "control",
+    iconOnly: true,
+    tone: today ? "accent" : "neutral",
+    emphasis: today ? "loud" : "quiet",
+    backdrop: true,
+  });
+  return (
+    <Box {...surface.props} {...(today ? { "aria-current": "date" } : {})}>
+      {surface.scope(date)}
+    </Box>
+  );
+}
+
 export default function Example() {
   return (
     <Theme material="3">
@@ -132,6 +149,11 @@ export default function Example() {
         style={{ minWidth: "18rem", backgroundImage: "url(/backdrop.jpg)", backgroundSize: "cover" }}
       >
         <Stack gap="2">
+          <Flex gap="2">
+            {["12", "13", "14", "15", "16"].map((date) => (
+              <Day key={date} date={date} today={date === "14"} />
+            ))}
+          </Flex>
           <CalendarEvent title="Design review" time="9:30 to 10:15" tone="accent" loud />
           <Flex gap="2">
             <Box flexGrow="1" flexBasis="0">
@@ -150,6 +172,11 @@ export default function Example() {
 Spread `props` on your element, and wrap its children in `scope`, so a control inside your
 glass does not ask for glass a second time. The element's layout stays yours: pass your own
 `className` to the hook.
+
+An element is a panel unless you say otherwise: it takes a card's padding and corner. Set
+`family: "control"` for something the size of a button, such as the days above. It then takes a
+button's height, padding and corner, and `iconOnly` makes it as wide as it is tall. If the
+element can't be pressed, it doesn't light up under the pointer.
 
 ```tsx
 function Today({ children }: { children: React.ReactNode }) {

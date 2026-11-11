@@ -19,7 +19,21 @@ import { GlassScope, useMaterial } from "../theme/theme.tsx";
  * a ground).
  */
 export type UseSurfaceOptions = {
-  /** The size step of the padding and the corner. The default is the size around it. */
+  /**
+   * Which family the element belongs to, which decides its box.
+   *
+   * `panel`, the default, is a card's box: the panel padding and the panel corner for its size.
+   * `control` is a button's box: a control's height, padding and corner for its size, so it
+   * stands level with the buttons beside it. Use it for something control-sized, such as a
+   * calendar's today mark or a one-line event.
+   */
+  family?: "panel" | "control";
+  /**
+   * For the `control` family: as wide as it is tall, with no side padding, for one glyph or a
+   * short number. It is the same word a `Button` uses.
+   */
+  iconOnly?: boolean;
+  /** The size step of the box. The default is the size around it. */
   size?: Size;
   /** What the surface means. The default is `neutral`. */
   tone?: Tone;
@@ -51,6 +65,7 @@ export type SurfaceHandle = {
     "data-tone": Tone;
     "data-emphasis": Emphasis;
     "data-material": string | undefined;
+    "data-icon-only": true | undefined;
   };
   /**
    * Wrap the element's children in this. It tells the components inside that they sit on this
@@ -75,13 +90,26 @@ export type SurfaceHandle = {
  * colour, its padding step and its corner are the system's.
  */
 export function useSurface(options: UseSurfaceOptions = {}): SurfaceHandle {
-  const { size: sizeOption, tone = "neutral", emphasis = "quiet", backdrop, className, ref } = options;
+  const { family = "panel", iconOnly, size: sizeOption, tone = "neutral", emphasis = "quiet", backdrop, className, ref } = options;
   const size = useSize(sizeOption);
   // The component's own resolution, unchanged: an explicit `backdrop` first, the region second.
   const material = useMaterial(backdrop === undefined ? undefined : { backdrop });
   const lensRef = useLensRef<HTMLElement>(material, ref);
   const clipRef = useClipWarning("surface made with useSurface");
-  const setRef = useMergedRefs(lensRef, clipRef);
+  const control = family === "control";
+  // A control answers the pointer. An element nobody can press must not, so it is marked and
+  // use-surface.css holds it at rest. Read off the element, because only the element knows:
+  // the same props go on a `button` in one app and on a `span` in the next.
+  const staticRef = React.useCallback(
+    (node: HTMLElement | null) => {
+      if (!node || !control) return;
+      const pressable = node.matches("a[href], button, label, [role], [tabindex]");
+      node.toggleAttribute("data-static", !pressable);
+    },
+    [control],
+  );
+  // A pane clips, so it warns when its content is cut off. A control does not clip.
+  const setRef = useMergedRefs(lensRef, control ? staticRef : clipRef);
   const scope = React.useCallback(
     (children: React.ReactNode) => <GlassScope material={material}>{children}</GlassScope>,
     [material],
@@ -89,12 +117,16 @@ export function useSurface(options: UseSurfaceOptions = {}): SurfaceHandle {
   return {
     props: {
       ref: setRef,
-      className: className ? `kui-surface ${className}` : "kui-surface",
+      // The control family wears the button's own classes: the control layer's glass, ring and
+      // lighting are keyed on them, and a second set of rules for "a control that is not a
+      // button" would be the same thing built twice.
+      className: [control ? "kui-control kui-button" : "kui-surface", className].filter(Boolean).join(" "),
       "data-size": size,
       "data-tone": tone,
       "data-emphasis": emphasis,
       // Absent on a solid surface, as on every component: solid is the lack of a material.
       "data-material": material === "solid" ? undefined : material,
+      "data-icon-only": control && iconOnly ? true : undefined,
     },
     scope,
   };

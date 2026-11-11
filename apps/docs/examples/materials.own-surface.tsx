@@ -23,6 +23,23 @@ function CalendarEvent({ title, time, tone, loud }: { title: string; time: strin
   );
 }
 
+// A day in the calendar's header. The `control` family gives it a button's height and round
+// corner, and `iconOnly` makes it as wide as it is tall. Today is the loud one.
+function Day({ date, today }: { date: string; today?: boolean }) {
+  const surface = useSurface({
+    family: "control",
+    iconOnly: true,
+    tone: today ? "accent" : "neutral",
+    emphasis: today ? "loud" : "quiet",
+    backdrop: true,
+  });
+  return (
+    <Box {...surface.props} {...(today ? { "aria-current": "date" } : {})}>
+      {surface.scope(date)}
+    </Box>
+  );
+}
+
 export default function Example() {
   return (
     <Theme material="3">
@@ -32,6 +49,11 @@ export default function Example() {
         style={{ minWidth: "18rem", backgroundImage: "url(/backdrop.jpg)", backgroundSize: "cover" }}
       >
         <Stack gap="2">
+          <Flex gap="2">
+            {["12", "13", "14", "15", "16"].map((date) => (
+              <Day key={date} date={date} today={date === "14"} />
+            ))}
+          </Flex>
           <CalendarEvent title="Design review" time="9:30 to 10:15" tone="accent" loud />
           <Flex gap="2">
             <Box flexGrow="1" flexBasis="0">
