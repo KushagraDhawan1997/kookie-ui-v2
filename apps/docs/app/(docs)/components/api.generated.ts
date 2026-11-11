@@ -3541,7 +3541,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "path",
         "type": "readonly T[]",
         "optional": true,
-        "doc": "The screens above the root, as values. Use it with `onPathChange` to control the path."
+        "doc": "The screens above the root, as values. Use it with `onPathChange` to control the path. Each value must be a string or a number, such as an id. A screen is told apart by its value, and two objects can't be told apart, so an object in the path keeps the previous screen's state. Keep the object in your own data and put its id in the path."
       },
       {
         "name": "root",

@@ -1,6 +1,7 @@
 "use client";
 
 import type { ComponentRefusals } from "../../system/refused.ts";
+import { DEV } from "../../system/dev.ts";
 import * as React from "react";
 
 import { CHEVRON_BACK_PATH, DISMISS_PATH, GLYPH_VIEWBOX } from "../../system/glyphs.ts";
@@ -91,7 +92,12 @@ const NavigatorContext = React.createContext<NavigatorState | null>(null);
 const LevelContext = React.createContext<number>(0);
 
 export type NavigatorProps<T> = ComponentRefusals & {
-  /** The screens above the root, as values. Use it with `onPathChange` to control the path. */
+  /**
+   * The screens above the root, as values. Use it with `onPathChange` to control the path.
+   * Each value must be a string or a number, such as an id. A screen is told apart by its value,
+   * and two objects can't be told apart, so an object in the path keeps the previous screen's
+   * state. Keep the object in your own data and put its id in the path.
+   */
   path?: readonly T[];
   /** The path to start with when the navigator controls its own path. */
   defaultPath?: readonly T[];
@@ -157,6 +163,7 @@ export function Navigator<T>({
     step = seen.step + 1;
     setSeen({ path, direction, step });
   }
+  usePathValueWarning(path);
   const titles = React.useRef<(string | undefined)[]>([]);
   const openers = React.useRef<(HTMLElement | null)[]>([]);
   const [version, setVersion] = React.useState(0);
@@ -252,6 +259,26 @@ export function Navigator<T>({
       </OutletContext.Provider>
     </NavigatorContext.Provider>
   );
+}
+
+/**
+ * A path value that is not a string or a number, said once in development. Each screen is keyed
+ * by its depth and its value as text, and every object reads as the same text, so replacing one
+ * object's screen with another's at the same depth would keep the old screen's state
+ * (2026-11-11, Kushagra: the path takes strings and numbers).
+ */
+function usePathValueWarning(path: readonly unknown[]): void {
+  const said = React.useRef(false);
+  const wrong = path.some((value) => typeof value !== "string" && typeof value !== "number");
+  React.useEffect(() => {
+    if (!DEV || !wrong || said.current) return;
+    said.current = true;
+    console.warn(
+      "[kookie-ui] A <Navigator> path holds a value that is not a string or a number. Screens " +
+        "are told apart by their value, and two objects can't be told apart, so a screen would " +
+        "keep the previous one's state. Put an id in the path and look the object up from it.",
+    );
+  }, [wrong]);
 }
 
 const OutletContext = React.createContext<React.ReactNode>(null);

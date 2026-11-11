@@ -158,6 +158,35 @@ describe("in a card, the navigator keeps to the card (2026-11-03)", () => {
   });
 });
 
+describe("the path takes strings and numbers (2026-11-11)", () => {
+  async function warningsFor(path: readonly unknown[]): Promise<string[]> {
+    const warnings: string[] = [];
+    const original = console.warn;
+    console.warn = (...args: unknown[]) => {
+      warnings.push(String(args[0]));
+    };
+    try {
+      mountedNav(
+        <Navigator<unknown>
+          path={path}
+          root={<NavigatorScreen title="Root">root</NavigatorScreen>}
+          screen={() => <NavigatorScreen title="Next">next</NavigatorScreen>}
+        />,
+      );
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+    } finally {
+      console.warn = original;
+    }
+    return warnings.filter((w) => w.includes("<Navigator> path"));
+  }
+
+  // Falsified: with the check removed, an object in the path says nothing.
+  it("an object in the path is named in development, and a string or a number is not", async () => {
+    expect((await warningsFor([{ id: "a" }])).length).toBe(1);
+    expect((await warningsFor(["settings", 2])).length).toBe(0);
+  });
+});
+
 describe("the navigator's own words can be translated (2026-11-11)", () => {
   // Falsified: with `labels` not read, the band still says "Back to Settings", "Close" and
   // "Navigation" under German labels.
