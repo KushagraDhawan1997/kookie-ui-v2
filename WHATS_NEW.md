@@ -29,7 +29,7 @@ Each day groups its changes as Major, Minor or Quiet. Major is a new product or 
 ### Quiet
 
 - **Performance budget.** Six heavy screens (a 500-row table, a long form, a 300-item menu, dialogs opened and closed 100 times, an app frame, and a glass frame) are measured in Chromium on every change, and CI fails when a count grows.
-- **Line grid.** The front-page hero sits on a 12px line grid in place of the dot grid.
+- **Line grid.** The front-page hero sits on a fine line grid in place of the dot grid.
 
 ## October 22
 

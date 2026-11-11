@@ -25,7 +25,7 @@ You can show an error in three ways. For a browser check, set `required` or anot
 
 `size` on the Field sets the size of the label, the description, the error and the control together, although a control with its own `size` keeps it. `disabled` on the Field disables the control inside it.
 
-In a group of checkboxes or radios, wrap each option in a `FieldItem`, which gives that option its own label and description. Leave at least 12 pixels between options so that each one is easy to tap; `gap="5"` on a `Stack` keeps that distance at every density.
+In a group of checkboxes or radios, wrap each option in a `FieldItem`, which gives that option its own label and description. Leave room between options so that each one is easy to tap; `gap="5"` on a `Stack` keeps enough at every density.
 
 The behaviour comes from Base UI's Field.
 

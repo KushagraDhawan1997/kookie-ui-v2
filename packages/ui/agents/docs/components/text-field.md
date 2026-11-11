@@ -18,7 +18,7 @@ Put a TextField inside a `Field` to give it a label, a description and an error 
 
 Set `aria-invalid`, or place the field in an invalid `Field`, to show an error border. `disabled` stops input and dims the field, while `readOnly` keeps the value selectable and sent with the form.
 
-The input is a real `<input>`, so the keyboard, autofill, form submission and screen readers all work as they do for any native field. On a touch screen the text is never smaller than 16 pixels, which stops the browser from zooming in when someone taps the field.
+The input is a real `<input>`, so the keyboard, autofill, form submission and screen readers all work as they do for any native field. On a touch screen the text never drops below the size at which the browser zooms in when someone taps the field.
 
 ## Not supported
 

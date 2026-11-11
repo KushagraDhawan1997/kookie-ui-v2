@@ -10,8 +10,8 @@ sets how large the words are.
 
 ## Sizes are steps
 
-A size 2 `Button` is 32 pixels tall at default density with a mouse, and 44 pixels tall with
-touch. You don't write either number, so your code stays the same when the numbers change.
+A size 2 `Button` has one height at default density with a mouse, and a taller one with touch.
+You write neither height, so your code stays the same when they change.
 
 Controls accept `"1"` to `"4"`, and `Text` and `Heading` accept `"1"` to `"9"`. There's no
 `size="2.5"` and no way to pass a length. If one screen could invent a value between two steps,
@@ -44,14 +44,14 @@ so they use a separate mark scale. A checkbox is exactly as tall as one line of 
 it, so it lines up with its label and grows when the text grows. A switch's track is one step
 larger, so its round handle is close to the size of the checkbox beside it.
 
-### Space stacked checkboxes 12 pixels apart
+### Leave room between stacked checkboxes
 
 A checkbox is small, so its tappable area extends past the box you see, to the height of a
-`Button` of the same size, up to 44 pixels. If two checkboxes sit closer than 12 pixels, the
+`Button` of the same size. If two checkboxes sit too close, the
 lower one's tappable area covers part of the upper one, and a tap on one changes the other.
 
-`gap="4"` gives 12 pixels at default density, but only 8 pixels at compact density. Use
-`gap="5"`, which is at least 12 pixels at every density.
+`gap="4"` leaves enough room at default density, but not at compact density. Use `gap="5"`,
+which leaves enough at every density.
 
 ```tsx
 <Stack gap="5">
@@ -78,15 +78,15 @@ between components stays the same, because a screen you touch often has no room 
 
 ### Minimum and default tap sizes
 
-WCAG 2.2 Success Criterion 2.5.8 (Level AA) sets a minimum target of 24 by 24 CSS pixels, and no
-control in the system is smaller. The smallest control, size 1 at compact density with a mouse,
-is exactly 24 pixels tall.
+WCAG 2.2 Success Criterion 2.5.8 (Level AA) sets a minimum target size, and no control in the
+system is smaller. The smallest control, size 1 at compact density with a mouse, is exactly
+that tall.
 
-With touch, a size 2 control at default density is 44 pixels tall. That matches Success Criterion
-2.5.5 (Level AAA) and Apple's default for iPhone and iPad, both 44 by 44. Studies of thumb use
+With touch, a size 2 control at default density matches the target size in Success Criterion
+2.5.5 (Level AAA), which is also Apple's default for iPhone and iPad. Studies of thumb use
 put a reliable target near 9 to 10 millimetres (Parhi, Karlson and Bederson, 2006). A touch
-control is smaller than 44 pixels only at size 1 or compact density, and it stays above Apple's
-28-point minimum.
+control is smaller than that default only at size 1 or compact density, and it stays above
+Apple's stated minimum.
 
 Set `coarse` on a laptop to check the touch sizes, including the larger text. To check the narrow
 layout, make the window narrow.
@@ -101,7 +101,7 @@ layout, make the window narrow.
 
 When you put a `Button` inside a `TextField`, leave its `size` off. The field sets the button's
 height from its own, so the button sits inside the field with an even gap around it. The
-button's tappable area is its own box inside the field, and it does not grow to 44 pixels.
+button's tappable area is its own box inside the field, and it does not grow to the full touch height.
 
 ```tsx
 <TextField

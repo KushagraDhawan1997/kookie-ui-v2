@@ -7,18 +7,18 @@ touch pointer, Kookie makes every control large enough to hit without you changi
 
 ## Make targets big enough to hit
 
-At size 2, a control is 44 pixels tall under a touch pointer, and no target goes below 24
-pixels, the WCAG 2.2 minimum. Body text and icons grow with the controls, while the space between
+At size 2, a control under a touch pointer is as tall as Apple's default target, and no target
+goes below the WCAG 2.2 minimum. Body text and icons grow with the controls, while the space between
 components stays the same. The [Scale](/foundations/scale) page lists every value.
 
 A checkbox, a radio button or a switch draws a small box, so its tappable area extends past what
-you see, out to the height of a button of the same size. Leave at least 12 pixels between two of
+you see, out to the height of a button of the same size. Leave `gap="5"` between two of
 them in a list, so a tap on one never lands on the next.
 
 ## Keep text fields from zooming
 
-Text in a field is at least 16 pixels under a touch pointer, because Safari on iPhone and iPad
-zooms the page when someone taps a field with smaller text. The label and the box keep their
+Under a touch pointer, text in a field never drops below the size at which Safari on iPhone and
+iPad zooms the page when someone taps the field. The label and the box keep their
 sizes.
 
 ## Don't depend on hover

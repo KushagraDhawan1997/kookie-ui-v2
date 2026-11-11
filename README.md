@@ -4,7 +4,7 @@ Kookie UI is a design system. A component library gives you parts and leaves the
 you. Kookie UI is the decisions: the rules, the patterns and the reason for each one. The
 components are how those decisions reach your screen.
 
-Some design questions have measured answers. A fingertip needs a target of about 44 pixels, text
+Some design questions have measured answers. A fingertip needs a target large enough to hit, text
 needs enough contrast to read, and people group things that sit close together. Kookie UI applies
 these answers on every screen, and no prop can override them. Every other question is a judgment,
 such as a corner radius or the accent colour. Kookie UI makes each judgment once, in one place, so

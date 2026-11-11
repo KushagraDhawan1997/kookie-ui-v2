@@ -9,7 +9,7 @@ size and colour rather than with bold.
 
 `Text` and `Heading` use the same nine steps in two different fonts. A step sets the font size,
 the line height and the letter spacing together. Each step is chosen by hand, because no single
-line-height ratio works at both ends of a scale that runs from 12 to 64 pixels.
+line-height ratio works at both ends of a scale that runs from a small label to a page title.
 
 `<Text size="6">` and `<Heading size="6">` are the same size and differ only in font and default
 weight. Button labels use the same scale, which keeps a button and the text beside it in step.
@@ -65,11 +65,11 @@ symbols such as ⌘, and every platform shows shortcuts in its interface font.
 Two things change, for two different reasons:
 
 - **Reading sizes grow with touch input:** When the primary input is a finger, steps 1 to 4 each
-  move up one step, so body text goes from 16 to 18 pixels. A screen you touch is usually held
+  move up one step, so body text gets one step larger. A screen you touch is usually held
   closer than a screen you use with a mouse. Apple uses one text size table for iPhone and iPad.
 - **Display sizes shrink in a narrow window:** When the window is 48rem wide or less, steps 8 and
-  9 each move down one step, so a page title goes from 64 to 44 pixels. A 64-pixel title in a
-  375-pixel window fits about ten characters on a line.
+  9 each move down one step, so a page title gets smaller. At its full size, a title on a phone
+  fits about ten characters on a line.
 
 Each rule moves only its own steps, so the two never conflict when both apply. Because a step can
 resolve to different sizes, don't build a layout on a pixel value you measured from one step.

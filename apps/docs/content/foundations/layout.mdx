@@ -62,17 +62,17 @@ For a CSS property that has no prop, use `style`. It's applied last, so it wins.
 ## Spacing tokens and density
 
 The raw scale runs from `--space-1` to `--space-12`. Its steps are close together at the small
-end and grow much faster at the large end. You can see the difference between 8 and 12 pixels,
-but not between 96 and 100, because the eye notices a change in size in proportion to the size.
+end and grow much faster at the large end. You can see the difference between two small gaps a
+little apart, but not between two large gaps the same distance apart, because the eye notices a change in size in proportion to the size.
 
 The layout scale, `--layout-space-1` to `--layout-space-12`, sits on top of the raw scale and
 changes with density. `gap`, the `p` and `m` props, and the padding inside a card all use it. So
-`gap="4"` means step 4 at the current density, rather than a fixed 12 pixels.
+`gap="4"` means step 4 at the current density, rather than a fixed length.
 
 ```css
 /* gap="4" and p="4" read the layout scale. */
---layout-space-4: var(--space-4); /* default density: 12 pixels */
---layout-space-4: var(--space-3); /* compact density: 8 pixels */
+--layout-space-4: var(--space-4); /* default density */
+--layout-space-4: var(--space-3); /* compact density: one step down */
 ```
 
 `density` is a `Theme` setting: `compact`, `default` or `comfortable`. Set it for the whole app,
@@ -84,7 +84,7 @@ Each density level is a hand-picked set of values, not a multiplier, so you can 
 without moving the rest. This is a judgment.
 
 Controls use the raw scale for their own padding, because their insides already change with
-density. You can also pass a CSS length, such as `gap="13px"`, and it stays visible in your file
+density. You can also pass a CSS length, such as `gap="0.8rem"`, and it stays visible in your file
 as an exception to the scale.
 
 ## Responsive values

@@ -59,7 +59,7 @@ export default function Example() {
       {/* THE APP STATES ITS OWN SCALE, and here that is the whole of the padding around the
           page. A page has no inset of its own — the measure and the walls are the frame's
           (§46) — so what holds a large title off the window's edge is the PANE's padding,
-          which is the app's index. At 3 that is 24px, the band steps with it, and the title
+          which is the app's index. At 3 it is one step roomier, the band steps with it, and the title
           lines up with the control that opens the nav. */}
       <Shell contained size="3">
         <ShellContent>
