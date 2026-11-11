@@ -1883,7 +1883,7 @@ const StackPushContext = React.createContext<(() => void) | null>(null);
  * `view`. Kookie never pushes history.
  */
 export function ShellSidebar({ collapse = "sheet", view: viewProp, defaultView, onViewChange, ...props }: ShellSidebarProps) {
-  const { store } = useShellCtx("ShellSidebar");
+  const { store, contained } = useShellCtx("ShellSidebar");
   const windowClass = useWindowClass();
   const [own, setOwn] = React.useState<ShellStackView>(defaultView ?? "sidebar");
   const view = viewProp ?? own;
@@ -1905,9 +1905,9 @@ export function ShellSidebar({ collapse = "sheet", view: viewProp, defaultView, 
   const listScroll = React.useRef(0);
   const push = React.useCallback(() => {
     opener.current = typeof document === "undefined" ? null : (document.activeElement as HTMLElement | null);
-    listScroll.current = typeof window === "undefined" ? 0 : window.scrollY;
+    listScroll.current = typeof window === "undefined" || contained ? 0 : window.scrollY;
     setView("content");
-  }, [setView]);
+  }, [setView, contained]);
   const showSidebar = React.useCallback(() => setView("sidebar"), [setView]);
 
   // Publish the stack so `ShellBack` can find it; a sheet sidebar publishes none.
@@ -1929,7 +1929,9 @@ export function ShellSidebar({ collapse = "sheet", view: viewProp, defaultView, 
     previous.current = view;
     if (!stacked || windowClass !== "narrow" || before === view) return;
     const root = store.entries.get("sidebar")?.el?.closest(".kui-shell");
-    window.scrollTo(0, view === "content" ? 0 : listScroll.current);
+    // A contained shell scrolls inside itself, so the page's scroll is not its to move: a boxed
+    // shell far down a page would otherwise jump the whole page to the top (2026-11-11).
+    if (!contained) window.scrollTo(0, view === "content" ? 0 : listScroll.current);
     if (view === "content") {
       const content = root?.querySelector<HTMLElement>(":scope > .kui-shell-content");
       const target = content?.querySelector<HTMLElement>("h1") ?? content;
@@ -1940,7 +1942,7 @@ export function ShellSidebar({ collapse = "sheet", view: viewProp, defaultView, 
     } else if (opener.current?.isConnected) {
       opener.current.focus();
     }
-  }, [view, stacked, windowClass, store]);
+  }, [view, stacked, windowClass, store, contained]);
 
   const pane = <SidePane name="sidebar" element="nav" props={props} stackView={stacked ? view : undefined} />;
   return stacked ? <StackPushContext.Provider value={push}>{pane}</StackPushContext.Provider> : pane;

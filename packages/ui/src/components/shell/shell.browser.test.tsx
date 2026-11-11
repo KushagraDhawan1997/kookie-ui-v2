@@ -5607,6 +5607,36 @@ describe("a sidebar that collapses into a stack (2026-11-03)", () => {
   });
 });
 
+describe("a contained stack leaves the page's scroll alone (2026-11-11)", () => {
+  // Falsified: with the `contained` guard removed, opening the content sends the page to its top.
+  it("opening the content of a boxed stacking shell does not scroll the window", async () => {
+    await narrow();
+    const host = mounted(
+      <div>
+        <div style={{ blockSize: "1500px" }} />
+        <Shell contained style={{ blockSize: "400px" }}>
+          <ShellSidebar aria-label="Inbox" collapse="stack">
+            <ShellNavItem>Launch plan</ShellNavItem>
+          </ShellSidebar>
+          <ShellContent>
+            <p>Message</p>
+          </ShellContent>
+        </Shell>
+      </div>,
+      { theme: {} },
+    );
+    window.scrollTo(0, 1000);
+    const before = window.scrollY;
+    expect(before, "vacuity: the page has to be scrolled for the law to mean anything").toBeGreaterThan(500);
+    const sidebar = within(host, ".kui-shell-sidebar");
+    within(host, ".kui-shell-nav-item").click();
+    expect(await until(() => sidebar.dataset.view === "content")).toBe(true);
+    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+    expect(window.scrollY).toBe(before);
+    window.scrollTo(0, 0);
+  });
+});
+
 describe("a stacked sidebar moves with the frame (2026-11-03)", () => {
   // Falsified: with the stacked arm of the push removed, the list stays put while the header
   // beside it slides.
