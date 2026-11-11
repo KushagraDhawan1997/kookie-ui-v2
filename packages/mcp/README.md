@@ -155,10 +155,10 @@ snapshot has drifted:
 | Layout props and their scales | `packages/ui/src/system/props.ts` |
 | Tokens and values | `packages/ui/src/tokens/tokens.css` |
 
-**It is not shadcn's server.** That one exists to install: its centre of gravity is an add
-command over registries of copyable source. Kookie UI is a dependency, so there is nothing to
-fetch and no install command to compose — a consumer already has the source in `node_modules`.
-What is scarce here is the boundary, not the code. So there is no add tool, no icon search
+**It has no install tool.** Some MCP servers for UI libraries exist to add copyable source to a
+project, and an add command is the right centre for them. Kookie UI is a dependency, so there is
+nothing to fetch and no install command to compose — a consumer already has the source in
+`node_modules`. What is scarce here is the boundary, not the code. So there is no add tool, no icon search
 (this package ships no icon set, on purpose), no preview URL, and one tool that reads the
 caller's own code back to them.
 

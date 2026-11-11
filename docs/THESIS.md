@@ -34,9 +34,9 @@ The library author is the one party obligated to know. The duty: **encode the re
 
 Coherence is *cheaper* than incoherence: shipping the same button twice is easier than re-deciding its weight. Incoherence is therefore not saved time — it is **re-derivation without memory**. A centerless system re-decides every choice locally, in ignorance of prior choices, and local optima don't compose. The cost is paid at assembly scale, by the uninformed builder.
 
-## 6. Why the field failed (incentives, not incompetence)
+## 6. Why coherence is rare (incentives, not incompetence)
 
-- **Centerless tools won.** shadcn's centerlessness is architectural — copy-paste means no center by construction. Tailwind's is cultural — utilities at the call site push decisions out, though a theme layer exists. Both traded coherence for adoption velocity on purpose.
+- **Tools that leave decisions at the call site spread fastest.** shadcn/ui hands you source to copy, and Tailwind hands you utilities to compose, with a theme layer beside them. Both are quick to adopt because nothing central has to be agreed first. Kookie UI takes that a level further: the decisions travel in the dependency, so one change reaches every screen.
 - **Component-thinking applied to patterns.** A sidebar is a pattern (outward coordination), not a big component (inward containment). Forcing patterns into component shape leaks — a child wrapping its *parent* in a provider is the tell of the category error.
 - **The talent is hidden and mis-selected.** Systematic designers work on private systems inside companies; the public market selects for virality, which rewards isolable, demoable craft and is blind to coherence, which is only visible at assembly.
 - **The human-factors literature was abandoned** because consumer web has no forcing function — a missed tap is cheap, so "responsiveness" degraded from *adapt to the human on this device* into *reflow without a scrollbar*: the measurable proxy replacing the goal.

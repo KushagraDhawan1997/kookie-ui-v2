@@ -330,7 +330,8 @@ two facts into one heading.
 - Wrong: "A copy-paste component collection has no centre."
 - Right: "shadcn/ui gives you source code to copy into your project."
 - Wrong: "Tools with no centre won."
-- Right: "shadcn/ui and Tailwind are both quick to adopt. Neither can hold a rule in one place."
+- Right: "shadcn/ui gives you source to copy, and Tailwind gives you utilities to compose. Kookie
+  UI keeps each rule in one place, in the package."
 
 A reader cannot check a claim about a thing you refuse to name.
 
