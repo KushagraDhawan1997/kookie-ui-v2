@@ -105,12 +105,19 @@ if (json) console.log(JSON.stringify(results, null, 2));
 else {
   for (const r of results) {
     const head = `${r.url} (${r.scheme}, ${r.step}): ${r.scopes} scope${r.scopes === 1 ? "" : "s"}`;
-    console.log(r.findings.length ? `\n${head}` : `${head}, clean`);
+    // "Clean" is a claim about what was looked at. With no scope on the page the check looked at
+    // nothing, and saying clean there made 152 of 200 docs page visits read as reviewed
+    // (2026-11-11). Say so instead; `--press`, `--next` or `--page` gives it something to read.
+    const verdict = r.scopes === 0 ? "nothing was checked here" : "clean";
+    console.log(r.findings.length ? `\n${head}` : `${head}, ${verdict}`);
     if (r.shot) console.log(`  screenshot: ${r.shot}`);
     for (const f of r.findings) console.log(`  ${f.severity === "error" ? "✗" : "!"} [${f.rule}, ${f.ref}] ${f.message}`);
   }
   console.log(`\n${errors.length} error${errors.length === 1 ? "" : "s"}.`);
+  const unchecked = results.filter((r) => r.scopes === 0).length;
+  if (unchecked) console.log(`${unchecked} of ${results.length} page views had nothing to check.`);
 }
-if (!errors.length)
+// The stamp says a review happened, so a run that looked at nothing leaves none.
+if (!errors.length && results.some((r) => r.scopes > 0))
   writeFileSync(join(here, "../../.claude/.ui-reviewed"), `${new Date().toISOString()} ${urls.join(" ")}\n`);
 process.exit(errors.length ? 1 : 0);
