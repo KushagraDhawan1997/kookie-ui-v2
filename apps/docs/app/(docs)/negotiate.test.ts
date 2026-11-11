@@ -17,7 +17,7 @@ import { describe, expect, it } from "vitest";
 import { GET } from "../md/[...slug]/route";
 import { PAGES, markdownFor } from "./markdown";
 import { alternateLink, markdownRoute, prefersMarkdown } from "./negotiate";
-import { config, middleware } from "../../middleware";
+import { config, proxy as middleware } from "../../proxy";
 
 /* Next's OWN router compiler, so the agreement arm below measures the thing that really
    decides which requests reach `middleware()` rather than this file's reading of it. The
@@ -30,7 +30,7 @@ const { pathToRegexp } = (await import(
 )) as { pathToRegexp: (source: string) => RegExp };
 
 const middlewareSource = readFileSync(
-  fileURLToPath(new URL("../../middleware.ts", import.meta.url)),
+  fileURLToPath(new URL("../../proxy.ts", import.meta.url)),
   "utf8",
 );
 
@@ -48,7 +48,7 @@ describe("the matcher covers the pages and nothing else", () => {
    */
   const patterns = (): RegExp[] => {
     const block = /export const config = \{([\s\S]*?)\n\};/.exec(middlewareSource);
-    expect(block, "no `config` object in middleware.ts").not.toBeNull();
+    expect(block, "no `config` object in proxy.ts").not.toBeNull();
     expect(block![1], "the config object declares no `matcher`").toContain("matcher:");
     // EVERY quoted string in the object, rather than a second regex that tries to find the
     // array's closing bracket: a matcher entry contains `]` — `[^/.]+` — so a bracket scan

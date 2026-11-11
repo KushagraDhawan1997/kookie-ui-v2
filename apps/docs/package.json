@@ -7,7 +7,7 @@
     "dev": "next dev --port 1403",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint app blocks examples mdx-components.tsx mdx-plugins middleware.ts next.config.ts scripts && tsc -p tsconfig.json",
+    "lint": "eslint app blocks examples mdx-components.tsx mdx-plugins proxy.ts next.config.ts scripts && tsc -p tsconfig.json",
     "test": "vitest run",
     "api": "node --disable-warning=ExperimentalWarning --experimental-strip-types scripts/generate-api.ts",
     "api:check": "node --disable-warning=ExperimentalWarning --experimental-strip-types scripts/generate-api.ts --check",
