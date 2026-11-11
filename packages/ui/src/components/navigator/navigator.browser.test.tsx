@@ -158,6 +158,33 @@ describe("in a card, the navigator keeps to the card (2026-11-03)", () => {
   });
 });
 
+describe("the navigator's own words can be translated (2026-11-11)", () => {
+  // Falsified: with `labels` not read, the band still says "Back to Settings", "Close" and
+  // "Navigation" under German labels.
+  it("Back, Close and the band's name come from `labels`, and default to English", async () => {
+    mounted(
+      <Dialog defaultOpen>
+        <DialogContent>
+          <Navigator
+            root={screen("Settings")}
+            screen={screen}
+            labels={{ back: "Zurück", backTo: (title) => `Zurück zu ${title}`, close: "Schließen", navigation: "Navigation DE" }}
+          />
+        </DialogContent>
+      </Dialog>,
+      { theme: {} },
+    );
+    expect(await until(() => document.querySelector('[role="dialog"] .kui-navigator-bar') !== null)).toBe(true);
+    const bar = Array.from(document.querySelectorAll<HTMLElement>('[role="dialog"] .kui-navigator-bar')).at(-1)!;
+    expect(bar.querySelector(":scope > .kui-toolbar")!.getAttribute("aria-label")).toBe("Navigation DE");
+    expect(bar.querySelector('[aria-label="Schließen"]')).not.toBeNull();
+    expect(bar.querySelector('[aria-label="Close"]')).toBeNull();
+    bar.parentElement!.querySelector<HTMLButtonElement>(".kui-navigator-level button")!.click();
+    expect(await until(() => bar.querySelector('[aria-label="Zurück zu Settings"]') !== null)).toBe(true);
+    expect(bar.querySelector('[aria-label="Back to Settings"]')).toBeNull();
+  });
+});
+
 describe("in a dialog, only the top screen names the panel (2026-11-03)", () => {
   it("push and pop move the dialog's name, and no id is shared with a hidden screen", async () => {
     mounted(

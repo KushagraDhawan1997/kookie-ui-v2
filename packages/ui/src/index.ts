@@ -73,6 +73,7 @@ export {
   NavigatorScreen,
   useNavigator,
   type NavigatorBackProps,
+  type NavigatorLabels,
   type NavigatorLinkProps,
   type NavigatorProps,
   type NavigatorScreenProps,

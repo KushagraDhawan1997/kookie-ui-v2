@@ -606,6 +606,7 @@ Navigator is a stack of screens: any screen can open another on top of it, and B
 | `children?` | `React.ReactNode` | The frame around the screens, when you need your own: a band with actions, and a scroller holding `NavigatorOutlet`. |
 | `className?` | `string` | Your classes, appended to the ones this component resolves rather than replacing them. |
 | `defaultPath?` | `readonly T[]` | The path to start with when the navigator controls its own path. |
+| `labels?` | `NavigatorLabels` | The navigator's own words: Back, Close and the band's name. |
 | `onPathChange?` | `(path: T[]) => void` | Called with the new path whenever a screen opens or closes. |
 | `path?` | `readonly T[]` | The screens above the root, as values. |
 | `root` | `React.ReactNode` | The root screen, usually a `NavigatorScreen`. |

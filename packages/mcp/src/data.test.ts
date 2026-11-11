@@ -136,6 +136,9 @@ describe("the closed unions", () => {
       // reader sees. There is no set of legal words to check a call site against, so closing it
       // would be closing a shape rather than a union.
       "ComboboxOption",
+      // The same kind (2026-11-11): the words a Navigator says itself, which an app translates.
+      // Text, with no set of legal values.
+      "NavigatorLabels",
       // Closed unions in the package that this server does not close, because `typeAxis` only
       // reaches axes and these are per-component vocabularies. `check_usage` therefore says
       // nothing about a wrong value on these props; recorded rather than left to be

@@ -65,7 +65,27 @@ type NavigatorState = NavigatorApi<unknown> & {
   direction: "push" | "pop" | null;
   /** Counts path changes, so the band can tell one arrival from the next. */
   step: number;
+  /** The app's words for Back, Close and the band, when it gave any. */
+  labels: NavigatorLabels | undefined;
 };
+
+/**
+ * The words the navigator says itself, for an app in another language. Each one has an English
+ * default, so a navigator with no `labels` reads as it always did.
+ */
+export type NavigatorLabels = {
+  /** Back's name when the screen below has no title. The default is "Back". */
+  back?: string;
+  /** Back's name when the screen below has a title. The default is "Back to" and that title. */
+  backTo?: (title: string) => string;
+  /** The name of the Close button the navigator draws in a dialog, sheet or popover. The default is "Close". */
+  close?: string;
+  /** The name of the band the navigator draws in a dialog, sheet or popover. The default is "Navigation". */
+  navigation?: string;
+};
+
+const backLabel = (labels: NavigatorLabels | undefined, previous: string | null | undefined): string =>
+  previous ? (labels?.backTo?.(previous) ?? `Back to ${previous}`) : (labels?.back ?? "Back");
 
 const NavigatorContext = React.createContext<NavigatorState | null>(null);
 const LevelContext = React.createContext<number>(0);
@@ -81,6 +101,8 @@ export type NavigatorProps<T> = ComponentRefusals & {
   screen: (value: T) => React.ReactNode;
   /** The root screen, usually a `NavigatorScreen`. It is always at the bottom and never closes. */
   root: React.ReactNode;
+  /** The navigator's own words: Back, Close and the band's name. Set them to translate them. */
+  labels?: NavigatorLabels;
   /**
    * The frame around the screens, when you need your own: a band with actions, and a scroller
    * holding `NavigatorOutlet`. Leave it out and the navigator draws the frame for you: in a
@@ -103,6 +125,7 @@ export function Navigator<T>({
   onPathChange,
   screen,
   root,
+  labels,
   children,
   className,
   style,
@@ -171,8 +194,11 @@ export function Navigator<T>({
       },
       direction,
       step,
+      labels,
     }),
-    [path, change, version, direction, step],
+    // The four words rather than the object, so an inline `labels={{…}}` does not remake the
+    // state on every render.
+    [path, change, version, direction, step, labels?.back, labels?.backTo, labels?.close, labels?.navigation],
   );
 
   // On pop, focus goes back to the control that opened the screen that just closed.
@@ -308,7 +334,7 @@ function closeGlyph() {
 }
 
 export type NavigatorBackProps = ComponentRefusals & {
-  /** The accessible name. The default is "Back to" and the previous screen's title. */
+  /** The accessible name. The default is the navigator's `labels`, or "Back to" and the previous screen's title. */
   "aria-label"?: string;
 };
 
@@ -324,7 +350,7 @@ export function NavigatorBack(props: NavigatorBackProps) {
   return (
     <ToolbarButton
       iconOnly
-      aria-label={props["aria-label"] ?? (previous ? `Back to ${previous}` : "Back")}
+      aria-label={props["aria-label"] ?? backLabel(state.labels, previous)}
       onClick={state.pop}
     >
       {backGlyph()}
@@ -444,7 +470,7 @@ function NavigatorBar() {
         key="back"
         className="kui-navigator-back"
         iconOnly
-        aria-label={previous ? `Back to ${previous}` : "Back"}
+        aria-label={backLabel(state.labels, previous)}
         onClick={state.pop}
       >
         {backGlyph()}
@@ -456,7 +482,7 @@ function NavigatorBar() {
   const close = HostClose ? (
     <HostClose
       render={
-        <ToolbarButton iconOnly aria-label="Close">
+        <ToolbarButton iconOnly aria-label={state.labels?.close ?? "Close"}>
           {closeGlyph()}
         </ToolbarButton>
       }
@@ -469,7 +495,7 @@ function NavigatorBar() {
       className="kui-navigator-bar"
       data-direction={state.direction ?? undefined}
     >
-      <Toolbar backdrop aria-label="Navigation">
+      <Toolbar backdrop aria-label={state.labels?.navigation ?? "Navigation"}>
         {back}
         <ToolbarTitle key={`title:${shown.step}`} className="kui-navigator-title" render={heading}>
           {words}

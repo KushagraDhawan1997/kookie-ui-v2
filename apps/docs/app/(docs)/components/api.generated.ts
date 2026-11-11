@@ -3417,7 +3417,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "aria-label",
         "type": "string",
         "optional": true,
-        "doc": "The accessible name. The default is \"Back to\" and the previous screen's title."
+        "doc": "The accessible name. The default is the navigator's `labels`, or \"Back to\" and the previous screen's title."
       }
     ]
   },
@@ -3524,6 +3524,12 @@ export const API: Record<string, ApiEntry> = {
         "type": "readonly T[]",
         "optional": true,
         "doc": "The path to start with when the navigator controls its own path."
+      },
+      {
+        "name": "labels",
+        "type": "NavigatorLabels",
+        "optional": true,
+        "doc": "The navigator's own words: Back, Close and the band's name. Set them to translate them."
       },
       {
         "name": "onPathChange",
