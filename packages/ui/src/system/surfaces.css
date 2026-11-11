@@ -97,6 +97,10 @@
 }
 
 .kui-surface {
+  /* Each surface states its own veil alpha or none (the `--kui-h` trap, §12): without this
+     reset a glass card inside a loud surface would inherit the loud rung's alpha. `initial`
+     makes the name invalid here, so the material rule's fallback, the pane's alpha, applies. */
+  --kui-sf-veil-alpha: initial;
   box-sizing: border-box;
   /* The rungs publish their fills as SOURCES; the painted value reads through this chain so
      material can re-derive the fill from the same source — a fill modifier, not a fill.
@@ -1285,6 +1289,15 @@
   /* The whole type ladder collapses on a solid fill: legibility over hierarchy — the
      APCA-chosen contrast is the one colour guaranteed against this backdrop (§10, §15). */
   --color-text-faint: var(--tone-contrast);
+  /* AND ON GLASS IT STAYS A COMMITTED PIGMENT (2026-11-11). The material thins a rung's fill to
+     the pane's alpha, which suits the seal and the tint, whose text is the tone's own ink. This
+     rung sets the contrast colour, and that is only guaranteed against the solid: thinned to a
+     pane's alpha, white words stood on clear glass. No component floated a loud surface until
+     `useSurface` let an app's own element ask for one, which is how it showed. So the rung
+     states the alpha its veil keeps, the control layer's judged value for a loud button on
+     glass, and the material rule below reads it. Stated HERE, once, so no rule pairs the rung
+     with the material. */
+  --kui-sf-veil-alpha: calc(var(--glass-loud-alpha) * 100%);
 }
 
 /* ── The card-as-button pattern (§10): interactivity is the element's, not a prop ─────────────
@@ -1805,7 +1818,8 @@
 
 @supports (backdrop-filter: blur(1px)) {
   .kui-surface[data-material^="g"] {
-    --kui-sf-fill: color-mix(in srgb, var(--kui-sf-fill-src) var(--kui-m-material-alpha), transparent);
+    /* The rung may state the alpha its veil keeps (loud does, above); the rest take the pane's. */
+    --kui-sf-fill: color-mix(in srgb, var(--kui-sf-fill-src) var(--kui-sf-veil-alpha, var(--kui-m-material-alpha)), transparent);
     --kui-sf-fill-hover: color-mix(in srgb, var(--color-surface-hover) var(--kui-m-material-alpha-hover), transparent);
     --kui-sf-fill-active: color-mix(in srgb, var(--color-surface-active) var(--kui-m-material-alpha-active), transparent);
     --kui-sf-glass-filter: var(--kui-m-material-filter);

@@ -107,7 +107,7 @@ composition rather than a wrapper that re-implements it.
 
 Also exported, and not components:
 
-`useNavigator` · `useToolbarOverflow` · `useMessageScroller` · `useMessageScrollerScrollable` · `useMessageScrollerVisibility` · `useTheme` · `useMaterial` · `themeDefaults` · `themeAxes` · `useWindowClass` · `windowClassQueries` · `componentAxes` · `iconStroke` · `iconGrid` · `iconSize` · `tiers` · `tierNames`
+`useNavigator` · `useToolbarOverflow` · `useMessageScroller` · `useMessageScrollerScrollable` · `useMessageScrollerVisibility` · `useTheme` · `useMaterial` · `themeDefaults` · `themeAxes` · `useSurface` · `useWindowClass` · `windowClassQueries` · `componentAxes` · `iconStroke` · `iconGrid` · `iconSize` · `tiers` · `tierNames`
 
 ## What each component refuses
 

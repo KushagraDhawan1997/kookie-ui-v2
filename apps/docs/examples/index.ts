@@ -29,6 +29,7 @@ import QuickstartExample from "./quickstart";
 import InteractionStatesExample from "./interaction.states";
 import DepthFlatAndElevatedExample from "./depth.flat-and-elevated";
 import MaterialsStepsExample from "./materials.steps";
+import MaterialsOwnSurfaceExample from "./materials.own-surface";
 import ShapeLevelsExample from "./shape.levels";
 import TypographyRankExample from "./typography.rank";
 import ModalityUndoExample from "./modality.undo";
@@ -484,6 +485,7 @@ export const EXAMPLES: Record<string, React.ComponentType> = {
   "interaction.states": InteractionStatesExample,
   "depth.flat-and-elevated": DepthFlatAndElevatedExample,
   "materials.steps": MaterialsStepsExample,
+  "materials.own-surface": MaterialsOwnSurfaceExample,
   "shape.levels": ShapeLevelsExample,
   "typography.rank": TypographyRankExample,
   "modality.undo": ModalityUndoExample,

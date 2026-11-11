@@ -188,6 +188,7 @@ export {
   themeAxes,
   type ThemeProps,
 } from "./theme/theme.tsx";
+export { useSurface, type UseSurfaceOptions, type SurfaceHandle } from "./system/use-surface.tsx";
 export { useWindowClass, windowClassQueries, type WindowClass } from "./system/window.ts";
 export { componentAxes } from "./system/axes.ts";
 export type { Emphasis, Material, Size, Tone } from "./system/axes.ts";

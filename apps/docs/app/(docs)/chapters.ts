@@ -286,7 +286,7 @@ export const CHAPTERS: readonly Chapter[] = [
       "Decide whether your app is made of solid panels or glass. One value applies to the whole app. It has an effect only where content can pass behind a surface.",
     spec: ["§10"],
     source: "foundations/materials.mdx",
-    examples: ["materials.steps"],
+    examples: ["materials.steps", "materials.own-surface"],
     Content: Materials,
   },
   {
