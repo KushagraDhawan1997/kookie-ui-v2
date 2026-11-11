@@ -491,13 +491,16 @@ export function ToolbarButton(props: ToolbarButtonProps) {
      menu ranks by order and wording (menu.tsx says so on `MenuItem`). `tone` crosses only where
      both vocabularies agree, which is `destructive` — the one meaning a row may carry. */
   if (overflow) {
-    const { children, disabled, onClick, className, style, tone } = props as ButtonProps & {
+    const { children, disabled, onClick, className, style, tone, iconOnly, leading } = props as ButtonProps & {
       onClick?: React.MouseEventHandler<HTMLElement>;
     };
-    const words = (props as { "aria-label"?: string })["aria-label"];
+    // A button that already shows its words keeps them as the row's words, and its own leading
+    // icon as the row's. Only an icon-only button's children are artwork (2026-11-11: a text
+    // button's label was landing in the icon slot, and the row had no words).
+    const words = iconOnly ? (props as { "aria-label"?: string })["aria-label"] : children;
     return (
       <MenuItem
-        leading={children}
+        leading={iconOnly ? children : leading}
         {...(render === undefined ? {} : { render })}
         {...(disabled === undefined ? {} : { disabled })}
         {...(onClick === undefined ? {} : { onClick })}

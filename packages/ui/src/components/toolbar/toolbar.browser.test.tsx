@@ -13,7 +13,7 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { APPEARANCES, SIZES, computed, mounted, tokenOn } from "../../test/browser.tsx";
+import { APPEARANCES, SIZES, computed, mounted, tokenOn, until } from "../../test/browser.tsx";
 import type { Size } from "../../system/axes.ts";
 import { Box } from "../box/box.tsx";
 import { Flex } from "../flex/flex.tsx";
@@ -790,5 +790,33 @@ describe("a cluster sheds by rank (2026-11-03)", () => {
     expect(row.length).toBeLessThan(4);
     expect(row).toContain("Publish");
     expect(row.at(-1)).toBe("Publish");
+  });
+
+  // Falsified: with every button's children sent to `leading`, the rows hold no words.
+  it("a text button's words are the menu row's words, not its icon (2026-11-11)", async () => {
+    const root = mounted(
+      <Box style={{ inlineSize: "220px" }}>
+        <Toolbar>
+          <ToolbarOverflow>
+            <ToolbarButton>Share</ToolbarButton>
+            <ToolbarButton>Download</ToolbarButton>
+            <ToolbarButton>Duplicate</ToolbarButton>
+            <ToolbarButton iconOnly aria-label="Publish">
+              <svg data-art />
+            </ToolbarButton>
+          </ToolbarOverflow>
+        </Toolbar>
+      </Box>,
+      { theme: {} },
+    );
+    await settle();
+    root.querySelector<HTMLElement>('button[aria-label="More"]')!.click();
+    expect(await until(() => document.querySelectorAll(".kui-menu-item").length > 0)).toBe(true);
+    const rows = Array.from(document.querySelectorAll(".kui-menu-item")).slice(-3);
+    const text = rows.filter((row) => row.textContent !== "Publish");
+    expect(text.length, "vacuity: a text button has to have left the row").toBeGreaterThan(0);
+    for (const row of text) expect(row.querySelector('[data-slot="leading"]'), row.textContent ?? "").toBeNull();
+    const icon = rows.find((row) => row.textContent === "Publish");
+    expect(icon?.querySelector('[data-slot="leading"] [data-art]'), "the icon button keeps its art in the slot").not.toBeNull();
   });
 });
