@@ -93,7 +93,7 @@ import { DocsTheme } from "./theme-store";
 export const metadata: Metadata = {
   title: "Kookie UI",
   description:
-    "Base UI primitives behind a Kookie-owned API, generated OKLCH color, token-only styling.",
+    "Kookie UI is a design system: the rules, the patterns and the reason for each one, with the components that put them on your screen.",
 };
 
 /**
