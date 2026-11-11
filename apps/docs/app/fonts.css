@@ -1,20 +1,19 @@
 /**
- * The site's faces, as the three names the stylesheets read.
+ * The site's faces, as the two names the stylesheets read.
  *
  * EVERY FACE TRAVELS WITH THE REPOSITORY (2026-11-11, Kushagra). Inter and JetBrains Mono are
  * open source and arrive with `pnpm install` (`@fontsource-variable/*`, imported in
- * `layout.tsx`), so a fresh clone and the live site render the same faces. Until this date the
- * wordmark asked for PP Acma and code for PP Neue Montreal Mono, two licensed faces that may
- * not be committed to a public repository. The live site is built from the repository, so it
- * never had them and showed the fallback.
+ * `layout.tsx`), so a fresh clone and the live site render the same faces. Until this date a
+ * text wordmark asked for PP Acma and code for PP Neue Montreal Mono, two licensed faces that
+ * may not be committed to a public repository. The live site is built from the repository, so
+ * it never had them and showed the fallback. The text wordmark is gone too: the Kookie logo
+ * stands wherever it stood.
  *
  * The stacks themselves live in `globals.css`
  * (`--font-body: var(--kd-font-body), ui-sans-serif, system-ui, …`), so nothing about what a
  * fallback IS is decided here.
  */
 :root {
-  /* The wordmark is set in the reading face. */
-  --kd-font-wordmark: "Inter Variable";
   --kd-font-body: "Inter Variable";
   --kd-font-mono: "JetBrains Mono Variable";
 }

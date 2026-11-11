@@ -45,7 +45,7 @@ import {
 // way it ships no icon set, and which appearance a person chose is app state the app has to
 // persist. What the package owns is the `Theme` scope those two feed.
 import { AppearanceToggle } from "../app/appearance-toggle";
-import { Wordmark } from "../app/(docs)/wordmark";
+import { Logo } from "../app/(docs)/logo";
 
 // The package ships no icon set, so the glyphs are yours. `iconStroke` is the weight the
 // system draws its own chevrons at, so your set matches them.
@@ -83,7 +83,7 @@ export default function Example() {
             {/* The band's row is a Toolbar: it puts the mark and the button at the two ends. */}
             <Toolbar backdrop>
               <ToolbarTitle>
-                <Wordmark />
+                <Logo height="var(--line-height-7)" />
               </ToolbarTitle>
               {/* Top-aligned, not centred: the mark is a display glyph and it defines the row,
                   so centring the button would sink it below the trigger in the pane next door.

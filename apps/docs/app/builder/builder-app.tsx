@@ -61,7 +61,7 @@ import {
 } from "@kushagradhawan/kookie-ui-react";
 
 import { AppearanceToggle } from "../appearance-toggle";
-import { Wordmark } from "../(docs)/wordmark";
+import { Logo } from "../(docs)/logo";
 import {
   ArrowDownIcon,
   ArrowUpIcon,
@@ -1618,7 +1618,7 @@ export function BuilderApp() {
                 className="kd-masthead"
                 style={{ color: "inherit", textDecoration: "none" }}
               >
-                <Wordmark form="builder" />
+                <Logo height="var(--line-height-7)" />
               </Link>
             </Flex>
             {/* `marginInlineStart: auto` holds the run at the end in preview too, where the

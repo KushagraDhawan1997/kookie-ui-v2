@@ -27,7 +27,7 @@ import { TableOfContents } from "./table-of-contents";
 import { Button, Grid, Stack, iconStroke } from "@kushagradhawan/kookie-ui-react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { FolderLibraryIcon, NoInternetIcon } from "@hugeicons/core-free-icons";
-import { Wordmark } from "../app/(docs)/wordmark";
+import { Logo } from "../app/(docs)/logo";
 import {
   AskingThread,
   EmptyThread,
@@ -446,7 +446,7 @@ export const BLOCKS: readonly BlockEntry[] = [
           <Footer
             /* One step under the site's own footer mark, which carries the long form and has a
                wider column to carry it in. */
-            brand={<Wordmark size="8" />}
+            brand={<Logo height="var(--line-height-8)" />}
             groups={PRODUCT_GROUPS}
             note="© 2018 – 2026 Kookie. All rights reserved."
             legal={[
@@ -483,7 +483,7 @@ export const BLOCKS: readonly BlockEntry[] = [
                rather than a masthead — which reasons about the ROLE and ignores that it is the
                same mark in the same block at the same width, and a footer that shrinks its own
                name when it has less to say reads as two marks rather than one. */
-            brand={<Wordmark size="8" />}
+            brand={<Logo height="var(--line-height-8)" />}
             groups={[]}
             note="© 2026 Kookie"
             legal={[

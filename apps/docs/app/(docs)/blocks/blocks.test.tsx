@@ -391,9 +391,9 @@ describe("a footer with no columns is a line", () => {
     );
     /* THE MARK, NOT THE WORD. The first spelling matched the brand's text and SURVIVED its own
        sabotage: the copyright line names the same product, so dropping the brand entirely left
-       the assertion satisfied by the note beside it. `kd-wordmark` is the mark's own element and
+       the assertion satisfied by the note beside it. The logo's own drawing is the mark's element and
        the note is a plain `Text`, which is what tells the two apart. */
-    expect(line, "the mark did not come down into the row").toMatch(/class="[^"]*kd-wordmark/);
+    expect(line, "the mark did not come down into the row").toMatch(/<svg viewBox="0 0 50 66"/);
     // And it is still a footer with a legal row, or this proves only that the demo is small.
     expect(line).toMatch(/aria-label="Legal"/);
   });
@@ -404,7 +404,7 @@ describe("a footer with no columns is a line", () => {
        implementation give the same answer. */
     const columned = await markup("A mark, the columns, and a sign-off");
     expect(columned).toMatch(/kb-footer-columns/);
-    expect(columned).toMatch(/class="[^"]*kd-wordmark/);
+    expect(columned).toMatch(/<svg viewBox="0 0 50 66"/);
   });
 });
 
