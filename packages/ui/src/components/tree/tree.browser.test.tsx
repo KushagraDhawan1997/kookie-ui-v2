@@ -735,3 +735,82 @@ describe("one line per row (§33, 2026-09-14)", () => {
     });
   }
 });
+
+describe("a nav section that is also a page: the name is the link, the arrow opens it (2026-11-11)", () => {
+  const PAGES: readonly TreeNode[] = [
+    {
+      id: "guides",
+      label: "Guides",
+      href: "/guides",
+      children: [{ id: "intro", label: "Intro", href: "/guides/intro" }],
+    },
+    { id: "plain", label: "Reference", children: [{ id: "api", label: "API", href: "/api" }] },
+    { id: "about", label: "About", href: "/about" },
+  ];
+  const mountNav = (current?: string) =>
+    mounted(<NavTree items={PAGES} {...(current ? { currentId: current } : {})} />, { theme: {}, select: ".kui-tree-nav" });
+
+  // Falsified: with the split arm removed, "Guides" is a button and no link to /guides exists.
+  it("the section's link is reachable, and its arrow is a separate button named after it", () => {
+    const nav = mountNav();
+    const link = nav.querySelector<HTMLAnchorElement>('a[href="/guides"]');
+    expect(link, "the section's own page has no link").not.toBeNull();
+    expect(link!.textContent).toBe("Guides");
+    const row = link!.parentElement!;
+    const arrow = row.querySelector<HTMLButtonElement>("button[aria-expanded]")!;
+    expect(arrow, "the section has no way to open").not.toBeNull();
+    expect(link!.contains(arrow), "a link may not hold a button").toBe(false);
+    expect(document.getElementById(arrow.getAttribute("aria-labelledby")!)?.textContent).toBe("Guides");
+    expect(arrow.getAttribute("aria-expanded")).toBe("false");
+  });
+
+  it("the arrow opens and closes the section without following the link", async () => {
+    const nav = mountNav();
+    const before = location.href;
+    const arrow = nav.querySelector<HTMLButtonElement>('[data-split] button[aria-expanded]')!;
+    arrow.click();
+    expect(await until(() => nav.querySelector('a[href="/guides/intro"]') !== null)).toBe(true);
+    expect(arrow.getAttribute("aria-expanded")).toBe("true");
+    expect(location.href).toBe(before);
+    arrow.click();
+    expect(await until(() => nav.querySelector('a[href="/guides/intro"]') === null)).toBe(true);
+  });
+
+  it("a press anywhere on the row but the arrow lands on the link, and the arrow keeps its own target", () => {
+    const nav = mountNav();
+    const row = nav.querySelector<HTMLElement>("[data-split]")!;
+    const link = row.querySelector<HTMLAnchorElement>("a")!;
+    const arrow = row.querySelector<HTMLButtonElement>("button")!;
+    const box = row.getBoundingClientRect();
+    const end = document.elementFromPoint(box.right - 4, box.top + box.height / 2);
+    expect(end === link || link.contains(end), "the row's far end does not follow the link").toBe(true);
+    const a = arrow.getBoundingClientRect();
+    const at = document.elementFromPoint(a.left + a.width / 2, a.top + a.height / 2);
+    expect(at === arrow || arrow.contains(at), "the link covers the arrow").toBe(true);
+    // WCAG 2.2 SC 2.5.8: the arrow's target is the instrument's, never under the floor.
+    const target = getComputedStyle(arrow, "::after");
+    expect(parseFloat(target.width)).toBeGreaterThanOrEqual(24);
+    expect(parseFloat(target.height)).toBeGreaterThanOrEqual(24);
+  });
+
+  it("the current page is announced on the link and painted on the row", () => {
+    const nav = mountNav("guides");
+    const link = nav.querySelector<HTMLAnchorElement>('a[href="/guides"]')!;
+    expect(link.getAttribute("aria-current")).toBe("page");
+    expect(nav.querySelectorAll("[aria-current]")).toHaveLength(1);
+    const row = link.parentElement!;
+    const leaf = nav.querySelector<HTMLElement>('a[href="/about"]')!;
+    expect(getComputedStyle(link).color, "the current section reads as a resting row").not.toBe(getComputedStyle(leaf).color);
+    expect(row.getAttribute("data-emphasis")).toBe("medium");
+  });
+
+  it("a section with no link is the whole-row disclosure it always was, and rows share one height", () => {
+    const nav = mountNav();
+    const plain = [...nav.querySelectorAll<HTMLElement>("button.kui-tree-item")].find((b) => b.textContent === "Reference");
+    expect(plain, "the plain section stopped being a button").toBeDefined();
+    const split = nav.querySelector<HTMLElement>("[data-split]")!;
+    expect(split.getBoundingClientRect().height).toBeCloseTo(plain!.getBoundingClientRect().height, 0);
+    const label = (el: Element) => el.querySelector(".kui-tree-label")!.getBoundingClientRect().left;
+    expect(label(split), "the labels left their shared edge").toBeCloseTo(label(plain!), 0);
+  });
+});

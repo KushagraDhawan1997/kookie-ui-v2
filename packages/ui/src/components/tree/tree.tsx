@@ -437,7 +437,11 @@ export function Tree({
 }
 
 export type NavTreeProps = ComponentRefusals & Omit<React.ComponentPropsWithoutRef<"div">, "color" | "children"> & {
-  /** The hierarchy, as data. Leaves carry `href`; sections carry `children`. See `TreeNode`. */
+  /**
+   * The hierarchy, as data. Leaves carry `href`; sections carry `children`. A section that is
+   * also a page carries both: its name is then the link, and its arrow opens and closes it.
+   * See `TreeNode`.
+   */
   items: readonly TreeNode[];
   /**
    * Sets the size step of the rows. The default is the `size` of the nearest `Theme`, which is `2`
@@ -504,6 +508,7 @@ export function NavTree({
   };
 
   const rows = flatten(items, expanded);
+  const baseId = React.useId();
 
   return (
     <div
@@ -537,6 +542,44 @@ export function NavTree({
         // No target and no handler here: the whole section row IS the disclosure, so the
         // instrument's Finder split has no job in this member.
         const gutter = <DisclosureTarget expandable={isExpandable} expanded={isExpanded} />;
+        /**
+         * A SECTION THAT IS ALSO A PAGE (2026-11-11, Kushagra). With `children` and an `href`
+         * the row was a button that only opened and closed, and the link was dropped without a
+         * word, so a section's own page could not be reached from the tree. Now the name is the
+         * link and the arrow is a button of its own: the ARIA APG's disclosure navigation with
+         * top-level links. They are SIBLINGS in a row that is not itself pressable, because a
+         * link may not hold a button. The arrow takes its name from the label, so a screen
+         * reader hears "Guides, link" and then "Guides, button, collapsed".
+         *
+         * Keyed on `href`, not on `renderLink`: an app's `renderLink` was only ever asked about
+         * leaves, and a section with no `href` must stay the plain disclosure it was.
+         */
+        if (isExpandable && node.href !== undefined) {
+          const labelId = `${baseId}-${node.id}`;
+          const { "aria-current": current, ...row } = shared as typeof shared & { "aria-current"?: "page" };
+          const link = renderLink?.(node) ?? <a href={node.href} />;
+          return (
+            <div key={node.id} {...(row as React.ComponentPropsWithoutRef<"div">)} data-split="">
+              <button
+                type="button"
+                data-slot="leading"
+                data-expandable=""
+                className="kui-tree-toggle kui-tree-split-toggle"
+                aria-expanded={isExpanded}
+                aria-labelledby={labelId}
+                onClick={() => toggle(node.id)}
+              >
+                <DisclosureGlyph expandable expanded={isExpanded} />
+              </button>
+              {slot(node.leading, "leading")}
+              {composeRender(
+                link,
+                { className: "kui-tree-split-link", id: labelId, ...(current ? { "aria-current": current } : {}) } as never,
+                <span className="kui-tree-label">{node.label}</span>,
+              )}
+            </div>
+          );
+        }
         if (isExpandable) {
           return (
             <button

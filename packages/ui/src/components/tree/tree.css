@@ -115,6 +115,58 @@
   user-select: revert;
 }
 
+/* ── A SECTION THAT IS ALSO A PAGE (2026-11-11) ───────────────────────────────────────────────
+   The row holds two things to press: the arrow, a button, and the name, a link. The row itself
+   is a plain box wearing the row's dress, so the fill, the height and the indent are the
+   family's and nothing here is a new number.
+
+   THE LINK COVERS THE ROW through its own `::after`, so a press anywhere but the arrow follows
+   it, as it does on a leaf. The arrow stands above that cover, on the hit area the instrument's
+   disclosure already has (the rule above). */
+.kui-tree-item[data-split] {
+  position: relative;
+}
+
+.kui-tree-split-link {
+  display: flex;
+  flex: 1 1 0;
+  min-inline-size: 0;
+  color: inherit;
+  text-decoration: none;
+  outline: none;
+}
+
+.kui-tree-split-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.kui-tree-split-toggle {
+  appearance: none;
+  z-index: 1;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+/* The ring is the family's (§8), drawn on the ROW when the link has focus, so a focused section
+   reads as its siblings do, and on the arrow when the arrow has it. */
+.kui-tree-item[data-split]:has(> .kui-tree-split-link:focus-visible),
+.kui-tree-split-toggle:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.kui-tree-split-toggle:focus-visible {
+  border-radius: var(--radius-control-1);
+}
+
 /* ── The FAMILY's ink (§33) ────────────────────────────────────────────────────────────────
    ShellNavItem's pair, now shared by both members (2026-09-02, Kushagra: "lets get parity").
    Both rows stamp accent always, so the LABEL stands back down to the neutral ink — a column
@@ -136,6 +188,7 @@
 }
 
 .kui-tree .kui-tree-item[aria-current],
+.kui-tree .kui-tree-item:has(> .kui-tree-split-link[aria-current]),
 .kui-tree .kui-tree-item[aria-selected="true"] {
   --kui-ct-label-color: var(--tone-current);
 }

@@ -12,7 +12,7 @@ Job: Go. Move to another place in the app. A leaf: it does one thing.
 
 Use a NavTree for navigation that is grouped into sections, such as an app's sidebar or a list of documentation chapters. The sidebar on this site is one. When pressing a row should select it rather than go somewhere, use a Tree.
 
-A NavTree takes the same data and draws the same indent and disclosure arrow as a Tree. A node with `children` is a section, which is a button that opens and closes its pages. A node with `href` is a page, which is a real link. A node with neither is plain text, unless you provide `renderLink`.
+A NavTree takes the same data and draws the same indent and disclosure arrow as a Tree. A node with `children` is a section, which is a button that opens and closes its pages. A node with `href` is a page, which is a real link. A node with both is a section that is also a page: its name is the link, and its arrow opens and closes it. A node with neither is plain text, unless you provide `renderLink`.
 
 Set `currentId` to the id of the page that is open, and that row is highlighted and marked with `aria-current="page"`. To render each page as your router's link component, use `renderLink`.
 

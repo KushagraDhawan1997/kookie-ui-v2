@@ -3611,7 +3611,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "items",
         "type": "readonly TreeNode[]",
         "optional": false,
-        "doc": "The hierarchy, as data. Leaves carry `href`; sections carry `children`. See `TreeNode`."
+        "doc": "The hierarchy, as data. Leaves carry `href`; sections carry `children`. A section that is also a page carries both: its name is then the link, and its arrow opens and closes it. See `TreeNode`."
       },
       {
         "name": "onExpandedChange",
