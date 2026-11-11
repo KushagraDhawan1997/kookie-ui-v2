@@ -51,6 +51,7 @@ import {
   Surface,
   Toolbar,
   ToolbarGroup,
+  ToolbarTitle,
 } from "@kushagradhawan/kookie-ui-react";
 
 import { CopyButton } from "./copy-button";
@@ -411,10 +412,11 @@ A TOOLBAR, NOT A `Flex`. The row was stating the alignment, the split and the ai
           copy at the other, and the code directly under the thing that names it. */}
       <Box className="kd-figure-chrome">
         <Toolbar size="3">
-          {/* THE ATOM HUGS ITS WORD, so it is not stretched by the row it sits in. */}
-          <Box>
-            <Code size={size}>{name}</Code>
-          </Box>
+          {/* THE NAME IS THE BAND'S TITLE, IN THE CODE FACE. As plain code text in
+              the row it missed the title's air beside the copy button and could push the button
+              when it ran long. `ToolbarTitle` brings both; `render` keeps the atom, so the face
+              and the step are unchanged. */}
+          <ToolbarTitle render={<Code size={size} />}>{name}</ToolbarTitle>
           <ToolbarGroup backdrop>
             <CopyButton code={copyText} size="3" iconOnly />
           </ToolbarGroup>
