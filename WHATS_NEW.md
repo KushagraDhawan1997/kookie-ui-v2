@@ -2,6 +2,12 @@
 
 Each day groups its changes as Major, Minor or Quiet. Major is a new product or a change to what it is. Minor is a change you notice when you use it. Quiet is a small touch, or how the work is made.
 
+## November 16
+
+### Minor
+
+- **Pink docs.** The docs site opens in Kookie's pink, and the K logo is pink. The K's long stroke now runs the full height of the letter. You can still pick another accent in the theme panel.
+
 ## November 8
 
 ### Minor

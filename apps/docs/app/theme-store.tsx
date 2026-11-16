@@ -35,7 +35,8 @@ export const SITE_THEME: ThemeChoice = {
   material: "3",
   size: "2",
   pointer: themeDefaults.pointer,
-  accent: "default",
+  /* The docs site wears Kookie's pink (2026-11-16); the library's own default stays gray. */
+  accent: "pink",
 };
 
 const KEY = "kookie-docs-theme";
