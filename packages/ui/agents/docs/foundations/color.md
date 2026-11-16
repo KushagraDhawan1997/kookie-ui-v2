@@ -23,7 +23,7 @@ value for the current mode and setting.
 There's no `color` or `variant` prop. If you must set a colour yourself, use `style`, where it
 stays easy to spot in a review.
 
-## The ten colour families
+## The twelve colour families
 
 The theme generates each family from a short recipe, usually a hue and a saturation. Every
 family shares one lightness scale of twelve steps, so step 3 of red and step 3 of blue have the
@@ -34,7 +34,7 @@ yellow and does not turn olive.
 |---|---|
 | `neutral` | Text, hairlines, backgrounds and anything that has no meaning of its own. This is most of an interface. |
 | `accent` | Your brand, used at full strength once on each screen. In the default theme the accent is grey, so a loud accent button is near-black in light mode and near-white in dark mode. |
-| `blue` `green` `orange` `amber` | Colour as data: a chart series, a project label or a category, where the colour itself is the information. |
+| `blue` `purple` `pink` `green` `orange` `amber` | Colour as data: a chart series, a project label or a category, where the colour itself is the information. |
 | `destructive` | An action that removes something, and the error state. |
 | `success` `warning` `info` | Status: something worked, something needs attention, or the text adds context. |
 
@@ -144,20 +144,40 @@ uses `--color-surface`.
 
 ## Change the accent colour
 
-The accent comes from two numbers in `packages/ui/src/tokens/color-config.ts`, not from a prop:
+The accent comes from `packages/ui/src/tokens/color-config.ts`, not from a prop. Give it a hue
+and a vividness, or a hex:
 
 ```ts
 // A violet brand.
-const accent = { hue: 265, vividness: 1 } as const;
+const accent = { hue: 265, vividness: 1 };
+
+// A brand that arrives as a hex.
+const accent = { color: "#db589e" };
 ```
 
 `hue` is an angle on the OKLCH colour wheel, from 0 to 360. `vividness` runs from 0 to 1, and
-below 0.18 the accent reads as grey. From these two numbers the generator calculates every fill,
-border and text colour in both modes and both contrast settings.
+below 0.18 the accent reads as grey. A hex is read for its hue and vividness, and in light mode
+the strong fill comes out as that exact hex. From either, the generator calculates every fill,
+border and text colour in both modes and both contrast settings. The greys lean slightly toward
+the accent's hue.
 
-The accent is part of the generated stylesheet, so an app has one accent. To change it, edit the
-config, run the generator, and build the package from source:
+To change it, edit the config, run the generator, and build the package from source:
 
 ```bash
 pnpm --filter @kushagradhawan/kookie-ui-react run tokens
 ```
+
+## Colour one section
+
+A `Theme` with `accent` gives everything inside it a different accent, such as a pink panel in a
+grey app:
+
+```tsx
+<Theme accent="pink">
+  <Card>…</Card>
+</Theme>
+```
+
+`accent` takes `blue`, `purple`, `pink`, `orange`, `amber` or `green`, the macOS accent list.
+Menus and dialogs opened from inside keep the colour. To let people pick their own accent, put
+the `Theme` around the whole app and set `accent` from your own setting.
