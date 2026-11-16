@@ -141,6 +141,8 @@ export const API: Record<string, ApiEntry> = {
           "green",
           "orange",
           "amber",
+          "pink",
+          "purple",
           "success",
           "warning",
           "info"
@@ -536,6 +538,8 @@ export const API: Record<string, ApiEntry> = {
           "green",
           "orange",
           "amber",
+          "pink",
+          "purple",
           "success",
           "warning",
           "info"
@@ -605,6 +609,8 @@ export const API: Record<string, ApiEntry> = {
           "green",
           "orange",
           "amber",
+          "pink",
+          "purple",
           "success",
           "warning",
           "info"
@@ -906,6 +912,8 @@ export const API: Record<string, ApiEntry> = {
           "green",
           "orange",
           "amber",
+          "pink",
+          "purple",
           "success",
           "warning",
           "info"
@@ -1154,6 +1162,8 @@ export const API: Record<string, ApiEntry> = {
           "green",
           "orange",
           "amber",
+          "pink",
+          "purple",
           "success",
           "warning",
           "info"
@@ -1299,6 +1309,8 @@ export const API: Record<string, ApiEntry> = {
           "green",
           "orange",
           "amber",
+          "pink",
+          "purple",
           "success",
           "warning",
           "info"
@@ -2080,6 +2092,8 @@ export const API: Record<string, ApiEntry> = {
           "green",
           "orange",
           "amber",
+          "pink",
+          "purple",
           "success",
           "warning",
           "info"
@@ -2555,6 +2569,8 @@ export const API: Record<string, ApiEntry> = {
           "green",
           "orange",
           "amber",
+          "pink",
+          "purple",
           "success",
           "warning",
           "info"
@@ -2635,6 +2651,8 @@ export const API: Record<string, ApiEntry> = {
           "green",
           "orange",
           "amber",
+          "pink",
+          "purple",
           "success",
           "warning",
           "info"
@@ -2704,6 +2722,8 @@ export const API: Record<string, ApiEntry> = {
           "green",
           "orange",
           "amber",
+          "pink",
+          "purple",
           "success",
           "warning",
           "info"
@@ -2800,6 +2820,8 @@ export const API: Record<string, ApiEntry> = {
           "green",
           "orange",
           "amber",
+          "pink",
+          "purple",
           "success",
           "warning",
           "info"
@@ -3489,6 +3511,8 @@ export const API: Record<string, ApiEntry> = {
           "green",
           "orange",
           "amber",
+          "pink",
+          "purple",
           "success",
           "warning",
           "info"
@@ -3713,6 +3737,8 @@ export const API: Record<string, ApiEntry> = {
           "green",
           "orange",
           "amber",
+          "pink",
+          "purple",
           "success",
           "warning",
           "info"
@@ -4255,6 +4281,8 @@ export const API: Record<string, ApiEntry> = {
           "green",
           "orange",
           "amber",
+          "pink",
+          "purple",
           "success",
           "warning",
           "info"
@@ -5148,6 +5176,8 @@ export const API: Record<string, ApiEntry> = {
           "green",
           "orange",
           "amber",
+          "pink",
+          "purple",
           "success",
           "warning",
           "info"
@@ -5647,6 +5677,8 @@ export const API: Record<string, ApiEntry> = {
           "green",
           "orange",
           "amber",
+          "pink",
+          "purple",
           "success",
           "warning",
           "info"
@@ -6032,6 +6064,8 @@ export const API: Record<string, ApiEntry> = {
           "green",
           "orange",
           "amber",
+          "pink",
+          "purple",
           "success",
           "warning",
           "info"
@@ -6055,6 +6089,20 @@ export const API: Record<string, ApiEntry> = {
   "Theme": {
     "element": null,
     "props": [
+      {
+        "name": "accent",
+        "type": "AccentTint",
+        "values": [
+          "blue",
+          "purple",
+          "pink",
+          "orange",
+          "amber",
+          "green"
+        ],
+        "optional": true,
+        "doc": "Gives this scope its own accent colour: `blue`, `purple`, `pink`, `orange`, `amber` or `green`. Leave it unset to keep the app's accent. Set it on a nested `Theme` to colour one section, such as a pink panel inside a grey app. Every control inside uses the new colour, in light, dark and high contrast. Menus and dialogs opened from inside keep it."
+      },
       {
         "name": "appearance",
         "type": "Appearance",
@@ -6283,6 +6331,8 @@ export const API: Record<string, ApiEntry> = {
           "green",
           "orange",
           "amber",
+          "pink",
+          "purple",
           "success",
           "warning",
           "info"
@@ -6419,6 +6469,8 @@ export const API: Record<string, ApiEntry> = {
           "green",
           "orange",
           "amber",
+          "pink",
+          "purple",
           "success",
           "warning",
           "info"

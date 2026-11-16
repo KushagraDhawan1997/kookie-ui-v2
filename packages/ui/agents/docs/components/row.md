@@ -285,7 +285,7 @@ Generated from the types. It lists what this component DECLARES: a prop that arr
 | `render?` | `RenderElement` | Renders the row as a different element. |
 | `size?` | `"1" \| "2" \| "3" \| "4"` | Sets the height of the row. |
 | `style?` | `React.CSSProperties` | Inline styles, merged last, so your value wins over anything the component resolved. |
-| `tone?` | `"neutral" \| "accent" \| "destructive" \| "blue" \| "green" \| "orange" \| "amber" \| "success" \| "warning" \| "info"` | Sets the colour family of the row. |
+| `tone?` | `"neutral" \| "accent" \| "destructive" \| "blue" \| "green" \| "orange" \| "amber" \| "pink" \| "purple" \| "success" \| "warning" \| "info"` | Sets the colour family of the row. |
 | `trailing?` | `React.ReactNode` | Content at the far end of the row, such as a shortcut, a count or a chevron. |
 
 It also takes every prop of a `<button>`.

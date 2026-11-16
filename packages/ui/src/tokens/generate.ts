@@ -12,7 +12,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { generateLayoutCss } from "../system/layout-css.ts";
 import { decl, indent } from "./emit.ts";
-import { tones, undilutedTones, type ToneName } from "./color-config.ts";
+import { accentTints, tones, undilutedTones, type ToneName } from "./color-config.ts";
 import { colorDeclarations, contrastHighDeclarations } from "./color.ts";
 import {
   borderWidth,
@@ -685,6 +685,8 @@ export function generateTokens(): string {
   // world deliberately does NOT touch steps 8-9 — being fine says nothing about width.
   const narrow = moved(typeBands.narrow);
 
+  lines.push(...accentTintWorld(lines));
+
   // The NARROW band, and it carries no attribute at all — deliberately. Width is not a device
   // fact and there is nothing here to escape: a Theme pinned to `desktop` inside a 375px
   // window still has a 375px window. It sits on :root and inherits into every Theme scope,
@@ -896,6 +898,76 @@ function neutralRolesFor(tone: string): ReadonlySet<string> {
 }
 
 export { DILUTED_ROLES, WASH_ROLES, neutralRolesFor };
+
+/**
+ * ACCENT TINTS (2026-11-16, Kushagra) — SwiftUI's `.tint()` for a subtree. `<Theme
+ * accent="pink">` stamps `data-accent`, and every `--accent-*` inside it re-points at that
+ * family's own name, so a pink section in a grey app is pink at every rung, in every mode and
+ * contrast, with no second generator run: the family's names already carry the right value
+ * for whatever appearance is in scope, and `var()` resolves on the tinted element.
+ *
+ * READ BACK FROM THE EMITTED LINES, not restated. The accent names are whatever the light
+ * block declares, and the tokens DERIVED from accent (the focus ring, the selected edge, the
+ * code inks) are whatever the light and dark blocks write as `var(--accent-…)`. A derived
+ * token has to be re-declared on the tinted element because it was computed where it was
+ * declared, on the root, against the grey. One that differs by mode (the focus ring) gets a
+ * dark arm.
+ *
+ * THE TRIPLED ATTRIBUTE IS SPECIFICITY, ON PURPOSE. A Theme stamps `data-accent` beside its
+ * own appearance and contrast, and the high-contrast scopes re-declare accent rungs at up to
+ * three attributes (`[data-contrast="high"] [data-appearance="dark"]:not(…)`). At three, and
+ * last in source order, the tint wins every tie on its own element.
+ *
+ * Known edge: the dark arm matches by ancestry, so a tint inside a LIGHT Theme nested inside
+ * a dark one takes the dark ring. Every pigment rung is still right there; only the ring's
+ * pick differs.
+ */
+function accentTintWorld(emitted: readonly string[]): string[] {
+  const block = (selector: string): string[] => {
+    const start = emitted.indexOf(`${selector} {`);
+    const end = emitted.indexOf("}", start);
+    return emitted.slice(start + 1, end);
+  };
+  const parse = (l: string) => l.match(/^\s*--([\w-]+): (.*);$/);
+  const light = block(`:root, [data-appearance="light"]`).map(parse).filter((m) => m !== null);
+  const dark = block(`[data-appearance="dark"]`).map(parse).filter((m) => m !== null);
+
+  const accentNames = light.map((m) => m[1]!).filter((n) => n.startsWith("accent-"));
+  const derived = (decls: RegExpMatchArray[]) =>
+    new Map(
+      decls
+        .filter((m) => !m[1]!.startsWith("accent-") && m[2]!.includes("var(--accent-"))
+        .map((m) => [m[1]!, m[2]!] as const),
+    );
+  const lightDerived = derived(light);
+  const darkDerived = derived(dark);
+  const darkOnly = [...darkDerived].filter(([n, v]) => lightDerived.get(n) !== v);
+
+  const tint = `[data-accent][data-accent][data-accent]`;
+  const out: string[] = [
+    `${tint} {`,
+    ...[...lightDerived].map(([n, v]) => decl(n, v)),
+    "}",
+    "",
+  ];
+  if (darkOnly.length > 0) {
+    out.push(
+      `[data-appearance="dark"]${tint}, [data-appearance="dark"] ${tint} {`,
+      ...darkOnly.map(([n, v]) => decl(n, v)),
+      "}",
+      "",
+    );
+  }
+  for (const family of accentTints) {
+    out.push(
+      `[data-accent="${family}"][data-accent][data-accent] {`,
+      ...accentNames.map((n) => decl(n, `var(--${family}-${n.slice("accent-".length)})`)),
+      "}",
+      "",
+    );
+  }
+  return out;
+}
 
 function toneRoles(tone: ToneName): string[] {
   // A neutral-resolving role reads NEUTRAL's value — not `transparent`, and not its own value

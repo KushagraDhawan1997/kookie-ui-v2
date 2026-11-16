@@ -179,7 +179,7 @@ Generated from the types. It lists what this component DECLARES: a prop that arr
 | `render?` | `RenderElement` | Renders the link as a different element, such as your framework's link component or an `<a>` with `target` and `rel`. |
 | `size?` | `"1" \| "2" \| "3" \| "4" \| "5" \| "6" \| "7" \| "8" \| "9"` | The text size step, from `1` to `9`. |
 | `style?` | `React.CSSProperties` | Inline styles, merged last, so your value wins over anything the component resolved. |
-| `tone?` | `"neutral" \| "accent" \| "destructive" \| "blue" \| "green" \| "orange" \| "amber" \| "success" \| "warning" \| "info"` | The meaning of the link, which sets the colour of the text and the underline. |
+| `tone?` | `"neutral" \| "accent" \| "destructive" \| "blue" \| "green" \| "orange" \| "amber" \| "pink" \| "purple" \| "success" \| "warning" \| "info"` | The meaning of the link, which sets the colour of the text and the underline. |
 | `weight?` | `"regular" \| "medium" \| "semibold"` | The font weight, by name. |
 
 It also takes every prop of a `<a>`.

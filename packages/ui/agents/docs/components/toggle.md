@@ -342,7 +342,7 @@ Toggle is a button that stays pressed until you press it again, for things like 
 | `pressed?` | `boolean` | Whether the toggle is on. |
 | `size?` | `"1" \| "2" \| "3" \| "4"` | The size step of the toggle, from `1` to `4`. |
 | `style?` | `React.CSSProperties` | Inline styles, merged last, so your value wins over anything the component resolved. |
-| `tone?` | `"neutral" \| "accent" \| "destructive" \| "blue" \| "green" \| "orange" \| "amber" \| "success" \| "warning" \| "info"` | The meaning of the toggle's state, which sets its colour. |
+| `tone?` | `"neutral" \| "accent" \| "destructive" \| "blue" \| "green" \| "orange" \| "amber" \| "pink" \| "purple" \| "success" \| "warning" \| "info"` | The meaning of the toggle's state, which sets its colour. |
 | `trailing?` | `React.ReactNode` | The slot after the label. |
 | `value?` | `string` | The value this toggle contributes to a `ToggleGroup`. |
 

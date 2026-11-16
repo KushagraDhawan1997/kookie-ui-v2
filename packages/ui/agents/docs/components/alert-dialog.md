@@ -409,6 +409,6 @@ The button that goes ahead, always shown as the strong Button at the alert's siz
 | `disabled?` | `boolean` | Turns off the action button, such as until the person types a name to confirm. |
 | `onClick?` | `React.MouseEventHandler<HTMLButtonElement>` | Called when the action is pressed. |
 | `style?` | `React.CSSProperties` | Inline styles, merged last, so your value wins over anything the component resolved. |
-| `tone?` | `"neutral" \| "accent" \| "destructive" \| "blue" \| "green" \| "orange" \| "amber" \| "success" \| "warning" \| "info"` | Sets the colour meaning of the action button. |
+| `tone?` | `"neutral" \| "accent" \| "destructive" \| "blue" \| "green" \| "orange" \| "amber" \| "pink" \| "purple" \| "success" \| "warning" \| "info"` | Sets the colour meaning of the action button. |
 
 It also takes every prop of a `<button>`.

@@ -49,7 +49,7 @@ import {
 import { allStylesheets, block as blockIn, raw, sheet, stripped } from "../test/stylesheets.ts";
 import { generateLayoutCss } from "../system/layout-css.ts";
 import { DILUTED_ROLES, ROLES, WASH_ROLES, generateTokens } from "./generate.ts";
-import { tones, undilutedTones } from "./color-config.ts";
+import { accentTints, tones, undilutedTones } from "./color-config.ts";
 
 const css = generateTokens();
 /**
@@ -2475,5 +2475,55 @@ describe("the wash is neutral for everyone; accent gives up more (§7, §9, §11
         blue.match(new RegExp(`--tone-${role}:\\s*([^;]+);`))?.[1]?.replace("blue", "accent"),
     );
     expect(new Set(differing)).toEqual(DILUTED_ROLES);
+  });
+});
+
+describe("a section can tint its accent to a named family (§7, 2026-11-16)", () => {
+  // `<Theme accent="pink">` stamps data-accent, and the generator re-points every accent name
+  // at the family's own name of the same suffix. Read back from the light block rather than
+  // restated, so a role added to accent tomorrow is either tinted or this law says so.
+  const code = css.replace(/\/\*[\s\S]*?\*\//g, " ");
+  const lightBlock = blockIn(code, `:root, [data-appearance="light"] {`);
+  const accentNames = [...lightBlock.matchAll(/--(accent-[\w-]+):/g)].map((m) => m[1]!);
+
+  it("the tints are the macOS accent list as this table names it, and every one is a shipped family", () => {
+    expect([...accentTints]).toEqual(["blue", "purple", "pink", "orange", "amber", "green"]);
+    for (const t of accentTints) expect(Object.keys(tones)).toContain(t);
+  });
+
+  for (const family of accentTints) {
+    it(`${family}: every accent name re-points at --${family}-*, and nothing else is written`, () => {
+      const body = blockIn(code, `[data-accent="${family}"][data-accent][data-accent] {`);
+      const decls = [...body.matchAll(/--([\w-]+):\s*([^;]+);/g)].map((m) => [m[1]!, m[2]!.trim()] as const);
+      expect(decls.map(([n]) => n)).toEqual(accentNames);
+      for (const [n, v] of decls) expect(v).toBe(`var(--${family}-${n.slice("accent-".length)})`);
+    });
+  }
+
+  it("every token the root derives from accent is re-declared on the tinted element, per mode", () => {
+    // A derived token (the focus ring, the selected edge, the code inks) was computed where it
+    // was declared, against the root's accent. Without a re-declaration it stays grey inside
+    // a pink section.
+    const derived = (sel: string) =>
+      new Map(
+        [...blockIn(code, sel).matchAll(/--([\w-]+):\s*([^;]+);/g)]
+          .filter((m) => !m[1]!.startsWith("accent-") && m[2]!.includes("var(--accent-"))
+          .map((m) => [m[1]!, m[2]!.trim()] as const),
+      );
+    const light = derived(`:root, [data-appearance="light"] {`);
+    const dark = derived(`[data-appearance="dark"] {`);
+    expect(light.size).toBeGreaterThan(0);
+    const base = derived(`[data-accent][data-accent][data-accent] {`);
+    expect(base).toEqual(light);
+    const darkArm = derived(`[data-appearance="dark"][data-accent][data-accent][data-accent], [data-appearance="dark"] [data-accent][data-accent][data-accent] {`);
+    for (const [n, v] of dark) expect(darkArm.get(n) ?? base.get(n), n).toBe(v);
+  });
+
+  it("the tint blocks come after every scope that declares accent, so a tie on one element goes to the tint", () => {
+    const firstTint = code.indexOf("[data-accent][data-accent][data-accent] {");
+    const lastAccentDecl = Math.max(
+      ...[...code.matchAll(/--accent-[\w-]+:\s*(?!\s|var\(--(?:blue|purple|pink|orange|amber|green)-)/g)].map((m) => m.index!),
+    );
+    expect(firstTint).toBeGreaterThan(lastAccentDecl);
   });
 });

@@ -238,7 +238,7 @@ List shows items of text as a bulleted list or a numbered list.
 | `size?` | `"1" \| "2" \| "3" \| "4" \| "5" \| "6" \| "7" \| "8" \| "9"` | Sets the text size, from `1` to `9`. |
 | `start?` | `never` | Not available on a bulleted list, because there is no number to start from. |
 | `style?` | `React.CSSProperties` | Inline styles, merged last, so your value wins over anything the component resolved. |
-| `tone?` | `"neutral" \| "accent" \| "destructive" \| "blue" \| "green" \| "orange" \| "amber" \| "success" \| "warning" \| "info"` | Sets the colour family of the words and the markers. |
+| `tone?` | `"neutral" \| "accent" \| "destructive" \| "blue" \| "green" \| "orange" \| "amber" \| "pink" \| "purple" \| "success" \| "warning" \| "info"` | Sets the colour family of the words and the markers. |
 | `weight?` | `"regular" \| "medium" \| "semibold"` | Sets the font weight. |
 
 It also takes every prop of a `<ul>`.

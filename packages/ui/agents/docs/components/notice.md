@@ -296,7 +296,7 @@ Notice tells people about a condition that is true right now, placed above the p
 | `onDismiss?` | `() => void` | Called when the person presses the ✕ dismiss button. |
 | `size?` | `"1" \| "2" \| "3" \| "4"` | Sets the size of the notice: the padding, the corner, the text and the dismiss button. |
 | `style?` | `React.CSSProperties` | Inline styles, merged last, so your value wins over anything the component resolved. |
-| `tone?` | `"neutral" \| "accent" \| "destructive" \| "blue" \| "green" \| "orange" \| "amber" \| "success" \| "warning" \| "info"` | Sets the colour family, which tells the category of the message. |
+| `tone?` | `"neutral" \| "accent" \| "destructive" \| "blue" \| "green" \| "orange" \| "amber" \| "pink" \| "purple" \| "success" \| "warning" \| "info"` | Sets the colour family, which tells the category of the message. |
 
 ### A question
 
@@ -317,4 +317,4 @@ A question that waits for a yes or a no. It looks like a Notice, with two worded
 | `onConfirm` | `() => void` | Called when the person presses the confirm button. |
 | `size?` | `"1" \| "2" \| "3" \| "4"` | Sets the size of the padding, the corner, the buttons and the text. |
 | `style?` | `React.CSSProperties` | Inline styles, merged last, so your value wins over anything the component resolved. |
-| `tone?` | `"neutral" \| "accent" \| "destructive" \| "blue" \| "green" \| "orange" \| "amber" \| "success" \| "warning" \| "info"` | Sets the colour family of the request. |
+| `tone?` | `"neutral" \| "accent" \| "destructive" \| "blue" \| "green" \| "orange" \| "amber" \| "pink" \| "purple" \| "success" \| "warning" \| "info"` | Sets the colour family of the request. |

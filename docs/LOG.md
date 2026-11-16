@@ -8,6 +8,14 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-11-16 Accent follows Apple: one build accent, named tints, a hex allowed
+
+Kushagra asked how Apple does accent colour and what Kookie should do; pink (Kookie's brand colour, Bubblegum, hue 350) had to be available without becoming the default. Researched first: an Apple app sets one `AccentColor` at build; macOS replaces it with the user's choice unless they pick Multicolor; `.tint()` recolours a subtree; about a dozen named system colours (pink among them) each adapt to light, dark and high contrast.
+
+Decided one question at a time: pink and purple join the table (the two hues on the macOS accent list it lacked; purple is the 295 judged as violet on 2026-08-26); the accent stays fixed at build time; a hex accent is accepted, converted to hue and vividness by the existing intake; a section can tint to a named family; letting an end user pick is left to each app, which can tint the whole app from its own picker.
+
+**Rejected: a runtime hue.** It would need colour math in the browser or every scale pre-shipped. The tint gets the same result for the named families with `var()` aliases only. **Rejected: tinting to any colour.** Same reason; a hex is a build-time choice. Pink first came out at full vividness (#fd00a8, the strength blue uses); he sent it "more towards bubblegum", so pink is pinned to the logo's locked #db589e. Green looked "a little too vibrant" beside it: green and success now take Apple systemGreen's hue and light lightness, with vividness .84, the value at which the dark solid carries Apple's dark green chroma. Pinning the hex alone left dark brighter than Apple's.
+
 ## 2026-11-11 A closed menu lets go of itself: a Base UI patch
 
 Measured and written on 2026-10-23 on a branch that never merged; it landed on main on this date.

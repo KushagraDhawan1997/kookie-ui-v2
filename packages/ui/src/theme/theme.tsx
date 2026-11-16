@@ -8,6 +8,7 @@ import { CardScopeReset } from "../system/nesting.tsx";
 import { ToneScopeContext } from "../system/tone-scope.ts";
 import { MATERIALS, SIZES, glassStep, type Material, type Size } from "../system/axes.ts";
 import type { GlassStep } from "../tokens/config.ts";
+import type { AccentTint } from "../tokens/color-config.ts";
 import { DEV } from "../system/dev.ts";
 
 /**
@@ -166,6 +167,15 @@ export type ThemeProps = ThemeRefusals & RadixReflexRefusals & {
    * has its own shadow prop.
    */
   depth?: Depth;
+  /**
+   * Gives this scope its own accent colour: `blue`, `purple`, `pink`, `orange`, `amber` or
+   * `green`.
+   *
+   * Leave it unset to keep the app's accent. Set it on a nested `Theme` to colour one section,
+   * such as a pink panel inside a grey app. Every control inside uses the new colour, in light,
+   * dark and high contrast. Menus and dialogs opened from inside keep it.
+   */
+  accent?: AccentTint;
   /**
    * The content that this theme applies to. The theme renders an element to hold its attributes.
    */
@@ -358,9 +368,14 @@ export const themeDefaults: Resolved = {
  * as `:not([data-contrast="normal"])`, which only works if an unconfigured Theme stamps no
  * attribute at all — so the flag decides whether the attribute is written (§7).
  */
-type Ctx = Resolved & { contrastSet: boolean; rooted: boolean };
+type Ctx = Resolved & { contrastSet: boolean; rooted: boolean; accent: AccentTint | null };
 
-const ThemeContext = React.createContext<Ctx>({ ...themeDefaults, contrastSet: false, rooted: false });
+const ThemeContext = React.createContext<Ctx>({
+  ...themeDefaults,
+  contrastSet: false,
+  rooted: false,
+  accent: null,
+});
 
 /**
  * The resolved theme at this point in the tree: every axis, already answered.
@@ -562,10 +577,14 @@ export function Theme({ children, className, style, render, ...props }: ThemePro
   );
 
   const contrastSet = props.contrast !== undefined || parent.contrastSet;
+  // Null until some Theme chooses, like contrast: an unconfigured app stamps no attribute and
+  // keeps its build accent. Carried in context so every nested Theme, and the bare Theme a
+  // portal renders, re-stamps it, since each Theme's appearance block re-declares the accent.
+  const accent = props.accent ?? parent.accent;
 
   const ctx = React.useMemo<Ctx>(
-    () => ({ ...resolved, contrastSet, rooted: true }),
-    [resolved, contrastSet],
+    () => ({ ...resolved, contrastSet, rooted: true, accent }),
+    [resolved, contrastSet, accent],
   );
 
   // `inherit` means "whatever the nearest ancestor resolved to", so it emits no attribute of
@@ -580,6 +599,7 @@ export function Theme({ children, className, style, render, ...props }: ThemePro
     ...(contrastSet ? { "data-contrast": resolved.contrast } : {}),
     "data-pointer": resolved.pointer,
     "data-depth": resolved.depth,
+    ...(accent ? { "data-accent": accent } : {}),
   };
 
   // kui-theme makes the element a query container (§2): responsive props measure the nearest

@@ -639,7 +639,7 @@ A row that opens the next screen when pressed. It pushes its `value` onto the pa
 | `render?` | `RenderElement` | Renders the row as a different element. |
 | `size?` | `"1" \| "2" \| "3" \| "4"` | Sets the height of the row. |
 | `style?` | `React.CSSProperties` | Inline styles, merged last, so your value wins over anything the component resolved. |
-| `tone?` | `"neutral" \| "accent" \| "destructive" \| "blue" \| "green" \| "orange" \| "amber" \| "success" \| "warning" \| "info"` | Sets the colour family of the row. |
+| `tone?` | `"neutral" \| "accent" \| "destructive" \| "blue" \| "green" \| "orange" \| "amber" \| "pink" \| "purple" \| "success" \| "warning" \| "info"` | Sets the colour family of the row. |
 | `value` | `T` | The value pushed onto the path when the row is pressed. |
 
 It also takes every prop of a `<button>`.

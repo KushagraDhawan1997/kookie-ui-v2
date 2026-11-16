@@ -205,7 +205,7 @@ Generated from the types. It lists what this component DECLARES: a prop that arr
 | `render?` | `RenderElement` | Renders the text as a different element, such as a `<p>` or a `<label>`. |
 | `size?` | `"1" \| "2" \| "3" \| "4" \| "5" \| "6" \| "7" \| "8" \| "9"` | The text size step, from `1` to `9`. |
 | `style?` | `React.CSSProperties` | Inline styles, merged last, so your value wins over anything the component resolved. |
-| `tone?` | `"neutral" \| "accent" \| "destructive" \| "blue" \| "green" \| "orange" \| "amber" \| "success" \| "warning" \| "info"` | The meaning of the text, which sets its colour family, such as `destructive`. |
+| `tone?` | `"neutral" \| "accent" \| "destructive" \| "blue" \| "green" \| "orange" \| "amber" \| "pink" \| "purple" \| "success" \| "warning" \| "info"` | The meaning of the text, which sets its colour family, such as `destructive`. |
 | `weight?` | `"regular" \| "medium" \| "semibold"` | The font weight: `regular`, `medium` or `semibold`. |
 
 It also takes every prop of a `<span>`.

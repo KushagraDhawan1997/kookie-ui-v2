@@ -61,7 +61,7 @@ for the system, not a decision for the call site.
 Every legal value. A value outside these lists does not compile.
 
 - `size` — `1` · `2` · `3` · `4`
-- `tone` — `neutral` · `accent` · `destructive` · `blue` · `green` · `orange` · `amber` · `success` · `warning` · `info`
+- `tone` — `neutral` · `accent` · `destructive` · `blue` · `green` · `orange` · `amber` · `pink` · `purple` · `success` · `warning` · `info`
 - `emphasis` — `loud` · `medium` · `quiet`
 - `material` — `1` · `2` · `3` · `4` · `5` · `6` · `7` · `8` · `9`
 - `weight` — `regular` · `medium` · `semibold`

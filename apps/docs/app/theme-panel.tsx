@@ -31,14 +31,15 @@ import {
 
 import { setContrast, useAppearance, type ContrastChoice } from "./appearance";
 import { ThemeIcon } from "./icons";
-import { THEME_AXES, resetTheme, setThemeAxis, useThemeChoice, type ThemeAxisKey } from "./theme-store";
+import { ACCENTS, THEME_AXES, resetTheme, setThemeAxis, useThemeChoice, type AccentChoice, type ThemeAxisKey } from "./theme-store";
 
 /** The panel's index: a small form, one step under the frame's chrome (playground.tsx's rule). */
 const PANEL_SIZE = "2" as const;
 
 const CONTRASTS: readonly ContrastChoice[] = ["auto", "normal", "high"];
 
-const LABEL: Record<ThemeAxisKey | "contrast", string> = {
+const LABEL: Record<ThemeAxisKey | "contrast" | "accent", string> = {
+  accent: "Accent",
   size: "Size",
   density: "Density",
   radius: "Radius",
@@ -66,7 +67,7 @@ function Row({
   return (
     <>
       <Text size={PANEL_SIZE} emphasis="medium" id={id} style={{ justifySelf: "start" }}>
-        {LABEL[name as ThemeAxisKey | "contrast"]}
+        {LABEL[name as ThemeAxisKey | "contrast" | "accent"]}
       </Text>
       {name === "material" ? (
         <Slider
@@ -132,6 +133,7 @@ export function ThemePanel() {
               onChange={(next) => setThemeAxis(key, next as never)}
             />
           ))}
+          <Row name="accent" values={ACCENTS} value={choice.accent} onChange={(next) => setThemeAxis("accent", next as AccentChoice)} />
           <Row name="contrast" values={CONTRASTS} value={contrast} onChange={(next) => setContrast(next as ContrastChoice)} />
           <span />
           <Button size={PANEL_SIZE} emphasis="quiet" onClick={resetTheme}>

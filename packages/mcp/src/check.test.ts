@@ -43,7 +43,7 @@ describe("what it refuses", () => {
   });
 
   it("catches a tone the system does not have, and a weight it deliberately deleted", () => {
-    expect(rules(`<Button tone="purple" />`)).toEqual(["illegal-value:Button.tone"]);
+    expect(rules(`<Button tone="teal" />`)).toEqual(["illegal-value:Button.tone"]);
     // `bold` was refused system-wide and the token deleted with it, so this is the exact case
     // where a plausible value is wrong.
     expect(rules(`<Text weight="bold">Title</Text>`)).toEqual(["illegal-value:Text.weight"]);
