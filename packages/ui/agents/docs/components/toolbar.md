@@ -709,7 +709,7 @@ A `Button` that joins the toolbar's keyboard group, so the arrow keys reach it. 
 | `render?` | `RenderElement` | Renders the button as a different element, such as a link. |
 | `size?` | `"1" \| "2" \| "3" \| "4"` | Sets the size step of the button, from `1` to `4`. |
 | `style?` | `React.CSSProperties` | Inline styles, merged last, so your value wins over anything the component resolved. |
-| `tone?` | `"neutral" \| "accent" \| "destructive" \| "blue" \| "green" \| "orange" \| "amber" \| "success" \| "warning" \| "info"` | Sets what the action means, and the theme picks the colour. |
+| `tone?` | `"neutral" \| "accent" \| "destructive" \| "blue" \| "green" \| "orange" \| "amber" \| "pink" \| "purple" \| "success" \| "warning" \| "info"` | Sets what the action means, and the theme picks the colour. |
 | `trailing?` | `React.ReactNode` | Content after the label, such as a chevron, a count or a control. |
 
 It also takes every prop of a `<button>`.

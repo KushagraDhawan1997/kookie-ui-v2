@@ -264,6 +264,6 @@ Generated from the types. It lists what this component DECLARES: a prop that arr
 | `menuLabel` | `string` | The chevron half's name. |
 | `size?` | `"1" \| "2" \| "3" \| "4"` | Sets the size step of the button, from `1` to `4`. |
 | `style?` | `React.CSSProperties` | Inline styles, merged last, so your value wins over anything the component resolved. |
-| `tone?` | `"neutral" \| "accent" \| "destructive" \| "blue" \| "green" \| "orange" \| "amber" \| "success" \| "warning" \| "info"` | Sets what the action means, and the theme picks the colour. |
+| `tone?` | `"neutral" \| "accent" \| "destructive" \| "blue" \| "green" \| "orange" \| "amber" \| "pink" \| "purple" \| "success" \| "warning" \| "info"` | Sets what the action means, and the theme picks the colour. |
 
 It also takes every prop of a `<button>`.

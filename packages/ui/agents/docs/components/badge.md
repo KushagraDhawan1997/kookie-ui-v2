@@ -268,6 +268,6 @@ Generated from the types. It lists what this component DECLARES: a prop that arr
 | `aria-label` | `string` | The accessible name of the dot, such as "New messages". |
 | `children?` | `undefined` | No content. |
 | `size?` | `"1" \| "2" \| "3" \| "4" \| "5" \| "6" \| "7" \| "8" \| "9"` | The text size step of the badge, from `1` to `9`. |
-| `tone?` | `"neutral" \| "accent" \| "destructive" \| "blue" \| "green" \| "orange" \| "amber" \| "success" \| "warning" \| "info"` | The meaning of the badge, which sets its colour. |
+| `tone?` | `"neutral" \| "accent" \| "destructive" \| "blue" \| "green" \| "orange" \| "amber" \| "pink" \| "purple" \| "success" \| "warning" \| "info"` | The meaning of the badge, which sets its colour. |
 
 It also takes every prop of a `<span>`.

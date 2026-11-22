@@ -15,10 +15,15 @@
  * stored choice arrives after hydration — the window-class hook's own honesty.
  */
 import * as React from "react";
-import { Theme, themeAxes, themeDefaults } from "@kushagradhawan/kookie-ui-react";
+import { Theme, themeAxes, themeDefaults, type AccentTint } from "@kushagradhawan/kookie-ui-react";
 
 export type ThemeAxisKey = "density" | "radius" | "depth" | "material" | "size" | "pointer";
-export type ThemeChoice = { [K in ThemeAxisKey]: (typeof themeAxes)[K][number] };
+export type ThemeChoice = { [K in ThemeAxisKey]: (typeof themeAxes)[K][number] } & { accent: AccentChoice };
+
+/** The accent tint (2026-11-16): `default` keeps the app's built accent, anything else is
+    `<Theme accent>`. Not in `themeAxes`, because it has no default value of its own. */
+export type AccentChoice = "default" | AccentTint;
+export const ACCENTS = ["default", "blue", "purple", "pink", "orange", "amber", "green"] as const satisfies readonly AccentChoice[];
 
 export const THEME_AXES: readonly ThemeAxisKey[] = ["size", "density", "radius", "depth", "material", "pointer"];
 
@@ -30,6 +35,8 @@ export const SITE_THEME: ThemeChoice = {
   material: "3",
   size: "2",
   pointer: themeDefaults.pointer,
+  /* The docs site wears Kookie's pink (2026-11-16); the library's own default stays gray. */
+  accent: "pink",
 };
 
 const KEY = "kookie-docs-theme";
@@ -64,6 +71,7 @@ const read = (): ThemeChoice => {
       for (const key of THEME_AXES) {
         if (isValid(key, parsed[key])) (merged as Record<string, string>)[key] = parsed[key] as string;
       }
+      if ((ACCENTS as readonly string[]).includes(String(parsed.accent))) merged.accent = parsed.accent as AccentChoice;
       next = merged;
     }
   } catch {
@@ -73,7 +81,7 @@ const read = (): ThemeChoice => {
   return session;
 };
 
-export function setThemeAxis<K extends ThemeAxisKey>(key: K, value: ThemeChoice[K]) {
+export function setThemeAxis<K extends ThemeAxisKey | "accent">(key: K, value: ThemeChoice[K]) {
   session = { ...read(), [key]: value };
   try {
     globalThis.localStorage?.setItem(KEY, JSON.stringify(session));
@@ -99,9 +107,9 @@ export function useThemeChoice(): ThemeChoice {
 
 /** The root scope, reading the store. `appearance="inherit"` is the dark-SSR design (layout.tsx). */
 export function DocsTheme({ children }: { children: React.ReactNode }) {
-  const choice = useThemeChoice();
+  const { accent, ...choice } = useThemeChoice();
   return (
-    <Theme appearance="inherit" {...choice}>
+    <Theme appearance="inherit" {...choice} {...(accent === "default" ? {} : { accent })}>
       {children}
     </Theme>
   );

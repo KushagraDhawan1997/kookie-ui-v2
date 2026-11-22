@@ -176,7 +176,7 @@ describe("checking a snippet", () => {
   });
 
   it("names a tone that is not one of the system's families", () => {
-    const found = checkSnippet(`<Button tone="purple">Save</Button>`);
+    const found = checkSnippet(`<Button tone="teal">Save</Button>`);
     expect(found.map((p) => p.symbol)).toEqual(["Button.tone"]);
   });
 

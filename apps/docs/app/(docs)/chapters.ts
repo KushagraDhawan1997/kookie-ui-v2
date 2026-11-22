@@ -219,7 +219,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: "Colour",
     section: "foundations",
     blurb:
-      "Choose the meaning of a colour, and the theme picks the exact value. You get ten colour families, text colours that always stay readable, and one setting for high contrast.",
+      "Choose the meaning of a colour, and the theme picks the exact value. You get twelve colour families, text colours that always stay readable, and one setting for high contrast.",
     spec: ["§7", "§11"],
     source: "foundations/color.mdx",
     Content: Color,

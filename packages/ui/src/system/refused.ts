@@ -169,7 +169,7 @@ export const SPACING_REFUSALS = {
  */
 export const THEME_REFUSALS = {
   accentColor:
-    "Kookie UI has no `accentColor`. The accent is generated: set `accent` in the colour config and the whole palette is re-derived from it.",
+    "Kookie UI has no `accentColor`. The app's accent is generated: set `accent` in the colour config and the whole palette is re-derived from it. To colour one section, use `accent` on a nested `Theme`.",
   grayColor: "Kookie UI has no `grayColor`. The neutrals derive their hue from the accent, so there is nothing to choose here.",
   panelBackground:
     "Kookie UI has no `panelBackground`. Use `material` for translucency — a step from `\"1\"`, clear glass, to `\"9\"`, solid.",

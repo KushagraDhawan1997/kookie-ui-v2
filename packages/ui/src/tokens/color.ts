@@ -278,7 +278,7 @@ export function toneFromColor(css: string): ToneSpec {
 }
 
 /** A tone is authored either as a brand colour or, for greys, as a hue and a vividness. */
-export type ToneInput = ToneSpec | { color: string };
+export type ToneInput = ToneSpec | { color: string } | { hueOf: "accent"; vividness: number };
 
 /**
  * The GROUND resolved to a hex (§10, minted 2026-08-20), memoised the way the seal is.
@@ -525,6 +525,7 @@ export function solveInkFade(inkHex: string, mode: Mode, target: number): number
 }
 
 export function resolveTone(input: ToneInput): ToneSpec {
+  if ("hueOf" in input) return { hue: resolveTone(tones[input.hueOf]).hue, vividness: input.vividness };
   return "color" in input ? toneFromColor(input.color) : input;
 }
 

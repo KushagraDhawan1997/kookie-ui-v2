@@ -18,6 +18,7 @@ import tokensCss from "../tokens/tokens.css?raw";
 import { density, radiusLevels } from "../tokens/config.ts";
 import { DEPTHS, Theme, themeAxes, themeDefaults, useMaterial } from "./theme.tsx";
 import { Button } from "../components/button/button.tsx";
+import { Menu, MenuContent, MenuItem, MenuTrigger } from "../components/menu/menu.tsx";
 
 /** Reads through real properties: a custom property hands back its unresolved token stream. */
 const probe = <div id="probe" style={{ height: "var(--control-height-2)", borderRadius: "var(--radius-control-2)" }} />;
@@ -755,5 +756,93 @@ describe('contrast="high" needs an appearance beside it, and says so (§7)', () 
         "contrast with an ANCESTOR appearance, the appearance=\"inherit\" hole is closed — delete " +
         "`warnOnSplitContrast` in theme.tsx and the law above it, and amend the `contrast` JSDoc.",
     ).toEqual([]);
+  });
+});
+
+describe("a section tints its accent (§7, 2026-11-16)", () => {
+  // Read through the probe, so each assertion is what the browser actually computes on the
+  // tinted element, under every appearance and contrast it can sit in.
+  const ROLES = ["--accent-solid", "--accent-9", "--accent-7", "--accent-11", "--accent-label", "--accent-ink", "--accent-soft"];
+  const CONTRASTS = ["normal", "high"] as const;
+
+  for (const appearance of APPEARANCES)
+    for (const contrast of CONTRASTS) {
+      it(`a nested Theme re-points every accent role at its family, ${appearance}/${contrast}`, () => {
+        const host = render(
+          <Theme appearance={appearance} contrast={contrast}>
+            <Theme accent="pink">
+              <Button>Pink</Button>
+            </Theme>
+          </Theme>,
+        );
+        const inner = host.querySelector<HTMLElement>("[data-accent]")!;
+        expect(inner.getAttribute("data-accent")).toBe("pink");
+        for (const r of ROLES) expect(colorOn(inner, `var(${r})`), r).toBe(colorOn(inner, `var(${r.replace("--accent-", "--pink-")})`));
+        expect(colorOn(inner, "var(--accent-solid)")).not.toBe(colorOn(host, "var(--accent-solid)"));
+        const ring = appearance === "dark" ? "var(--pink-11)" : "var(--pink-solid)";
+        expect(colorOn(inner, "var(--focus-ring)")).toBe(colorOn(inner, ring));
+      });
+
+      it(`the tint wins on the element that also carries appearance and contrast, ${appearance}/${contrast}`, () => {
+        const el = render(<Theme appearance={appearance} contrast={contrast} accent="purple" />);
+        for (const r of ROLES) expect(colorOn(el, `var(${r})`), r).toBe(colorOn(el, `var(${r.replace("--accent-", "--purple-")})`));
+      });
+    }
+
+  it("a menu opened inside a tinted section keeps the tint, because the portal's Theme re-stamps it", () => {
+    render(
+      <Theme>
+        <Theme accent="pink">
+          <Menu defaultOpen>
+            <MenuTrigger render={<Button>Open</Button>} />
+            <MenuContent>
+              <MenuItem>Alpha</MenuItem>
+            </MenuContent>
+          </Menu>
+        </Theme>
+      </Theme>,
+    );
+    const popup = [...document.querySelectorAll<HTMLElement>(".kui-menu-popup")].pop();
+    if (!popup) throw new Error("the menu never mounted");
+    expect(popup.closest("[data-accent]")?.getAttribute("data-accent")).toBe("pink");
+    expect(colorOn(popup, "var(--accent-solid)")).toBe(colorOn(popup, "var(--pink-solid)"));
+  });
+
+  for (const appearance of APPEARANCES)
+    it(`under appearance="inherit" (the dark-SSR shape), the tint re-declares the tokens derived from accent, ${appearance}`, () => {
+      // With the appearance on <html>, no Theme stamps data-appearance, so nothing on the
+      // tinted element re-computes the focus ring or the selected edge: only the tint's own
+      // derived block does.
+      const host = render(
+        <div data-appearance={appearance}>
+          <Theme appearance="inherit">
+            <Theme accent="pink">
+              <span />
+            </Theme>
+          </Theme>
+        </div>,
+      );
+      const inner = host.querySelector<HTMLElement>("[data-accent]")!;
+      expect(inner.hasAttribute("data-appearance")).toBe(false);
+      const ring = appearance === "dark" ? "var(--pink-11)" : "var(--pink-solid)";
+      expect(colorOn(inner, "var(--focus-ring)")).toBe(colorOn(inner, ring));
+      expect(colorOn(inner, "var(--selected-edge)")).toBe(colorOn(inner, "var(--pink-solid)"));
+    });
+
+  it("no accent prop stamps nothing, so an untinted app keeps its build accent", () => {
+    expect(render(<Theme />).hasAttribute("data-accent")).toBe(false);
+  });
+
+  it("a nested Theme inherits the tint and re-stamps it, since its own appearance re-declares accent", () => {
+    const host = render(
+      <Theme accent="green">
+        <Theme appearance="dark">
+          <span />
+        </Theme>
+      </Theme>,
+    );
+    const inner = host.querySelector<HTMLElement>("[data-appearance='dark']")!;
+    expect(inner.getAttribute("data-accent")).toBe("green");
+    expect(colorOn(inner, "var(--accent-solid)")).toBe(colorOn(inner, "var(--green-solid)"));
   });
 });

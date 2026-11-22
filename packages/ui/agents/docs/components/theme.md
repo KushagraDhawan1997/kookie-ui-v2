@@ -292,6 +292,7 @@ Generated from the types. It lists what this component DECLARES: a prop that arr
 
 | Prop | Type | What it does |
 | --- | --- | --- |
+| `accent?` | `"blue" \| "purple" \| "pink" \| "orange" \| "amber" \| "green"` | Gives this scope its own accent colour: `blue`, `purple`, `pink`, `orange`, `amber` or `green`. |
 | `appearance?` | `"inherit" \| "light" \| "dark"` | Sets the colour scheme for this scope: `light`, `dark` or `inherit`. |
 | `children?` | `React.ReactNode` | The content that this theme applies to. |
 | `className?` | `string` | Your classes, appended to the ones this component resolves rather than replacing them. |

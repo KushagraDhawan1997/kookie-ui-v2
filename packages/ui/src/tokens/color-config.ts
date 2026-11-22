@@ -214,14 +214,18 @@ export const solidPinBounds = { min: 0.42, max: 0.92 } as const;
  *
  * Every direction is one line: `{ hue: 250, vividness: 1 }` is BLUE, `blue`'s own recipe one
  * row down; `{ hue: 295, vividness: 1 }` is VIOLET, judged live 2026-08-26 against a day of
- * alternatives. A hex pin loses the `.hue` field neutral derives from below, and the `tsc`
- * error that causes is deliberate.
+ * alternatives. A HEX works too (2026-11-16, Kushagra: "can a user also add its own hex"):
+ * `{ color: "#db589e" }` is read for its hue and vividness by `toneFromColor`, light mode's
+ * step 9 comes back as the hex itself, and every other step is generated around it under the
+ * same laws. Neutral reads the accent's hue through `hueOf` below, so the greys keep leaning
+ * toward a hex accent the way they lean toward a hue one. (Until this date a hex pin was a
+ * deliberate `tsc` error, because neutral read `accent.hue` directly.)
  *
  * A named const rather than a row, because neutral DERIVES from it — so the greys' lean
  * moved from 295 to 250 with this line, which is the mechanism working rather than a second
  * change.
  */
-const accent = { hue: 250, vividness: 0.04 } as const;
+const accent: { hue: number; vividness: number } | { color: string } = { hue: 250, vividness: 0.04 };
 
 export const tones = {
   /** Not a brand colour: THE ACCENT'S OWN HUE at near-zero chroma, which is all a tinted
@@ -230,11 +234,15 @@ export const tones = {
       only happened to agree with the brand's; now a re-branded system's greys lean toward
       the new brand by construction, and the two cannot drift. The AMOUNT of lean is the
       vividness, judged by eye like every number here. */
-  neutral: { hue: accent.hue, vividness: 0.04 },
+  neutral: { hueOf: "accent", vividness: 0.04 },
   accent,
   destructive: { color: "#E5484D" },
   blue: { hue: 250, vividness: 1 },
-  green: { hue: 150, vividness: 1 },
+  /** Softened 2026-11-16 (Kushagra: hue 150 at full vividness was "a little too vibrant").
+      Anchored to Apple, not judged by eye: the hue and light-mode lightness are systemGreen's
+      (#34C759), and vividness .84 is the value at which the generated dark solid carries
+      Apple's dark green chroma (C .208, #30D158). Pinning the hex alone left dark at .225. */
+  green: { hue: 147.44, vividness: 0.84, pinL: 0.7303 },
   /** Pinned, not hue-authored: at hue 55 the generated solid cannot hold an APCA-clearing
       label, while this placed orange passes every law in both modes. */
   orange: { color: "#F76B15" },
@@ -246,6 +254,16 @@ export const tones = {
       the refused full-vividness row and a Radix-lightness pin in the preview sweep; brighter
       ambers exist only by carrying a pin into dark (declined — this is the one he liked). */
   amber: { hue: 80, vividness: 0.9 },
+  /** Joined 2026-11-16 (Kushagra), closing the gap to the macOS accent list (blue, purple,
+      pink, red, orange, yellow, green, graphite): the two hues it had that this table did not.
+      Pink is Kookie's own Bubblegum, PINNED to the logo's locked #db589e (the brand thread,
+      2026-11-15) rather than hue-authored: at full vividness hue 350 came out hot magenta
+      (#fd00a8), and Kushagra sent it "more towards bubblegum" (2026-11-16). The pin is the
+      orange precedent — light step 9 is the hex, everything else generated around it. Purple
+      is the 295 that was judged live as the violet accent on 2026-08-26. Both are opt-in:
+      neither is the default accent. */
+  pink: { color: "#db589e" },
+  purple: { hue: 295, vividness: 1 },
 
   /* The semantic core completed (2026-08-05, Kushagra) — success, warning, info join the
      destructive they were always implied by. Each is its OWN family resolving to a pigment
@@ -253,7 +271,7 @@ export const tones = {
      meaning must stay independently correctable — success can drift toward teal someday
      without green (a colour-as-data name) moving with it. The accent/blue pair set the
      precedent: same hue, two names, two jobs. Gzip absorbs the duplicate scales. */
-  success: { hue: 150, vividness: 1 },
+  success: { hue: 147.44, vividness: 0.84, pinL: 0.7303 },
   /** Warning is the amber question answered: the day amber earned membership (above) is the
       day warning stopped needing orange as a stand-in. */
   warning: { hue: 80, vividness: 0.9 },
@@ -288,6 +306,14 @@ export const tones = {
  * amendment.
  */
 export const undilutedTones = ["accent"] as const;
+
+/**
+ * The families a section can TINT its accent to (2026-11-16, Kushagra), via `<Theme accent>`:
+ * the macOS accent list, as the colours this table names. Red is absent because the table
+ * spells it `destructive`, a meaning, and graphite because the default accent already is grey.
+ */
+export const accentTints = ["blue", "purple", "pink", "orange", "amber", "green"] as const satisfies readonly (keyof typeof tones)[];
+export type AccentTint = (typeof accentTints)[number];
 
 export type ToneName = keyof typeof tones;
 export type Mode = keyof typeof lightness;

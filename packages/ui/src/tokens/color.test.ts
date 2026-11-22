@@ -1568,3 +1568,26 @@ describe("the P3 block spends no digit a display can show (§7, 2026-09-01)", ()
     }
   });
 });
+
+describe("the accent may arrive as a hex, and neutral still leans toward it (§7, 2026-11-16)", () => {
+  // Neutral states `hueOf: "accent"` rather than a hue literal, so a hex accent resolves its
+  // hue through the same intake (`toneFromColor`) the generator uses for every pinned tone.
+  it("neutral's hue is the accent's resolved hue", () => {
+    expect(resolveTone(tones.neutral).hue).toBe(resolveTone(tones.accent).hue);
+  });
+
+  it("a hueOf input resolves through a hex accent's own hue", () => {
+    const hex = "#db589e";
+    const spec = resolveTone({ hueOf: "accent", vividness: 0.04 });
+    expect(spec.vividness).toBe(0.04);
+    // The shipped accent is a hue; the same resolution through a hex intake must take the
+    // hex's hue, which is what the config's `hueOf` promises for a hex brand.
+    expect(toneFromColor(hex).hue).not.toBe(spec.hue);
+    expect(resolveTone({ color: hex }).hue).toBe(toneFromColor(hex).hue);
+  });
+
+  it("pink is pinned to the logo's Bubblegum and purple is hue-authored like blue", () => {
+    expect(tones.pink).toEqual({ color: "#db589e" });
+    expect(tones.purple).toEqual({ hue: 295, vividness: 1 });
+  });
+});
