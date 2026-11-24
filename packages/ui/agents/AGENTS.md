@@ -111,6 +111,9 @@ rule of thumb that it overrules. If one looks wrong for your case, say so and as
   the library can't know.
 - There is no Banner. An app-wide message is a `ShellNotice`, one at a time, most severe
   first.
+- A large title under a row of navigation and tools follows `Page`: the row stays in place,
+  the title sits below it, and when the title scrolls up behind the row a `ToolbarTitle` in the
+  row shows the same words. Check `Page` before asking how a title and its row behave.
 - The action row of a dialog is a plain `Flex` today. Whether actions and Close move into a
   navigation bar is still open. Don't decide it.
 

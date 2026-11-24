@@ -56,5 +56,8 @@ When Kushagra settles something new, add its line here in the same change.
   the library can't know. (THESIS §7)
 - There is no Banner. An app-wide message is a `ShellNotice`, one at a time, most severe
   first. (§29)
+- A large title under a row of navigation and tools follows `Page`: the row stays in place,
+  the title sits below it, and when the title scrolls up behind the row a `ToolbarTitle` in the
+  row shows the same words. Check `Page` before asking how a title and its row behave.
 - The action row of a dialog is a plain `Flex` today. Whether actions and Close move into a
   navigation bar is still open. Don't decide it.
