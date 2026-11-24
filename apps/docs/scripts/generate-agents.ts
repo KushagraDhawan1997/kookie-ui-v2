@@ -94,6 +94,56 @@ const themePath = path.join(packageRoot, "theme/theme.tsx");
 const markdownPath = path.join(here, "../app/(docs)/markdown.ts");
 const outPath = path.join(here, "../../../packages/ui/agents/AGENTS.md");
 const docsOutPath = path.join(here, "../../../packages/ui/agents/docs");
+const rulesPath = path.join(here, "../../../RULES.md");
+const settledPath = path.join(here, "../../../SETTLED.md");
+
+/**
+ * The calls Kushagra has settled, read from their two homes (2026-11-24, Kushagra: "do whatever
+ * you want to never make this mistake again, you AND THE CONSUMERS"). An agent in his own repo
+ * answered a design question from general rules of thumb and reopened a settled decision,
+ * because those decisions lived in RULES.md and DECISIONS.md, which no consumer ever sees and
+ * nothing told an agent to read before answering. So both now ride in the file every agent
+ * loads first: each composition rule's bold title from RULES.md, and SETTLED.md's lines with
+ * their spec references stripped, since a consumer has no DECISIONS.md to follow them into.
+ */
+export function settledDecisions(): string[] {
+  // Each numbered rule with a bold title, joined onto one line, then its title plus the sentence
+  // that follows it, which is the rule's own gloss ("One axis." alone tells an agent nothing).
+  // Test, enforcement and dated notes are for this repo, not a consumer.
+  const rules = readFileSync(rulesPath, "utf8")
+    .split(/\n(?=\s*\d+\.\s+\*\*)|\n\s*\n/)
+    .map((block) => /^\s*\d+\.\s+\*\*(.+?)\*\*\s*([\s\S]*)$/.exec(block))
+    .filter((match): match is RegExpExecArray => match !== null)
+    .map(([, title, rest]) => {
+      const gloss = (rest ?? "")
+        .replace(/\s+/g, " ")
+        .replace(/\s*(Test:|Enforced by:)[\s\S]*$/, "")
+        .replace(/\s*\([^)]*\d{4}-\d\d-\d\d[^)]*\)/g, "")
+        .replace(/\s*\(Lines and hover[^)]*\)|\s*\(Dots between facts[^)]*\)/g, "")
+        .trim();
+      const first = /^.*?\.(?=\s|$)/.exec(gloss)?.[0] ?? "";
+      return `${title}${first ? (/^[,;:]/.test(first) ? first : ` ${first}`) : ""}`.trim();
+    });
+  const settled = readFileSync(settledPath, "utf8");
+  const body = settled
+    .slice(settled.indexOf("\n## "))
+    .replace(/^## /gm, "### ")
+    .replace(/ \((?:§|THESIS )[^)]*\)/g, "")
+    .trim();
+  return [
+    "## Settled decisions",
+    "",
+    "Treat each line as decided. Don't argue against it, add a caveat to it, or apply a general",
+    "rule of thumb that it overrules. If one looks wrong for your case, say so and ask.",
+    "",
+    "### Composition",
+    "",
+    ...rules.map((rule) => `- ${rule}`),
+    "",
+    body,
+    "",
+  ];
+}
 
 /** Where a consumer's agent finds the shipped pages. One home, read by the index and the laws. */
 export const DOCS_DIR = "node_modules/@kushagradhawan/kookie-ui-react/agents/docs";
@@ -229,7 +279,7 @@ export function generatedText(docs: DocsSource): string {
   out.push(
     "<!-- GENERATED — do not edit. Source: packages/ui/src/index.ts, packages/ui/src/system/axes.ts,",
     "     packages/ui/src/theme/theme.tsx, apps/docs/app/(docs)/components/registry.ts,",
-    "     apps/docs/app/(docs)/markdown.ts and apps/docs/app/(docs)/chapters.ts, via",
+    "     apps/docs/app/(docs)/markdown.ts, apps/docs/app/(docs)/chapters.ts, RULES.md and SETTLED.md, via",
     "     apps/docs/scripts/generate-agents.ts, which also writes agents/docs/.",
     "     Regenerate with `pnpm --filter docs run agents`. A law regenerates and compares. -->",
     "",
@@ -254,6 +304,7 @@ export function generatedText(docs: DocsSource): string {
     "Every other page is in the same folder. A link to `/patterns/forms` inside a page is the",
     "file `patterns/forms.md`.",
     "",
+    ...settledDecisions(),
     "## Every component obeys these",
     "",
   );

@@ -1,0 +1,60 @@
+# Settled decisions
+
+Every call Kushagra has made that is not a composition rule. Composition rules are in
+`RULES.md`. One line each. Both files ship to every consumer's agent inside `AGENTS.md`
+(`apps/docs/scripts/generate-agents.ts` reads them), so an agent sees them before it writes or
+answers anything.
+
+Treat each line as decided. Don't argue against it, don't add a caveat to it, and don't apply a
+general rule of thumb that it already overrules. If a line looks wrong, say so once and ask;
+don't work around it. The reasoning for each is in `docs/DECISIONS.md` (section in brackets).
+
+When Kushagra settles something new, add its line here in the same change.
+
+## Size and touch
+
+- A component given no `size` is size 2, in every family. Text rests at 3 and Heading at 6,
+  on their own scale. (§4)
+- Size 2 on a touch screen is 44px tall, which is the touch target by default. (§16)
+- Size 1, and a denser theme, are deliberate choices. Don't apply touch-target or size rules to
+  them, and don't flag them. (§16)
+- No invisible hit area added around controls as a system mechanism. The mark family, controls
+  that are their own mark such as Checkbox, is the one exception. (§5, §16)
+
+## Type
+
+- No size 1 text on a composed screen. Less important means muted ink, not smaller text. (§15)
+
+## Motion and state
+
+- Nothing animates. Every state change is instant. Only Spinner, Progress and Attachment move,
+  because the movement is the information. (§8)
+- Disabled is a colour change, never opacity. (§8)
+- A loading button keeps its label. (§8)
+- One focus ring, one design. (§8)
+
+## Surfaces and shape
+
+- There is no elevation and no shadow prop. The Theme's `depth` sets shadows for the whole app.
+  (§10)
+- Glass has one anatomy, locked. The app decides where glass goes; the default is solid. (§10)
+- A pane inside a pane has a concentric corner: inner corner = outer corner − outer padding.
+  (§6)
+- Corners are squircles where the browser can draw them. (§6)
+
+## Colour
+
+- Gray is the default accent. Pink and purple are named families beside blue and green.
+  (§7)
+- The accent is fixed when the app is built. A section can be tinted with `<Theme accent>`.
+  There is no built-in accent picker. (§7)
+
+## Components and patterns
+
+- A dialog becomes a sheet on a narrow window. There is no prop to stop it. (THESIS §7)
+- Defaults are opt-out: the right thing happens when you don't think. Overriding needs a reason
+  the library can't know. (THESIS §7)
+- There is no Banner. An app-wide message is a `ShellNotice`, one at a time, most severe
+  first. (§29)
+- The action row of a dialog is a plain `Flex` today. Whether actions and Close move into a
+  navigation bar is still open. Don't decide it.

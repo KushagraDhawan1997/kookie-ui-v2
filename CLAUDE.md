@@ -2,6 +2,14 @@
 
 Ground-up rebuild of Kookie UI. Base UI primitives behind a Kookie-owned API, generated OKLCH color, token-only styling, semantic axes, hard CSS budget.
 
+## Before you answer or build anything about the design
+
+Read `SETTLED.md` and `RULES.md` first, every time, including for a question or a discussion
+where you write no code. They hold every call Kushagra has made. Don't reopen one, add a caveat
+to it, or answer from a general rule of thumb it overrules. When he settles something new, add
+its line to `SETTLED.md` in the same change, then run `pnpm --filter docs run agents` so it
+reaches every consumer's `AGENTS.md`.
+
 ## Before you build any screen
 
 Read `RULES.md` first. It holds every settled composition rule, numbered, with how each is

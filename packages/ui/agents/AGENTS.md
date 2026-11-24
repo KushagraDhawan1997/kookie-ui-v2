@@ -1,6 +1,6 @@
 <!-- GENERATED — do not edit. Source: packages/ui/src/index.ts, packages/ui/src/system/axes.ts,
      packages/ui/src/theme/theme.tsx, apps/docs/app/(docs)/components/registry.ts,
-     apps/docs/app/(docs)/markdown.ts and apps/docs/app/(docs)/chapters.ts, via
+     apps/docs/app/(docs)/markdown.ts, apps/docs/app/(docs)/chapters.ts, RULES.md and SETTLED.md, via
      apps/docs/scripts/generate-agents.ts, which also writes agents/docs/.
      Regenerate with `pnpm --filter docs run agents`. A law regenerates and compares. -->
 
@@ -28,6 +28,91 @@ Open the page for your task by its path before you write code. File search skips
 
 Every other page is in the same folder. A link to `/patterns/forms` inside a page is the
 file `patterns/forms.md`.
+
+## Settled decisions
+
+Treat each line as decided. Don't argue against it, add a caveat to it, or apply a general
+rule of thumb that it overrules. If one looks wrong for your case, say so and ask.
+
+### Composition
+
+- Every titled panel has a Close button, always. It's an X at the trailing edge of the panel's band, a glass toolbar button.
+- A panel's band is a real `Toolbar`. Back at the leading edge, the title, Close at the trailing edge, all on one row.
+- A band sits one step inside the content edge. The toolbar's inset is one step closer to the panel's edge than the content's padding, measured from the panel's own padding, so it moves with the panel's size.
+- Toolbar buttons are glass. Controls in a band use the band's material, not an opaque fill.
+- Everything in a glass panel reads the glass. Cards and controls inside a glass panel take the panel's material.
+- The primary action is full width, on every screen of a flow, including the first. Same place on every screen, at the bottom.
+- Back keeps what was entered, and a finished flow has no Back.
+- One loud control per pane. Each pane or region, such as a Shell pane, a dialog or a sheet, gets at most one `emphasis="loud"` action: the one that pane exists for.
+- The way back is quieter than the way forward.
+- Tone means something. `destructive`, `success`, `warning`, `info` carry meaning; the colour tones are for data.
+- Distance is relationship. The gap inside a group is at least two steps smaller than the gap around it, compared along the same direction.
+- Space around a heading is asymmetric. A heading sits closer to what follows it than to what comes before.
+- Space groups first; a border only when space can't. Never both a container and a rule around the same group.
+- Every gap is a step on the scale. No invented lengths (`13px`, `1.35rem`).
+- One axis. Everything aligns to the container's edge unless it has a reason.
+- Nothing floats. Every icon, arrow and badge belongs to a row or a control.
+- Rank text by at least two steps. Page 8, section 7, card title 6, body 3, label and meta 2.
+- No size 1 text on a composed screen. Less important means muted ink at size 2 or 3, not smaller text.
+- Same job, same size. Controls doing one job on a surface are one size.
+- Every element has a one-word job (label, value, action, meta).
+- Say less. Helper text carries a consequence, a scope or a limit, never a definition of the control.
+- No eyebrows. A title carries its own subject.
+- An action says what it does, as a verb and its object, and keeps its name through the flow (Publish, then Published).
+- Real words. No placeholder copy.
+- Pick the smallest control that fits. Two to five short options: SegmentedControl.
+- Real screens from real products, built from real components. No abstract glyphs.
+- No dot between facts. Never join two facts with `·` or `•` ("Friday · Flights at 9:40").
+- Lines or hover, never both. A list divided by separators doesn't light its rows on hover, and a list that lights its rows draws no lines between them.
+- Every control has a name. An icon-only button carries an `aria-label`, so a screen reader says what it does.
+
+### Size and touch
+
+- A component given no `size` is size 2, in every family. Text rests at 3 and Heading at 6,
+  on their own scale.
+- Size 2 on a touch screen is 44px tall, which is the touch target by default.
+- Size 1, and a denser theme, are deliberate choices. Don't apply touch-target or size rules to
+  them, and don't flag them.
+- No invisible hit area added around controls as a system mechanism. The mark family, controls
+  that are their own mark such as Checkbox, is the one exception.
+
+### Type
+
+- No size 1 text on a composed screen. Less important means muted ink, not smaller text.
+
+### Motion and state
+
+- Nothing animates. Every state change is instant. Only Spinner, Progress and Attachment move,
+  because the movement is the information.
+- Disabled is a colour change, never opacity.
+- A loading button keeps its label.
+- One focus ring, one design.
+
+### Surfaces and shape
+
+- There is no elevation and no shadow prop. The Theme's `depth` sets shadows for the whole app.
+ 
+- Glass has one anatomy, locked. The app decides where glass goes; the default is solid.
+- A pane inside a pane has a concentric corner: inner corner = outer corner − outer padding.
+ 
+- Corners are squircles where the browser can draw them.
+
+### Colour
+
+- Gray is the default accent. Pink and purple are named families beside blue and green.
+ 
+- The accent is fixed when the app is built. A section can be tinted with `<Theme accent>`.
+  There is no built-in accent picker.
+
+### Components and patterns
+
+- A dialog becomes a sheet on a narrow window. There is no prop to stop it.
+- Defaults are opt-out: the right thing happens when you don't think. Overriding needs a reason
+  the library can't know.
+- There is no Banner. An app-wide message is a `ShellNotice`, one at a time, most severe
+  first.
+- The action row of a dialog is a plain `Flex` today. Whether actions and Close move into a
+  navigation bar is still open. Don't decide it.
 
 ## Every component obeys these
 
