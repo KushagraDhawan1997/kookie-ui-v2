@@ -10,6 +10,11 @@ to it, or answer from a general rule of thumb it overrules. When he settles some
 its line to `SETTLED.md` in the same change, then run `pnpm --filter docs run agents` so it
 reaches every consumer's `AGENTS.md`.
 
+Before you propose, build or ask about a layout or interaction pattern, check whether a pattern
+component already solves it (`Page`, `Navigator`, `Shell`, `Toolbar`, `Field`, `RowGroup`,
+`Command`, `Composer`, `MessageScroller`) and read its page. Reuse its model. Ask only when none
+of them answers it.
+
 ## Before you build any screen
 
 Read `RULES.md` first. It holds every settled composition rule, numbered, with how each is

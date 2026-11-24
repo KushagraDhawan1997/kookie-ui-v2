@@ -106,6 +106,32 @@ const settledPath = path.join(here, "../../../SETTLED.md");
  * loads first: each composition rule's bold title from RULES.md, and SETTLED.md's lines with
  * their spec references stripped, since a consumer has no DECISIONS.md to follow them into.
  */
+/**
+ * The components that already own a pattern, with the sentence that says what each one is (2026-11-24,
+ * Kushagra: "An agent (you) ASKED A QUESTION FOR A PATTERN WE HAVE SOLVED"). The agent asked
+ * how a large title should behave under a navigation row when `Page` already answers it. Read
+ * from the registry's `level: "pattern"` entries, so a new pattern joins the index on its own.
+ */
+export function solvedPatterns(
+  entries: readonly { name: string; level?: string; overview?: readonly string[] }[],
+): string[] {
+  const patterns = entries.filter((entry) => entry.level === "pattern");
+  return [
+    "## Patterns already solved",
+    "",
+    "Before you propose, build or ask about a layout or interaction pattern, check whether one of",
+    "these already solves it, and read its page. Reuse its model, even for a case it does not",
+    "cover directly, such as a dialog that needs a title row like a `Page`. Ask only when none of",
+    "them answers it.",
+    "",
+    ...patterns.map((entry) => {
+      const first = /^.*?\.(?=\s|$)/.exec(entry.overview?.[0] ?? "")?.[0] ?? "";
+      return `- **${entry.name}**${first ? ` — ${first}` : ""}`;
+    }),
+    "",
+  ];
+}
+
 export function settledDecisions(): string[] {
   // Each numbered rule with a bold title, joined onto one line, then its title plus the sentence
   // that follows it, which is the rule's own gloss ("One axis." alone tells an agent nothing).
@@ -305,6 +331,7 @@ export function generatedText(docs: DocsSource): string {
     "file `patterns/forms.md`.",
     "",
     ...settledDecisions(),
+    ...solvedPatterns(f.entries),
     "## Every component obeys these",
     "",
   );

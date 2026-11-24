@@ -117,6 +117,23 @@ rule of thumb that it overrules. If one looks wrong for your case, say so and as
 - The action row of a dialog is a plain `Flex` today. Whether actions and Close move into a
   navigation bar is still open. Don't decide it.
 
+## Patterns already solved
+
+Before you propose, build or ask about a layout or interaction pattern, check whether one of
+these already solves it, and read its page. Reuse its model, even for a case it does not
+cover directly, such as a dialog that needs a title row like a `Page`. Ask only when none of
+them answers it.
+
+- **Command** — Command is a search field over the actions and pages in your app.
+- **Composer** — A Composer is the box people type a message into.
+- **Field** — Put each form control in a Field: a `TextField`, a `TextArea`, a `Select`, a `Combobox`, a `NumberField`, or a group of checkboxes or radios.
+- **MessageScroller** — Use a MessageScroller for a transcript that grows while people read it, such as a chat, a support thread or a live log.
+- **Navigator** — Use a Navigator when people go deeper into something and come back, such as from settings to notifications to email.
+- **Page** — Use a Page for each screen someone moves to, such as a settings page or a report.
+- **RowGroup** — Use a RowGroup for a list of settings, or for a section of an inspector.
+- **Shell** — Use a Shell once, at the root of an app, to hold its frame: a full-width header, a narrow rail of icons, a sidebar, the main content, an inspector and a bottom pane.
+- **Toolbar** — A Toolbar is the row that holds an app's controls, such as the buttons at the top of an editor.
+
 ## Every component obeys these
 
 - It sets no outer spacing. The container sets the gap between siblings. Use a Box to add space.
