@@ -294,7 +294,7 @@ Notice tells people about a condition that is true right now, placed above the p
 | `dismissLabel?` | `string` | The accessible name of the dismiss button. |
 | `icon?` | `React.ReactNode` | An icon shown before the message. |
 | `onDismiss?` | `() => void` | Called when the person presses the ✕ dismiss button. |
-| `size?` | `"1" \| "2" \| "3" \| "4"` | Sets the size of the notice: the padding, the corner, the text and the dismiss button. |
+| `size?` | `"1" \| "2" \| "3" \| "4"` | Sets the size of the notice: the padding, the corner, the text, the dismiss button and the action, unless the action sets its own `size`. |
 | `style?` | `React.CSSProperties` | Inline styles, merged last, so your value wins over anything the component resolved. |
 | `tone?` | `"neutral" \| "accent" \| "destructive" \| "blue" \| "green" \| "orange" \| "amber" \| "pink" \| "purple" \| "success" \| "warning" \| "info"` | Sets the colour family, which tells the category of the message. |
 

@@ -3718,7 +3718,7 @@ export const API: Record<string, ApiEntry> = {
           "4"
         ],
         "optional": true,
-        "doc": "Sets the size of the notice: the padding, the corner, the text and the dismiss button. If you don't set it, the notice uses the size of the nearest `Theme`, which is `2` by default. A `<Text>` that sets its own `size` keeps it."
+        "doc": "Sets the size of the notice: the padding, the corner, the text, the dismiss button and the action, unless the action sets its own `size`. If you don't set it, the notice uses the size of the nearest `Theme`, which is `2` by default. A `<Text>` that sets its own `size` keeps it."
       },
       {
         "name": "style",
@@ -5157,7 +5157,7 @@ export const API: Record<string, ApiEntry> = {
           "4"
         ],
         "optional": true,
-        "doc": "Sets the size of the notice: the padding, the corner, the text and the dismiss button. If you don't set it, the notice uses the size of the nearest `Theme`, which is `2` by default. A `<Text>` that sets its own `size` keeps it."
+        "doc": "Sets the size of the notice: the padding, the corner, the text, the dismiss button and the action, unless the action sets its own `size`. If you don't set it, the notice uses the size of the nearest `Theme`, which is `2` by default. A `<Text>` that sets its own `size` keeps it."
       },
       {
         "name": "style",

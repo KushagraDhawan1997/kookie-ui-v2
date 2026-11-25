@@ -598,3 +598,27 @@ describe("a notice's buttons express the theme's material on a solid notice, and
     for (const button of buttons) expect(materialOf(button)).toMatch(/^g\d$/);
   });
 });
+
+/** The action follows the notice's size (2026-11-25, Kushagra: "Why does the update card not
+    change w size?"). It rested at the theme's size while the dismiss beside it followed. */
+describe("the action takes the notice's size unless it states its own (2026-11-25)", () => {
+  it.each(["1", "2", "3", "4"] as const)("size %s: the action is as tall as the dismiss", (size) => {
+    const root = mounted(
+      <Notice size={size} action={<Button>Update card</Button>} onDismiss={() => {}}>
+        The card on file expires this month.
+      </Notice>,
+      { theme: {}, select: ".kui-notice" },
+    );
+    const [action, dismiss] = [...root.querySelectorAll<HTMLElement>("button")];
+    expect(action!.getAttribute("data-size")).toBe(size);
+    expect(action!.getBoundingClientRect().height).toBe(dismiss!.getBoundingClientRect().height);
+  });
+
+  it("an action that states its size keeps it", () => {
+    const root = mounted(
+      <Notice size="4" action={<Button size="1">Update card</Button>}>x</Notice>,
+      { theme: {}, select: ".kui-notice" },
+    );
+    expect(root.querySelector("button")!.getAttribute("data-size")).toBe("1");
+  });
+});

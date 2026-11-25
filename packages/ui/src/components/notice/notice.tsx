@@ -11,12 +11,13 @@ import { Button } from "../button/button.tsx";
 import { Text } from "../text/text.tsx";
 import { DISMISS_PATH, GLYPH_VIEWBOX } from "../../system/glyphs.ts";
 import { glyphStroke } from "../../tokens/config.ts";
-import { useSize } from "../../system/size.ts";
+import { SizeScopeContext, useSize } from "../../system/size.ts";
 import { ToneScopeContext } from "../../system/tone-scope.ts";
 
 export type NoticeProps = ComponentRefusals & {
   /**
-   * Sets the size of the notice: the padding, the corner, the text and the dismiss button.
+   * Sets the size of the notice: the padding, the corner, the text, the dismiss button and the
+   * action, unless the action sets its own `size`.
    * If you don't set it, the notice uses the size of the nearest `Theme`, which is `2` by
    * default. A `<Text>` that sets its own `size` keeps it.
    */
@@ -230,7 +231,14 @@ export function Notice({
           need to allow glass on glass notice"): its pane mark sends them on-glass, as before.
           In a solid theme they are the tinted solid step the surface hands down. */}
       <BackdropContext.Provider value={true}>
-      {action ? <span className="kui-notice-action">{action}</span> : null}
+      {/* The action takes the notice's size unless it states its own, as a button in a Field
+          or a ButtonGroup does (2026-11-25, Kushagra: "Why does the update card not change w
+          size?"). It rested at the theme's size while the dismiss beside it followed. */}
+      {action ? (
+        <SizeScopeContext.Provider value={size}>
+          <span className="kui-notice-action">{action}</span>
+        </SizeScopeContext.Provider>
+      ) : null}
       {onDismiss ? (
         <Button
           size={size}
