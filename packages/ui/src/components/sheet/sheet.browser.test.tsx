@@ -394,11 +394,10 @@ describe("the index prices the box", () => {
       expect(computed(popup, "max-inline-size"), `size ${size}: the overlay ladder`).toBe(
         tokenOn(popup, `--overlay-w-${size}`),
       );
-      // ONE SIZE UP with the top held — the overlay family's padding step (2026-08-17), which a
-      // sheet inherits by wearing `kui-overlay` rather than by restating.
-      const up = size === "4" ? "4" : (String(Number(size) + 1) as Size);
+      // ITS OWN SIZE since 2026-11-25 — the overlay family pads as a Card of that size does,
+      // which a sheet inherits by wearing `kui-overlay` rather than by restating.
       expect(computed(popup, "padding-top"), `size ${size}: the surface join`).toBe(
-        tokenOn(popup, `--surface-p-${up}`),
+        tokenOn(popup, `--surface-p-${size}`),
       );
       expect(computed(popup, "border-top-left-radius"), `size ${size}: the overlay band`).toBe(
         drawnCorner(popup, size),

@@ -410,7 +410,14 @@ export function DialogDescription({ children, ...props }: DialogDescriptionProps
   const size = React.use(DialogSizeContext);
   return (
     <BaseDialog.Description
-      render={<Text size={OWNED_BODY_STEP[size]} emphasis="medium" render={<p />} />}
+      render={
+        <Text
+          className="kui-dialog-description"
+          size={OWNED_BODY_STEP[size]}
+          emphasis="medium"
+          render={<p />}
+        />
+      }
       {...props}
     >
       {children}

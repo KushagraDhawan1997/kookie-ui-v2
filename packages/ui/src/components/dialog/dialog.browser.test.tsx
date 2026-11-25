@@ -269,13 +269,9 @@ describe("the panel's box", () => {
     // law and fail this one.
     for (const size of SIZES) {
       const { popup } = openDialog({}, { size });
-      // ONE SIZE UP since 2026-08-17 (Kushagra: "dialog seems to have less padding than it
-      // should"), and the step is the whole overlay family's now — it used to live on the
-      // alert's own arms, where the reasoning was never alert-specific: an overlay wears the
-      // corner of the card one size up, and a bigger curve wants a bigger inset or the words
-      // crowd the sweep. Size 4 holds at the top pick, exactly as the corner band's does.
-      const up = size === "4" ? "4" : String(Number(size) + 1);
-      expect(computed(popup, "padding-top")).toBe(tokenOn(popup, `--surface-p-${up}`));
+      // ITS OWN SIZE since 2026-11-25 (Kushagra: "it has to be uniform"): the same step a Card
+      // or a Shell pane of this size wears. One size up stood here from 2026-08-17 until then.
+      expect(computed(popup, "padding-top")).toBe(tokenOn(popup, `--surface-p-${size}`));
     }
   });
 
@@ -818,6 +814,42 @@ describe("what the call site can say to a dialog", () => {
       ),
     );
     expect(banded, "the title and Close in a top-row Toolbar — silence").toBe(0);
+  });
+
+  it("a description that opens the content sits a GROUP under the band, not a section (2026-11-23)", () => {
+    // Proximity: the description belongs to the title, so the band above it gives a group's
+    // distance. Anything else under the band keeps the section's distance. Read against the
+    // tokens, in both spellings a call site writes: the description as the band's sibling, and
+    // as the first child of the Stack that follows the band.
+    const band = (body: React.ReactNode) => {
+      render(
+        <Theme>
+          <Dialog defaultOpen>
+            <DialogContent>
+              <Toolbar>
+                <ToolbarTitle render={<DialogTitle />}>Rename</ToolbarTitle>
+                <DialogClose render={<ToolbarButton iconOnly aria-label="Close">x</ToolbarButton>} />
+              </Toolbar>
+              {body}
+            </DialogContent>
+          </Dialog>
+        </Theme>,
+      );
+      const bars = document.querySelectorAll<HTMLElement>(".kui-dialog-popup .kui-toolbar");
+      const bar = bars[bars.length - 1];
+      if (!bar) throw new Error("the band never mounted");
+      return bar;
+    };
+    const sibling = band(<DialogDescription>Everyone will see the new name.</DialogDescription>);
+    expect(computed(sibling, "margin-bottom")).toBe(tokenOn(sibling, "--layout-space-2"));
+    const nested = band(
+      <Box>
+        <DialogDescription>Everyone will see the new name.</DialogDescription>
+      </Box>,
+    );
+    expect(computed(nested, "margin-bottom")).toBe(tokenOn(nested, "--layout-space-2"));
+    const other = band(<Text>Body copy that is not the description.</Text>);
+    expect(computed(other, "margin-bottom")).toBe(tokenOn(other, "--layout-space-6"));
   });
 
   it("says WHY it is closing, and a dialog may refuse", async () => {

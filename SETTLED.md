@@ -38,6 +38,8 @@ When Kushagra settles something new, add its line here in the same change.
 - There is no elevation and no shadow prop. The Theme's `depth` sets shadows for the whole app.
   (§10)
 - Glass has one anatomy, locked. The app decides where glass goes; the default is solid. (§10)
+- Every surface pads at its own size: a card, a shell pane and a dialog of size 2 all use
+  padding step 2. A dialog does not pad one size up.
 - A pane inside a pane has a concentric corner: inner corner = outer corner − outer padding.
   (§6)
 - Corners are squircles where the browser can draw them. (§6)
@@ -56,6 +58,8 @@ When Kushagra settles something new, add its line here in the same change.
   the library can't know. (THESIS §7)
 - There is no Banner. An app-wide message is a `ShellNotice`, one at a time, most severe
   first. (§29)
+- A dialog's description sits right under the title band, close enough to read as the title's
+  line.
 - A large title under a row of navigation and tools follows `Page`: the row stays in place,
   the title sits below it, and when the title scrolls up behind the row a `ToolbarTitle` in the
   row shows the same words. Check `Page` before asking how a title and its row behave.

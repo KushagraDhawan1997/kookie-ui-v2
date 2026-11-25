@@ -937,31 +937,25 @@
    `max-inline-size`; a sheet that wants the window's whole width will simply not read it.
    Padding is the ordinary surface join's, one block up — an overlay breathes like a card.
 
-   The ALERT's arms below also step the padding ONE SIZE UP with the top held (Kushagra
-   2026-08-16, judged in lab2: "the padding is less") — the overlay corner band's own
-   sentence, one property over: an alert wears the corner of the card one size up, and a
-   bigger curve wants a bigger inset or the words crowd the sweep. Size 4 holds at p-4
-   exactly as the corner band's top step holds at 10. */
-/* The padding steps ONE SIZE UP with the top held — promoted from the alert's arms to the
-   whole overlay family (2026-08-17, Kushagra: "dialog seems to have less padding than it
-   should"). The reasoning was never alert-specific: an overlay wears the corner of the card
-   one size up, and a bigger curve wants a bigger inset or the words crowd the sweep — the
-   corner band's own sentence, one property over. The alert arms below now re-point only the
-   width, which is the fact that is actually theirs. */
+   The padding was stepped ONE SIZE UP here from 2026-08-16 (the alert) and 2026-08-17 (the
+   whole overlay family) until 2026-11-25; see the note below. */
+/* UNIFORM SINCE 2026-11-25 (Kushagra: "it has to be uniform"): an overlay pads at its OWN
+   size, the same step a Card or Surface of that size wears. This reverses the one-size-up
+   above (2026-08-17); the corner still comes from the overlay band. */
 .kui-surface.kui-overlay[data-size="1"] {
   --kui-sf-radius: var(--radius-overlay-1);
   --kui-overlay-w: var(--overlay-w-1);
-  --kui-sf-p: var(--surface-p-2);
+  --kui-sf-p: var(--surface-p-1);
 }
 .kui-surface.kui-overlay[data-size="2"] {
   --kui-sf-radius: var(--radius-overlay-2);
   --kui-overlay-w: var(--overlay-w-2);
-  --kui-sf-p: var(--surface-p-3);
+  --kui-sf-p: var(--surface-p-2);
 }
 .kui-surface.kui-overlay[data-size="3"] {
   --kui-sf-radius: var(--radius-overlay-3);
   --kui-overlay-w: var(--overlay-w-3);
-  --kui-sf-p: var(--surface-p-4);
+  --kui-sf-p: var(--surface-p-3);
 }
 .kui-surface.kui-overlay[data-size="4"] {
   --kui-sf-radius: var(--radius-overlay-4);
@@ -2551,6 +2545,16 @@
 /* And the content starts a section's distance under it, as it does under a Navigator's band. */
 :is(.kui-dialog-body, .kui-sheet-body, .kui-popover-popup .kui-floating-body) > .kui-toolbar:first-child {
   margin-block-end: var(--layout-space-6);
+}
+
+/* Unless the content opens with the description. The description belongs to the title, so it
+   sits a group's distance under the band, not a section's (2026-11-23, Kushagra: the title and
+   its description must be close). The same pairing AlertDialog gives its title and text. */
+:is(.kui-dialog-body, .kui-sheet-body) > .kui-toolbar:first-child:has(
+    + .kui-dialog-description,
+    + * > .kui-dialog-description:first-child
+  ) {
+  margin-block-end: var(--layout-space-2);
 }
 
 /* With nothing before it in the band, the title lines up with the content under it rather than

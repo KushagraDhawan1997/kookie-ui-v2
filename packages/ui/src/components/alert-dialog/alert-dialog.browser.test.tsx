@@ -229,11 +229,9 @@ describe("the box", () => {
     }
   });
 
-  it("wears the overlay corner of its index, and PADDING one size up with the top held (§25)", () => {
-    // The corner band's own sentence, one property over (Kushagra, judged in lab2): a bigger
-    // curve wants a bigger inset or the words crowd the sweep. Size 4 holds at p-4 exactly
-    // as the corner band's top step holds at 10.
-    const bumped = { "1": "2", "2": "3", "3": "4", "4": "4" } as const;
+  it("wears the overlay corner of its index, and pads at its OWN size (§25)", () => {
+    // UNIFORM since 2026-11-25 (Kushagra: "it has to be uniform"): an overlay pads at the step a
+    // Card or Surface of its size wears. This law pinned one size up from 2026-08-16 until then.
     for (const size of SIZES) {
       const { popup } = openAlert({}, { size });
       // Lab port 2026-08-17: under `@supports (corner-shape: squircle)` every surface DRAWS
@@ -248,7 +246,7 @@ describe("the box", () => {
         (s) => s.borderTopLeftRadius,
       );
       expect(computed(popup, "border-top-left-radius")).toBe(expected);
-      expect(computed(popup, "padding-top")).toBe(tokenOn(popup, `--surface-p-${bumped[size]}`));
+      expect(computed(popup, "padding-top")).toBe(tokenOn(popup, `--surface-p-${size}`));
     }
   });
 });

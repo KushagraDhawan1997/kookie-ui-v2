@@ -8,6 +8,18 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-11-25 Overlays pad at their own size
+
+A dialog, alert dialog and sheet padded one size up from 2026-08-17 (Kushagra then: "dialog seems to have less padding than it should"), on the argument that an overlay wears a bigger corner and a bigger curve wants a bigger inset. Kushagra asked what controls the dialog's padding, saw that a size 2 dialog wore step 3 while a size 2 card and a size 2 shell pane wore step 2, and reversed it: "it has to be uniform". Measured on the docs site, both shell panes were already at their own step, so the overlay family was the only one out of line. One rule changed (the overlay size join in `surfaces.css`); the corner still comes from the overlay band. Three laws pinned one size up and were rewritten to the new rule.
+
+**Rejected: keeping one size up for the bigger corner.** The index is a rung that has to mean the same thing in every family (§4, 2026-09-05), and padding that differs by family at one index breaks that for the reader before the corner argument helps them.
+
+## 2026-11-23 A description sits close under its title's band
+
+A dialog's title lives in the panel's band and its description opens the content, and the band gave every kind of content the same section's distance beneath it. So the title stood as far from its own description as the description stood from the buttons, and nothing grouped (Kushagra, from the Rename project example: "the title needs to be in close proximity" to its description). The band now gives a group's distance when the content opens with the description, as its sibling or as the first child of the layout that follows, and the section's distance otherwise. AlertDialog already paired its title and text this way.
+
+**Rejected: moving the description into the band.** A band is one control row tall; two lines in it would leave Close choosing between the title and the band's middle.
+
 ## 2026-11-16 Accent follows Apple: one build accent, named tints, a hex allowed
 
 Kushagra asked how Apple does accent colour and what Kookie should do; pink (Kookie's brand colour, Bubblegum, hue 350) had to be available without becoming the default. Researched first: an Apple app sets one `AccentColor` at build; macOS replaces it with the user's choice unless they pick Multicolor; `.tint()` recolours a subtree; about a dozen named system colours (pink among them) each adapt to light, dark and high contrast.
