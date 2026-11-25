@@ -622,3 +622,51 @@ describe("the action takes the notice's size unless it states its own (2026-11-2
     expect(root.querySelector("button")!.getAttribute("data-size")).toBe("1");
   });
 });
+
+/**
+ * DISTANCE IS RELATIONSHIP (RULES 11; 2026-11-25, Kushagra, of one 12px gap for every part of the
+ * row: "thats wrong principle right, to have one spacing"). The message and the controls are two
+ * groups; inside each the parts sit two steps closer than the groups do.
+ */
+describe("a notice has two distances: inside a group, and between the two groups (2026-11-25)", () => {
+  const px = (scope: Element, value: string) => {
+    const probe = document.createElement("div");
+    probe.style.inlineSize = value;
+    scope.append(probe);
+    const size = probe.getBoundingClientRect().width;
+    probe.remove();
+    return size;
+  };
+  const STEPS = { "1": ["1", "4"], "2": ["2", "5"], "3": ["3", "5"], "4": ["4", "6"] } as const;
+
+  it.each(["1", "2", "3", "4"] as const)("size %s", (size) => {
+    const root = mounted(
+      <Stack>
+        <Notice size={size} tone="warning" action={<Button>Update card</Button>} onDismiss={() => {}}>
+          The card on file expires this month.
+        </Notice>
+        <Confirmation size={size} onConfirm={() => {}} onCancel={() => {}} confirmLabel="Run" cancelLabel="Not now">
+          Run it?
+        </Confirmation>
+      </Stack>,
+      { theme: {} },
+    );
+    const notice = root.querySelector<HTMLElement>(".kui-notice:not(.kui-confirmation)")!;
+    const rect = (selector: string, scope: Element = notice) => scope.querySelector(selector)!.getBoundingClientRect();
+    const [inner, outer] = STEPS[size];
+    const within = px(notice, `var(--control-gap-${inner})`);
+    const between = px(notice, `var(--layout-space-${outer})`);
+    // The rule's proportion, read off the scale itself: two steps apart, so never one number.
+    expect(within).toBeGreaterThan(0);
+    expect(between).toBeGreaterThan(within);
+
+    expect(rect(".kui-notice-body").left - rect(".kui-notice-icon").right).toBeCloseTo(within, 1);
+    expect(rect(".kui-notice-dismiss").left - rect(".kui-notice-action").right).toBeCloseTo(within, 1);
+    expect(rect(".kui-notice-action").left - rect(".kui-notice-body").right).toBeCloseTo(between, 1);
+
+    // The confirmation strip's two buttons are the same kind of pair.
+    const strip = root.querySelector<HTMLElement>(".kui-confirmation")!;
+    const [cancel, confirm] = [...strip.querySelectorAll<HTMLElement>("button")];
+    expect(confirm!.getBoundingClientRect().left - cancel!.getBoundingClientRect().right).toBeCloseTo(within, 1);
+  });
+});

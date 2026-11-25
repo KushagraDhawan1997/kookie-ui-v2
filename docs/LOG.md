@@ -8,6 +8,14 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-11-25 A notice has two distances, not one
+
+Notice laid its mark, its words, its action and its dismiss on one flex gap, `--layout-space-4`, at every size. Kushagra asked how the distance between the two buttons was calculated, and on hearing it was the same 12px as everything else: "thats wrong principle right, to have one spacing". It is RULES 11 ("Distance is relationship") broken by the component that should have been the example.
+
+The row is two groups, the message and the controls. Inside a group the distance is the one a control puts between its own glyph and its label at that index (`--control-gap-N`), which is also a toolbar's gap between two buttons; between the groups it is two steps above, the rule's own proportion. Both sit in the surface's size join, so they follow the notice's size: 4/12, 8/16, 8/16, 12/24px. **Rejected: keeping the confirmation strip's 4px pair as the inner distance at every size.** At size 4 it would have been five steps under the outer gap and a third the gap inside the buttons it sits between. The strip's pair now reads the same inner distance (4px to 8px at the default size).
+
+A first cut kept the outer gap at 12px and only tightened the inner ones; measured, the mark-to-words gap was then one step under it at size 2 and EQUAL to it at size 4, which is the rule still broken.
+
 ## 2026-11-25 A notice's own buttons are glass on a solid notice
 
 Kushagra wanted the dismiss to be "actual glass, like our x buttons", then the action buttons too ("Make the get more usage and renew also glass"). A caller could already pass a glass action (`<Button backdrop>`, solid hosts glass since 2026-08-19); the dismiss is drawn by Notice and nobody could say it. Notice and Confirmation now open a backdrop region around their own controls, so it is the default with no prop, and `backdrop={false}` on a button refuses it.

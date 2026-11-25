@@ -431,26 +431,41 @@
    `data-size` in a component stylesheet outright. It publishes the SAME ladder the control
    family's `--kui-ct-icon` reads (§4, 2026-08-10 — a glyph lands on the 16/20/24 drawing grid
    and answers the pointer axis there), so a symbol on a surface and a symbol in a button at
-   one index are one box rather than two that drift. */
+   one index are one box rather than two that drift.
+
+   THE TWO DISTANCES OF A ROW ON A SURFACE (2026-11-25, RULES 11; Kushagra, of a Notice with one
+   gap for every part: "thats wrong principle right, to have one spacing"). `--kui-sf-inner` is
+   the distance between two parts that are one thing, a mark and its words, or two buttons that
+   are a pair: the gap a control puts between its own glyph and its label at this index, which
+   is also a toolbar's gap between two buttons. `--kui-sf-gap` is the distance between two such
+   groups, two steps above it, the proportion the rule asks for. Notice reads both. */
 .kui-surface[data-size="1"] {
   --kui-sf-p: var(--surface-p-1);
   --kui-sf-radius: var(--radius-surface-1);
   --kui-sf-icon: var(--icon-size-1);
+  --kui-sf-inner: var(--control-gap-1);
+  --kui-sf-gap: var(--layout-space-4);
 }
 .kui-surface[data-size="2"] {
   --kui-sf-p: var(--surface-p-2);
   --kui-sf-radius: var(--radius-surface-2);
   --kui-sf-icon: var(--icon-size-2);
+  --kui-sf-inner: var(--control-gap-2);
+  --kui-sf-gap: var(--layout-space-5);
 }
 .kui-surface[data-size="3"] {
   --kui-sf-p: var(--surface-p-3);
   --kui-sf-radius: var(--radius-surface-3);
   --kui-sf-icon: var(--icon-size-3);
+  --kui-sf-inner: var(--control-gap-3);
+  --kui-sf-gap: var(--layout-space-5);
 }
 .kui-surface[data-size="4"] {
   --kui-sf-p: var(--surface-p-4);
   --kui-sf-radius: var(--radius-surface-4);
   --kui-sf-icon: var(--icon-size-4);
+  --kui-sf-inner: var(--control-gap-4);
+  --kui-sf-gap: var(--layout-space-6);
 }
 
 /* ── A pane inside a pane is CONCENTRIC (§6, §10, 2026-09-19, Kushagra) ───────────────────

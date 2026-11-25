@@ -33,7 +33,7 @@
   align-items: center;
   /* Wide enough that the resolving action does not read as part of the
      sentence, tight enough that the row still reads as one thing. */
-  gap: var(--layout-space-4);
+  gap: var(--kui-sf-gap);
 }
 
 /* The body takes the slack, which is what pushes the two verbs to the trailing edge without
@@ -48,6 +48,25 @@
 /* Both verbs keep their own width. `flex: none` here is the block-axis-free version of the
    mistake Progress made and paid for (2026-08-08): these must not GROW into the slack the body
    is claiming, and they must not shrink below their labels either. */
+/* DISTANCE IS RELATIONSHIP (RULES 11; 2026-11-25, Kushagra, of one gap for every part: "thats
+   wrong principle right, to have one spacing"). The row is two groups, the message and its
+   controls. Inside each the parts are one thing: the mark and the words are one message, the
+   action and the dismiss are one pair. So there are two distances, and the rule's own
+   proportion between them: the inner one is two steps under the outer one.
+
+   Both come from the surface's size join (surfaces.css: `--kui-sf-inner`, `--kui-sf-gap`), so
+   they follow the notice's size; until this the one gap was 12px at every size.
+
+   Said with negative margins on the inner parts because the row is one flat flex line: the
+   body must stay a direct child to take the free space. */
+.kui-notice-icon {
+  margin-inline-end: calc(var(--kui-sf-inner) - var(--kui-sf-gap));
+}
+
+.kui-notice-action + .kui-notice-dismiss {
+  margin-inline-start: calc(var(--kui-sf-inner) - var(--kui-sf-gap));
+}
+
 .kui-notice-icon,
 .kui-notice-action,
 .kui-notice-dismiss {
@@ -74,5 +93,5 @@
 /* A confirmation's two answers sit together at the trailing edge, a quiet no before a loud yes. */
 .kui-confirmation > .kui-notice-action {
   display: flex;
-  gap: var(--layout-space-2);
+  gap: var(--kui-sf-inner);
 }

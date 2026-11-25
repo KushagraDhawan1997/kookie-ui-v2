@@ -153,6 +153,9 @@ rule of thumb that it overrules. If one looks wrong for your case, say so and as
   positioning, a typed fade or an observer.
 - A new Navigator screen opens at the top. The title does not slide between screens.
 - The scroll fade stays at 0.8 even where text shows faintly behind a row's title.
+- A Notice has two distances, never one gap for everything: its icon and words are one group,
+  its action and X are another. Inside a group the gap is small (8px by default); between the
+  groups it is two steps bigger (16px). Both follow the notice's size.
 - The action row of a dialog is a plain `Flex` today. Whether actions and Close move into a
   navigation bar is still open. Don't decide it.
 
