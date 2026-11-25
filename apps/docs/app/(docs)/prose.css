@@ -202,14 +202,14 @@
    stopped beginning ON the band's bottom edge the same day and began an interval below it, and
    this column's whole rule is that it lands on the title's line — it is a SIBLING of the page
    and cannot read what a page declares, so it spends the same three terms itself. The interval
-   is named here rather than derived because there is nothing to derive it from: `--layout-space-6`
-   is what `Page` spends, and the two are held together by the law that measures the list's first
+   is named here rather than derived because there is nothing to derive it from: the title's own
+   room, `--title-space-9` (2026-11-25), is what `Page` spends, and the two are held together by the law that measures the list's first
    row against the title rather than by either of them naming the other. One expression, one
    landing place, stated twice. */
 .kd-toc-column {
   position: absolute;
   inset-block-start: calc(
-    var(--kui-pane-inset-block-start) - var(--kui-sf-p) + var(--layout-space-6)
+    var(--kui-pane-inset-block-start) - var(--kui-sf-p) - var(--kui-sf-p) + var(--title-space-9)
   );
   inset-block-end: 0;
   inset-inline-end: 0;
@@ -227,7 +227,7 @@
      scrollport is measured from its content box, which the scroller has re-padded — the same
      box the rule above is spent in, so it is the same expression. */
   inset-block-start: calc(
-    var(--kui-pane-inset-block-start) - var(--kui-sf-p) + var(--layout-space-6)
+    var(--kui-pane-inset-block-start) - var(--kui-sf-p) - var(--kui-sf-p) + var(--title-space-9)
   );
   display: block;
 }

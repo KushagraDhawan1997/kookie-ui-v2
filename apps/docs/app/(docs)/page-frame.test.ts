@@ -87,7 +87,7 @@ describe("the page header has one home", () => {
  * rules while the page spent `reach − pane inset`, so the list sat sixteen pixels below the
  * title at rest and jumped sixteen back the first time the page moved.
  *
- * FALSIFIED: dropping `--layout-space-6` from either rule in prose.css fails, and so does
+ * FALSIFIED: dropping `--title-space-9` from either rule in prose.css fails, and so does
  * changing the page's own interval in the package without changing them.
  */
 describe("the table of contents spends the page's own clearance (§46)", () => {
@@ -110,10 +110,13 @@ describe("the table of contents spends the page's own clearance (§46)", () => {
 
   it("the page states the reach, the pane inset it has already been given, and the interval", () => {
     const clearance = declaration(pageCss, ".kui-page {", "padding-block-start");
+    // The interval is the title's own room since 2026-11-25 (`--title-space-9`): the band's
+    // bottom padding is taken off and the title step's room put in its place.
     expect(terms(clearance), "the page's clearance changed shape").toEqual([
       "var(--kui-pane-inset-block-start)",
       "var(--kui-sf-p)",
-      "var(--layout-space-6)",
+      "var(--kui-sf-p)",
+      "var(--title-space-9)",
       "var(--layout-space-7)",
     ]);
   });
@@ -122,12 +125,13 @@ describe("the table of contents spends the page's own clearance (§46)", () => {
     [".kd-toc-column {", "the list at rest"],
     [".kd-toc {", "the list once it is travelling"],
   ] as const) {
-    it(`${what} spends the same three, so it lands on the title's line`, () => {
+    it(`${what} spends the same terms, so it lands on the title's line`, () => {
       const pinned = declaration(prose, selector, "inset-block-start");
       expect(terms(pinned), `${selector} drifted from the page's own clearance`).toEqual([
         "var(--kui-pane-inset-block-start)",
         "var(--kui-sf-p)",
-        "var(--layout-space-6)",
+        "var(--kui-sf-p)",
+        "var(--title-space-9)",
       ]);
     });
   }
