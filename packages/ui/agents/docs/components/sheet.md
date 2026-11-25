@@ -23,7 +23,7 @@ Use a Sheet for a task that needs more room than a `Popover` but belongs beside 
 
 For a task that belongs in the centre of the screen, use a `Dialog`, and for a short question that needs an answer, use an `AlertDialog`. For a panel that stays open while people keep working on the page, use a Shell pane such as `ShellInspector`.
 
-A Sheet behaves like a `Dialog`. Focus stays inside the panel, the page behind it stops scrolling, and the dimmed background shows that the page is not available. Escape, a press on the dimmed background or a swipe toward the edge closes it, and `onOpenChange` tells you what closed it.
+A Sheet behaves like a `Dialog`. Focus stays inside the panel, the page behind it stops scrolling, and the dimmed background shows that the page is not available. Escape, a press on the dimmed background or a swipe toward the edge closes it, and `onOpenChange` tells you what closed it. It also spaces its `SheetTitle` and `SheetDescription` as a Dialog does, so you add no space between them or under the panel's `Toolbar`.
 
 `side` can be `bottom`, which is the default, `inline-start` or `inline-end`. The inline sides follow the reading direction, so a panel that opens from the right in English opens from the left in Arabic without any change to your markup. While a person drags the panel toward its edge, it follows their finger, and on a phone a bottom sheet stays above the on-screen keyboard.
 

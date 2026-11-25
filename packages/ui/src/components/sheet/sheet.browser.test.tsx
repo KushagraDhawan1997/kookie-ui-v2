@@ -48,6 +48,8 @@ import {
   until,
 } from "../../test/browser.tsx";
 import type { Size } from "../../system/axes.ts";
+import { OWNED_TITLE_STEP } from "../../system/type-steps.ts";
+import { Toolbar, ToolbarButton, ToolbarTitle } from "../toolbar/toolbar.tsx";
 import type { Material } from "../../system/axes.ts";
 
 /** Every axis off its default — a dropped attribute is visible (the §20 constant, Dialog's set
@@ -978,5 +980,84 @@ describe("the reserve is the unsafe band PLUS a target", () => {
         0,
       );
     });
+  });
+});
+
+/* ── The same layout must not space differently in a sheet (2026-11-25) ───────────────── */
+
+describe("a sheet's title and description take the dialog's gaps", () => {
+  /* THE DEFECT. The panel's rules for what sits under a band were written for the dialog's marks
+     and named the sheet's body, but a sheet's title and description carried no mark, so nothing
+     matched: a description under the band sat a section away in a sheet (24px) and a group away
+     in a dialog (4px), from the same call site. Each case below is the dialog's own law, asked
+     of a sheet, against the same tokens. */
+  const mount = (size: Size, body: React.ReactNode) => {
+    render(
+      <Theme>
+        <Sheet defaultOpen size={size} side="inline-end">
+          <SheetContent>{body}</SheetContent>
+        </Sheet>
+      </Theme>,
+    );
+    const popups = document.querySelectorAll<HTMLElement>(".kui-sheet-popup");
+    const popup = popups[popups.length - 1];
+    const bar = popup?.querySelector<HTMLElement>(".kui-toolbar");
+    if (!popup || !bar) throw new Error("the band never mounted");
+    return { popup, bar };
+  };
+  const close = <SheetClose render={<ToolbarButton iconOnly aria-label="Close">x</ToolbarButton>} />;
+
+  it("title in the band, description under it: a group", () => {
+    const { bar } = mount(
+      "2",
+      <>
+        <Toolbar>
+          <ToolbarTitle render={<SheetTitle />}>Filters</ToolbarTitle>
+          {close}
+        </Toolbar>
+        <SheetDescription>Narrow the list.</SheetDescription>
+      </>,
+    );
+    expect(computed(bar, "margin-bottom")).toBe(tokenOn(bar, "--layout-space-2"));
+  });
+
+  it("title under the band: the room its type step carries, at every size; then the description a group under it", () => {
+    for (const size of SIZES) {
+      const { popup, bar } = mount(
+        size,
+        <>
+          <Toolbar>{close}</Toolbar>
+          <SheetTitle>Filters</SheetTitle>
+          <SheetDescription>Narrow the list.</SheetDescription>
+        </>,
+      );
+      const room = tokenOn(bar, `--title-space-${OWNED_TITLE_STEP[size]}`);
+      expect(computed(bar, "margin-bottom"), `size ${size}`).toBe(room);
+      const title = popup.querySelector<HTMLElement>(".kui-dialog-title");
+      const description = popup.querySelector<HTMLElement>(".kui-dialog-description");
+      if (!title || !description) throw new Error("the sheet's title or description carries no mark");
+      expect(
+        title.getBoundingClientRect().top - bar.getBoundingClientRect().bottom,
+        `size ${size}`,
+      ).toBeCloseTo(parseFloat(room), 0);
+      expect(
+        description.getBoundingClientRect().top - title.getBoundingClientRect().bottom,
+        `size ${size}`,
+      ).toBeCloseTo(parseFloat(tokenOn(bar, "--layout-space-2")), 0);
+    }
+  });
+
+  it("title in the band, other content under it: still a section", () => {
+    const { bar } = mount(
+      "2",
+      <>
+        <Toolbar>
+          <ToolbarTitle render={<SheetTitle />}>Filters</ToolbarTitle>
+          {close}
+        </Toolbar>
+        <TextField aria-label="Search" />
+      </>,
+    );
+    expect(computed(bar, "margin-bottom")).toBe(tokenOn(bar, "--layout-space-6"));
   });
 });

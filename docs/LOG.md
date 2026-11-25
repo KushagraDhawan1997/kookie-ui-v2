@@ -8,6 +8,10 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-11-25 A sheet spaces its title and description as a dialog does
+
+The panel's rules for what sits under a band named the sheet's body but matched the dialog's marks, and a sheet's title and description carried none. So one call site gave a description 4px under the band in a dialog and 24px in a sheet. Found while laying out every place a title or content sits under a row (the scratch spacing page); Kushagra: "sheet should follow same rules". `SheetTitle` and `SheetDescription` now carry the marks, and a sheet gets all three of the dialog's answers: description under the band a group away, title under the band the room its step carries, anything else a section away. A sheet's body was already a `kui-dialog-body`, so no rule changed, only what matches it.
+
 ## 2026-11-25 A title's size sets the room above it
 
 Follows the entry below by a few hours and withdraws its number. With a Back button in the band, a title 4px under it read as attached to the button (Kushagra: "it needs more room"), and the wider problem was already on the table: a Page's title sat 48px under its row by Page's own sum and a dialog's sat 4px under its row by the panel's rule, two answers to one question (Kushagra: they "cannot use different fundamentals"). A flat panel-padding gap was tried on a scratch page and rejected by him because a bigger title needs more room than a smaller one; he then named the mechanism: the hook that sizes the title should guide the spacing.

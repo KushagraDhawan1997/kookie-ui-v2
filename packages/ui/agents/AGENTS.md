@@ -124,6 +124,8 @@ rule of thumb that it overrules. If one looks wrong for your case, say so and as
   no prop for the gap; don't add space by hand, and don't give a dialog and a Page different
   rules for it.
 - A description written straight after a dialog's title sits one small step under it.
+- A sheet spaces its title and description exactly as a dialog does. The same layout never
+  gets a different gap because of which panel it is in.
 - A large title under a row of navigation and tools follows `Page`: the row stays in place,
   the title sits below it, and when the title scrolls up behind the row a `ToolbarTitle` in the
   row shows the same words. Check `Page` before asking how a title and its row behave.

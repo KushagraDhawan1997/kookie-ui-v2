@@ -409,7 +409,13 @@ export type SheetTitleProps = ComponentRefusals &
 export function SheetTitle({ children, ...props }: SheetTitleProps) {
   const { size } = React.use(SheetContext);
   return (
-    <BaseDrawer.Title render={<Heading size={OWNED_TITLE_STEP[size]} />} {...props}>
+    // The panel's spacing reads these two classes (surfaces.css). A sheet's body is already a
+    // `kui-dialog-body`, so its title and description carry the dialog's marks and get the
+    // dialog's gaps: the same layout must not space differently in a sheet (2026-11-25).
+    <BaseDrawer.Title
+      render={<Heading className="kui-dialog-title" size={OWNED_TITLE_STEP[size]} />}
+      {...props}
+    >
       {children}
     </BaseDrawer.Title>
   );
@@ -431,7 +437,14 @@ export function SheetDescription({ children, ...props }: SheetDescriptionProps) 
   const { size } = React.use(SheetContext);
   return (
     <BaseDrawer.Description
-      render={<Text size={OWNED_BODY_STEP[size]} emphasis="medium" render={<p />} />}
+      render={
+        <Text
+          className="kui-dialog-description"
+          size={OWNED_BODY_STEP[size]}
+          emphasis="medium"
+          render={<p />}
+        />
+      }
       {...props}
     >
       {children}
