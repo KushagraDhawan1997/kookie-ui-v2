@@ -956,9 +956,11 @@
 }
 
 [data-emphasis="medium"] {
-  --kui-ct-fill-src: var(--tone-soft);
-  --kui-ct-fill-src-hover: var(--tone-soft-hover);
-  --kui-ct-fill-src-active: var(--tone-soft-active);
+  /* The bed's own steps first, where a tinted surface hands them down (surfaces.css,
+     2026-11-25); everywhere else they are unset and the trio is what it always was. */
+  --kui-ct-fill-src: var(--kui-bed-soft, var(--tone-soft));
+  --kui-ct-fill-src-hover: var(--kui-bed-soft-hover, var(--tone-soft-hover));
+  --kui-ct-fill-src-active: var(--kui-bed-soft-active, var(--tone-soft-active));
   /* --tone-INK since 2026-08-23, and it is the row family's own 2026-08-09 reversal arriving
      where it should have arrived first (Kushagra, off the tone x emphasis board: "why does row
      label not read the same as button's... Button label reads too dark").
@@ -996,8 +998,8 @@
   /* Bare at rest, fill on touch. Its rest is the absence of a fill, so the +1/+2 step rule
      (§8) applies from the first visible state rather than from transparency. */
   --kui-ct-fill-src: transparent;
-  --kui-ct-fill-src-hover: var(--tone-soft);
-  --kui-ct-fill-src-active: var(--tone-soft-hover);
+  --kui-ct-fill-src-hover: var(--kui-bed-soft, var(--tone-soft));
+  --kui-ct-fill-src-active: var(--kui-bed-soft-hover, var(--tone-soft-hover));
   /* The medium rung's sentence, same day and same reason — a label reads what words read. */
   --kui-ct-label-color: var(--tone-ink);
   /* Nothing to light — and declared, not omitted, so a quiet control inside a louder
@@ -1368,6 +1370,10 @@
   --tone-soft: var(--disabled-fill);
   --tone-soft-hover: var(--disabled-fill);
   --tone-soft-active: var(--disabled-fill);
+  /* A dead control is dead on any bed: the tinted surface's steps stand down with the trio. */
+  --kui-bed-soft: initial;
+  --kui-bed-soft-hover: initial;
+  --kui-bed-soft-active: initial;
   --tone-soft-solid: var(--disabled-fill-solid);
   --tone-soft-hover-solid: var(--disabled-fill-solid);
   --tone-soft-active-solid: var(--disabled-fill-solid);
@@ -1622,6 +1628,10 @@
     --tone-soft: var(--tone-soft-solid);
     --tone-soft-hover: var(--tone-soft-hover-solid);
     --tone-soft-active: var(--tone-soft-active-solid);
+    /* And a material owns its whole fill: a glass control takes nothing from a tinted bed. */
+    --kui-bed-soft: initial;
+    --kui-bed-soft-hover: initial;
+    --kui-bed-soft-active: initial;
     --dress-field-fill: var(--dress-field-fill-solid);
     --dress-field-fill-hover: var(--dress-field-fill-hover-solid);
     --dress-field-fill-active: var(--dress-field-fill-active-solid);

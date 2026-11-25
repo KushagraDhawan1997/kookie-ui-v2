@@ -486,3 +486,62 @@ describe("a strip lends its tone to the controls in it (system/tone-scope.ts)", 
     expect(document.querySelector(".in-dialog")?.getAttribute("data-tone")).toBe("neutral");
   });
 });
+
+/**
+ * A CONTROL ON A TINTED SURFACE STANDS ONE SOLID STEP ABOVE IT (2026-11-25, Kushagra, of a medium
+ * button on a Notice: there, "not doing a tinted button is actually wrong"). The neutral wash
+ * (2026-08-23) is priced against the neutral page. On a grey notice it was the notice's own
+ * step, so the button had no shape; on an amber one it was a grey patch.
+ */
+describe("a button on a notice takes the next solid step of the notice's own colour (2026-11-25)", () => {
+  /** What a colour written in tokens paints, in the family of the element it is probed on. */
+  const paints = (scope: Element, value: string) => {
+    const probe = document.createElement("i");
+    probe.style.backgroundColor = value;
+    scope.append(probe);
+    const colour = getComputedStyle(probe).backgroundColor;
+    probe.remove();
+    return colour;
+  };
+  const fill = (el: Element) => getComputedStyle(el).backgroundColor;
+
+  it.each(APPEARANCES)("%s: neutral and every status tone, at rest", (appearance) => {
+    for (const tone of ["neutral", "warning", "destructive", "info", "success"] as const) {
+      const root = mounted(
+        <Stack>
+          <Notice tone={tone} action={<Button>Fix it</Button>}>
+            Something
+          </Notice>
+          <Button data-outside>Fix it</Button>
+        </Stack>,
+        { theme: { appearance } },
+      );
+      const notice = root.querySelector<HTMLElement>(".kui-notice")!;
+      const inside = notice.querySelector<HTMLElement>(".kui-notice-action button")!;
+      const outside = root.querySelector<HTMLElement>("[data-outside]")!;
+      // One step above the notice, in the notice's family, and solid.
+      expect(fill(inside), `${tone} ${appearance}`).toBe(paints(notice, "var(--tone-raised)"));
+      expect(fill(inside), `${tone} ${appearance}: the button is the notice's own colour`).not.toBe(fill(notice));
+      expect(fill(inside)).not.toContain("/");
+      // And the same button on the page is what it always was: the neutral wash.
+      expect(fill(outside), `${tone} ${appearance}: on the page`).toBe(paints(outside, "var(--neutral-soft)"));
+      if (tone !== "neutral") expect(fill(inside)).not.toBe(fill(outside));
+    }
+  });
+
+  it("a sealed card inside the notice is a neutral bed again, and a disabled button is dead on any bed", () => {
+    const root = mounted(
+      <Notice tone="warning" action={<Button disabled>Fix it</Button>}>
+        <Card>
+          <Button data-carded>In a card</Button>
+        </Card>
+      </Notice>,
+      { theme: {} },
+    );
+    const carded = root.querySelector<HTMLElement>("[data-carded]")!;
+    expect(fill(carded)).toBe(paints(carded, "var(--neutral-soft)"));
+    const dead = root.querySelector<HTMLElement>(".kui-notice-action button")!;
+    const live = mounted(<Button disabled>Fix it</Button>, { theme: {} });
+    expect(fill(dead)).toBe(fill(live.matches("button") ? live : live.querySelector("button")!));
+  });
+});

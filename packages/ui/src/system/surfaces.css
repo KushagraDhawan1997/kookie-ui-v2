@@ -1263,6 +1263,10 @@
   /* The seal (§10) — the one resting surface fill since the look axis died (§19,
      2026-08-20). Quiet only — the tone-forward rungs are ranked chrome. */
   --kui-sf-fill-src: var(--color-surface);
+  /* A sealed pane is a neutral bed again, whatever tinted pane it sits in (see medium). */
+  --kui-bed-soft: initial;
+  --kui-bed-soft-hover: initial;
+  --kui-bed-soft-active: initial;
 }
 
 /* The pane's resting edge, routed AROUND [data-bordered]'s shared rule rather than through
@@ -1281,10 +1285,25 @@
      nothing while its source was an alpha. */
   --kui-sf-fill-src: var(--tone-a3-solid);
   --color-text: var(--tone-text);
+  /* A CONTROL ON A TINTED SURFACE STANDS ONE SOLID STEP ABOVE IT, IN THE SURFACE'S FAMILY
+     (2026-11-25, Kushagra, of a medium button on a Notice: there, "not doing a tinted button is
+     actually wrong"). The control layer's soft trio is neutral for every family (2026-08-23)
+     and priced against the neutral page: on a grey strip it was the strip's own step and
+     vanished, and on an amber one it was a grey patch. This surface is step 3, so it hands the
+     controls inside it its family's 4, 5 and 6, resolved HERE against its own tone, and the
+     ladder reads them before its own trio (recipes.css). Solid, never alpha: a control is an
+     object (2026-09-08). */
+  --kui-bed-soft: var(--tone-raised);
+  --kui-bed-soft-hover: var(--tone-raised-hover);
+  --kui-bed-soft-active: var(--tone-raised-active);
 }
 
 .kui-surface[data-emphasis="loud"] {
   --kui-sf-fill-src: var(--tone-solid);
+  /* Not a tint: what stands on a solid fill is a separate question, and stays as it was. */
+  --kui-bed-soft: initial;
+  --kui-bed-soft-hover: initial;
+  --kui-bed-soft-active: initial;
   --color-text: var(--tone-contrast);
   --color-text-muted: var(--tone-contrast);
   /* The whole type ladder collapses on a solid fill: legibility over hierarchy — the

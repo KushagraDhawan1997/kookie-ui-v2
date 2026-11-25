@@ -361,6 +361,9 @@
   --neutral-soft-hover-solid: var(--neutral-4);
   --neutral-soft-active-solid: var(--neutral-5);
   --neutral-a3-solid: var(--neutral-3);
+  --neutral-raised: var(--neutral-4);
+  --neutral-raised-hover: var(--neutral-5);
+  --neutral-raised-active: var(--neutral-6);
   --neutral-solid: #1e1f20;
   --neutral-solid-hover: #333334;
   --neutral-solid-active: #48494a;
@@ -405,6 +408,9 @@
   --accent-soft-hover-solid: var(--accent-4);
   --accent-soft-active-solid: var(--accent-5);
   --accent-a3-solid: var(--accent-3);
+  --accent-raised: var(--accent-4);
+  --accent-raised-hover: var(--accent-5);
+  --accent-raised-active: var(--accent-6);
   --accent-solid: #1e1f20;
   --accent-solid-hover: #333334;
   --accent-solid-active: #48494a;
@@ -449,6 +455,9 @@
   --destructive-soft-hover-solid: var(--destructive-4);
   --destructive-soft-active-solid: var(--destructive-5);
   --destructive-a3-solid: var(--destructive-3);
+  --destructive-raised: var(--destructive-4);
+  --destructive-raised-hover: var(--destructive-5);
+  --destructive-raised-active: var(--destructive-6);
   --destructive-solid: #e5484d;
   --destructive-solid-hover: #d73a41;
   --destructive-solid-active: #c82a36;
@@ -493,6 +502,9 @@
   --blue-soft-hover-solid: var(--blue-4);
   --blue-soft-active-solid: var(--blue-5);
   --blue-a3-solid: var(--blue-3);
+  --blue-raised: var(--blue-4);
+  --blue-raised-hover: var(--blue-5);
+  --blue-raised-active: var(--blue-6);
   --blue-solid: #0094fc;
   --blue-solid-hover: #0088e8;
   --blue-solid-active: #007cd4;
@@ -537,6 +549,9 @@
   --green-soft-hover-solid: var(--green-4);
   --green-soft-active-solid: var(--green-5);
   --green-a3-solid: var(--green-3);
+  --green-raised: var(--green-4);
+  --green-raised-hover: var(--green-5);
+  --green-raised-active: var(--green-6);
   --green-solid: #45c560;
   --green-solid-hover: #54d26d;
   --green-solid-active: #62e079;
@@ -581,6 +596,9 @@
   --orange-soft-hover-solid: var(--orange-4);
   --orange-soft-active-solid: var(--orange-5);
   --orange-a3-solid: var(--orange-3);
+  --orange-raised: var(--orange-4);
+  --orange-raised-hover: var(--orange-5);
+  --orange-raised-active: var(--orange-6);
   --orange-solid: #f76b15;
   --orange-solid-hover: #e76000;
   --orange-solid-active: #d45700;
@@ -625,6 +643,9 @@
   --amber-soft-hover-solid: var(--amber-4);
   --amber-soft-active-solid: var(--amber-5);
   --amber-a3-solid: var(--amber-3);
+  --amber-raised: var(--amber-4);
+  --amber-raised-hover: var(--amber-5);
+  --amber-raised-active: var(--amber-6);
   --amber-solid: #f0b236;
   --amber-solid-hover: #fdbe47;
   --amber-solid-active: #ffcf7d;
@@ -669,6 +690,9 @@
   --pink-soft-hover-solid: var(--pink-4);
   --pink-soft-active-solid: var(--pink-5);
   --pink-a3-solid: var(--pink-3);
+  --pink-raised: var(--pink-4);
+  --pink-raised-hover: var(--pink-5);
+  --pink-raised-active: var(--pink-6);
   --pink-solid: #db589e;
   --pink-solid-hover: #cd4b92;
   --pink-solid-active: #bf3e86;
@@ -713,6 +737,9 @@
   --purple-soft-hover-solid: var(--purple-4);
   --purple-soft-active-solid: var(--purple-5);
   --purple-a3-solid: var(--purple-3);
+  --purple-raised: var(--purple-4);
+  --purple-raised-hover: var(--purple-5);
+  --purple-raised-active: var(--purple-6);
   --purple-solid: #8410ff;
   --purple-solid-hover: #7700e9;
   --purple-solid-active: #6a00d1;
@@ -757,6 +784,9 @@
   --success-soft-hover-solid: var(--success-4);
   --success-soft-active-solid: var(--success-5);
   --success-a3-solid: var(--success-3);
+  --success-raised: var(--success-4);
+  --success-raised-hover: var(--success-5);
+  --success-raised-active: var(--success-6);
   --success-solid: #45c560;
   --success-solid-hover: #54d26d;
   --success-solid-active: #62e079;
@@ -801,6 +831,9 @@
   --warning-soft-hover-solid: var(--warning-4);
   --warning-soft-active-solid: var(--warning-5);
   --warning-a3-solid: var(--warning-3);
+  --warning-raised: var(--warning-4);
+  --warning-raised-hover: var(--warning-5);
+  --warning-raised-active: var(--warning-6);
   --warning-solid: #f0b236;
   --warning-solid-hover: #fdbe47;
   --warning-solid-active: #ffcf7d;
@@ -845,6 +878,9 @@
   --info-soft-hover-solid: var(--info-4);
   --info-soft-active-solid: var(--info-5);
   --info-a3-solid: var(--info-3);
+  --info-raised: var(--info-4);
+  --info-raised-hover: var(--info-5);
+  --info-raised-active: var(--info-6);
   --info-solid: #0094fc;
   --info-solid-hover: #0088e8;
   --info-solid-active: #007cd4;
@@ -1276,6 +1312,9 @@
   --neutral-soft-hover-solid: var(--neutral-5);
   --neutral-soft-active-solid: var(--neutral-6);
   --neutral-a3-solid: var(--neutral-3);
+  --neutral-raised: var(--neutral-4);
+  --neutral-raised-hover: var(--neutral-5);
+  --neutral-raised-active: var(--neutral-6);
   --neutral-solid: #ebebec;
   --neutral-solid-hover: #d0d0d1;
   --neutral-solid-active: #b5b6b6;
@@ -1320,6 +1359,9 @@
   --accent-soft-hover-solid: var(--accent-5);
   --accent-soft-active-solid: var(--accent-6);
   --accent-a3-solid: var(--accent-3);
+  --accent-raised: var(--accent-4);
+  --accent-raised-hover: var(--accent-5);
+  --accent-raised-active: var(--accent-6);
   --accent-solid: #ebebec;
   --accent-solid-hover: #d0d0d1;
   --accent-solid-active: #b5b6b6;
@@ -1364,6 +1406,9 @@
   --destructive-soft-hover-solid: var(--destructive-5);
   --destructive-soft-active-solid: var(--destructive-6);
   --destructive-a3-solid: var(--destructive-3);
+  --destructive-raised: var(--destructive-4);
+  --destructive-raised-hover: var(--destructive-5);
+  --destructive-raised-active: var(--destructive-6);
   --destructive-solid: #e7494e;
   --destructive-solid-hover: #d83a42;
   --destructive-solid-active: #ca2a36;
@@ -1408,6 +1453,9 @@
   --blue-soft-hover-solid: var(--blue-5);
   --blue-soft-active-solid: var(--blue-6);
   --blue-a3-solid: var(--blue-3);
+  --blue-raised: var(--blue-4);
+  --blue-raised-hover: var(--blue-5);
+  --blue-raised-active: var(--blue-6);
   --blue-solid: #0094fc;
   --blue-solid-hover: #0088e8;
   --blue-solid-active: #007cd4;
@@ -1452,6 +1500,9 @@
   --green-soft-hover-solid: var(--green-5);
   --green-soft-active-solid: var(--green-6);
   --green-a3-solid: var(--green-3);
+  --green-raised: var(--green-4);
+  --green-raised-hover: var(--green-5);
+  --green-raised-active: var(--green-6);
   --green-solid: #55ef76;
   --green-solid-hover: #44e269;
   --green-solid-active: #31d45c;
@@ -1496,6 +1547,9 @@
   --orange-soft-hover-solid: var(--orange-5);
   --orange-soft-active-solid: var(--orange-6);
   --orange-a3-solid: var(--orange-3);
+  --orange-raised: var(--orange-4);
+  --orange-raised-hover: var(--orange-5);
+  --orange-raised-active: var(--orange-6);
   --orange-solid: #f86b15;
   --orange-solid-hover: #e76000;
   --orange-solid-active: #d55800;
@@ -1540,6 +1594,9 @@
   --amber-soft-hover-solid: var(--amber-5);
   --amber-soft-active-solid: var(--amber-6);
   --amber-a3-solid: var(--amber-3);
+  --amber-raised: var(--amber-4);
+  --amber-raised-hover: var(--amber-5);
+  --amber-raised-active: var(--amber-6);
   --amber-solid: #f0b236;
   --amber-solid-hover: #fdbe47;
   --amber-solid-active: #ffcf7d;
@@ -1584,6 +1641,9 @@
   --pink-soft-hover-solid: var(--pink-5);
   --pink-soft-active-solid: var(--pink-6);
   --pink-a3-solid: var(--pink-3);
+  --pink-raised: var(--pink-4);
+  --pink-raised-hover: var(--pink-5);
+  --pink-raised-active: var(--pink-6);
   --pink-solid: #de59a0;
   --pink-solid-hover: #d04c94;
   --pink-solid-active: #c23f88;
@@ -1628,6 +1688,9 @@
   --purple-soft-hover-solid: var(--purple-5);
   --purple-soft-active-solid: var(--purple-6);
   --purple-a3-solid: var(--purple-3);
+  --purple-raised: var(--purple-4);
+  --purple-raised-hover: var(--purple-5);
+  --purple-raised-active: var(--purple-6);
   --purple-solid: #8410ff;
   --purple-solid-hover: #7700e9;
   --purple-solid-active: #6a00d1;
@@ -1672,6 +1735,9 @@
   --success-soft-hover-solid: var(--success-5);
   --success-soft-active-solid: var(--success-6);
   --success-a3-solid: var(--success-3);
+  --success-raised: var(--success-4);
+  --success-raised-hover: var(--success-5);
+  --success-raised-active: var(--success-6);
   --success-solid: #55ef76;
   --success-solid-hover: #44e269;
   --success-solid-active: #31d45c;
@@ -1716,6 +1782,9 @@
   --warning-soft-hover-solid: var(--warning-5);
   --warning-soft-active-solid: var(--warning-6);
   --warning-a3-solid: var(--warning-3);
+  --warning-raised: var(--warning-4);
+  --warning-raised-hover: var(--warning-5);
+  --warning-raised-active: var(--warning-6);
   --warning-solid: #f0b236;
   --warning-solid-hover: #fdbe47;
   --warning-solid-active: #ffcf7d;
@@ -1760,6 +1829,9 @@
   --info-soft-hover-solid: var(--info-5);
   --info-soft-active-solid: var(--info-6);
   --info-a3-solid: var(--info-3);
+  --info-raised: var(--info-4);
+  --info-raised-hover: var(--info-5);
+  --info-raised-active: var(--info-6);
   --info-solid: #0094fc;
   --info-solid-hover: #0088e8;
   --info-solid-active: #007cd4;
@@ -2180,6 +2252,9 @@
     --neutral-soft-hover-solid: var(--neutral-4);
     --neutral-soft-active-solid: var(--neutral-5);
     --neutral-a3-solid: var(--neutral-3);
+    --neutral-raised: var(--neutral-4);
+    --neutral-raised-hover: var(--neutral-5);
+    --neutral-raised-active: var(--neutral-6);
     --neutral-solid: color(display-p3 0.119 0.123 0.127);
     --neutral-solid-hover: color(display-p3 0.198 0.202 0.207);
     --neutral-solid-active: color(display-p3 0.283 0.286 0.291);
@@ -2212,6 +2287,9 @@
     --accent-soft-hover-solid: var(--accent-4);
     --accent-soft-active-solid: var(--accent-5);
     --accent-a3-solid: var(--accent-3);
+    --accent-raised: var(--accent-4);
+    --accent-raised-hover: var(--accent-5);
+    --accent-raised-active: var(--accent-6);
     --accent-solid: color(display-p3 0.119 0.123 0.127);
     --accent-solid-hover: color(display-p3 0.198 0.202 0.207);
     --accent-solid-active: color(display-p3 0.283 0.286 0.291);
@@ -2244,6 +2322,9 @@
     --destructive-soft-hover-solid: var(--destructive-4);
     --destructive-soft-active-solid: var(--destructive-5);
     --destructive-a3-solid: var(--destructive-3);
+    --destructive-raised: var(--destructive-4);
+    --destructive-raised-hover: var(--destructive-5);
+    --destructive-raised-active: var(--destructive-6);
     --destructive-solid: color(display-p3 0.863 0.284 0.293);
     --destructive-solid-hover: color(display-p3 0.808 0.227 0.247);
     --destructive-solid-active: color(display-p3 0.753 0.165 0.202);
@@ -2276,6 +2357,9 @@
     --blue-soft-hover-solid: var(--blue-4);
     --blue-soft-active-solid: var(--blue-5);
     --blue-a3-solid: var(--blue-3);
+    --blue-raised: var(--blue-4);
+    --blue-raised-hover: var(--blue-5);
+    --blue-raised-active: var(--blue-6);
     --blue-solid: color(display-p3 0 0.513 0.994);
     --blue-solid-hover: color(display-p3 0 0.468 0.91);
     --blue-solid-active: color(display-p3 0 0.423 0.828);
@@ -2308,6 +2392,9 @@
     --green-soft-hover-solid: var(--green-4);
     --green-soft-active-solid: var(--green-5);
     --green-a3-solid: var(--green-3);
+    --green-raised: var(--green-4);
+    --green-raised-hover: var(--green-5);
+    --green-raised-active: var(--green-6);
     --green-solid: color(display-p3 0.266 0.796 0.299);
     --green-solid-hover: color(display-p3 0.325 0.849 0.35);
     --green-solid-active: color(display-p3 0.382 0.902 0.401);
@@ -2340,6 +2427,9 @@
     --orange-soft-hover-solid: var(--orange-4);
     --orange-soft-active-solid: var(--orange-5);
     --orange-a3-solid: var(--orange-3);
+    --orange-raised: var(--orange-4);
+    --orange-raised-hover: var(--orange-5);
+    --orange-raised-active: var(--orange-6);
     --orange-solid: color(display-p3 0.936 0.42 0.079);
     --orange-solid-hover: color(display-p3 0.874 0.376 0);
     --orange-solid-active: color(display-p3 0.803 0.343 0);
@@ -2372,6 +2462,9 @@
     --amber-soft-hover-solid: var(--amber-4);
     --amber-soft-active-solid: var(--amber-5);
     --amber-a3-solid: var(--amber-3);
+    --amber-raised: var(--amber-4);
+    --amber-raised-hover: var(--amber-5);
+    --amber-raised-active: var(--amber-6);
     --amber-solid: color(display-p3 0.939 0.707 0.21);
     --amber-solid-hover: color(display-p3 0.992 0.759 0.274);
     --amber-solid-active: color(display-p3 1 0.826 0.495);
@@ -2404,6 +2497,9 @@
     --pink-soft-hover-solid: var(--pink-4);
     --pink-soft-active-solid: var(--pink-5);
     --pink-a3-solid: var(--pink-3);
+    --pink-raised: var(--pink-4);
+    --pink-raised-hover: var(--pink-5);
+    --pink-raised-active: var(--pink-6);
     --pink-solid: color(display-p3 0.822 0.346 0.616);
     --pink-solid-hover: color(display-p3 0.769 0.295 0.568);
     --pink-solid-active: color(display-p3 0.716 0.243 0.521);
@@ -2436,6 +2532,9 @@
     --purple-soft-hover-solid: var(--purple-4);
     --purple-soft-active-solid: var(--purple-5);
     --purple-a3-solid: var(--purple-3);
+    --purple-raised: var(--purple-4);
+    --purple-raised-hover: var(--purple-5);
+    --purple-raised-active: var(--purple-6);
     --purple-solid: color(display-p3 0.488 0.068 1);
     --purple-solid-hover: color(display-p3 0.441 0 0.916);
     --purple-solid-active: color(display-p3 0.392 0 0.822);
@@ -2468,6 +2567,9 @@
     --success-soft-hover-solid: var(--success-4);
     --success-soft-active-solid: var(--success-5);
     --success-a3-solid: var(--success-3);
+    --success-raised: var(--success-4);
+    --success-raised-hover: var(--success-5);
+    --success-raised-active: var(--success-6);
     --success-solid: color(display-p3 0.266 0.796 0.299);
     --success-solid-hover: color(display-p3 0.325 0.849 0.35);
     --success-solid-active: color(display-p3 0.382 0.902 0.401);
@@ -2500,6 +2602,9 @@
     --warning-soft-hover-solid: var(--warning-4);
     --warning-soft-active-solid: var(--warning-5);
     --warning-a3-solid: var(--warning-3);
+    --warning-raised: var(--warning-4);
+    --warning-raised-hover: var(--warning-5);
+    --warning-raised-active: var(--warning-6);
     --warning-solid: color(display-p3 0.939 0.707 0.21);
     --warning-solid-hover: color(display-p3 0.992 0.759 0.274);
     --warning-solid-active: color(display-p3 1 0.826 0.495);
@@ -2532,6 +2637,9 @@
     --info-soft-hover-solid: var(--info-4);
     --info-soft-active-solid: var(--info-5);
     --info-a3-solid: var(--info-3);
+    --info-raised: var(--info-4);
+    --info-raised-hover: var(--info-5);
+    --info-raised-active: var(--info-6);
     --info-solid: color(display-p3 0 0.513 0.994);
     --info-solid-hover: color(display-p3 0 0.468 0.91);
     --info-solid-active: color(display-p3 0 0.423 0.828);
@@ -2587,6 +2695,9 @@
     --neutral-soft-hover-solid: var(--neutral-4);
     --neutral-soft-active-solid: var(--neutral-5);
     --neutral-a3-solid: var(--neutral-3);
+    --neutral-raised: var(--neutral-4);
+    --neutral-raised-hover: var(--neutral-5);
+    --neutral-raised-active: var(--neutral-6);
     --neutral-solid: color(display-p3 0.119 0.123 0.127);
     --neutral-solid-hover: color(display-p3 0.198 0.202 0.207);
     --neutral-solid-active: color(display-p3 0.283 0.286 0.291);
@@ -2619,6 +2730,9 @@
     --accent-soft-hover-solid: var(--accent-4);
     --accent-soft-active-solid: var(--accent-5);
     --accent-a3-solid: var(--accent-3);
+    --accent-raised: var(--accent-4);
+    --accent-raised-hover: var(--accent-5);
+    --accent-raised-active: var(--accent-6);
     --accent-solid: color(display-p3 0.119 0.123 0.127);
     --accent-solid-hover: color(display-p3 0.198 0.202 0.207);
     --accent-solid-active: color(display-p3 0.283 0.286 0.291);
@@ -2651,6 +2765,9 @@
     --destructive-soft-hover-solid: var(--destructive-4);
     --destructive-soft-active-solid: var(--destructive-5);
     --destructive-a3-solid: var(--destructive-3);
+    --destructive-raised: var(--destructive-4);
+    --destructive-raised-hover: var(--destructive-5);
+    --destructive-raised-active: var(--destructive-6);
     --destructive-solid: color(display-p3 0.863 0.284 0.293);
     --destructive-solid-hover: color(display-p3 0.808 0.227 0.247);
     --destructive-solid-active: color(display-p3 0.753 0.165 0.202);
@@ -2683,6 +2800,9 @@
     --blue-soft-hover-solid: var(--blue-4);
     --blue-soft-active-solid: var(--blue-5);
     --blue-a3-solid: var(--blue-3);
+    --blue-raised: var(--blue-4);
+    --blue-raised-hover: var(--blue-5);
+    --blue-raised-active: var(--blue-6);
     --blue-solid: color(display-p3 0 0.513 0.994);
     --blue-solid-hover: color(display-p3 0 0.468 0.91);
     --blue-solid-active: color(display-p3 0 0.423 0.828);
@@ -2715,6 +2835,9 @@
     --green-soft-hover-solid: var(--green-4);
     --green-soft-active-solid: var(--green-5);
     --green-a3-solid: var(--green-3);
+    --green-raised: var(--green-4);
+    --green-raised-hover: var(--green-5);
+    --green-raised-active: var(--green-6);
     --green-solid: color(display-p3 0.266 0.796 0.299);
     --green-solid-hover: color(display-p3 0.325 0.849 0.35);
     --green-solid-active: color(display-p3 0.382 0.902 0.401);
@@ -2747,6 +2870,9 @@
     --orange-soft-hover-solid: var(--orange-4);
     --orange-soft-active-solid: var(--orange-5);
     --orange-a3-solid: var(--orange-3);
+    --orange-raised: var(--orange-4);
+    --orange-raised-hover: var(--orange-5);
+    --orange-raised-active: var(--orange-6);
     --orange-solid: color(display-p3 0.936 0.42 0.079);
     --orange-solid-hover: color(display-p3 0.874 0.376 0);
     --orange-solid-active: color(display-p3 0.803 0.343 0);
@@ -2779,6 +2905,9 @@
     --amber-soft-hover-solid: var(--amber-4);
     --amber-soft-active-solid: var(--amber-5);
     --amber-a3-solid: var(--amber-3);
+    --amber-raised: var(--amber-4);
+    --amber-raised-hover: var(--amber-5);
+    --amber-raised-active: var(--amber-6);
     --amber-solid: color(display-p3 0.939 0.707 0.21);
     --amber-solid-hover: color(display-p3 0.992 0.759 0.274);
     --amber-solid-active: color(display-p3 1 0.826 0.495);
@@ -2811,6 +2940,9 @@
     --pink-soft-hover-solid: var(--pink-4);
     --pink-soft-active-solid: var(--pink-5);
     --pink-a3-solid: var(--pink-3);
+    --pink-raised: var(--pink-4);
+    --pink-raised-hover: var(--pink-5);
+    --pink-raised-active: var(--pink-6);
     --pink-solid: color(display-p3 0.822 0.346 0.616);
     --pink-solid-hover: color(display-p3 0.769 0.295 0.568);
     --pink-solid-active: color(display-p3 0.716 0.243 0.521);
@@ -2843,6 +2975,9 @@
     --purple-soft-hover-solid: var(--purple-4);
     --purple-soft-active-solid: var(--purple-5);
     --purple-a3-solid: var(--purple-3);
+    --purple-raised: var(--purple-4);
+    --purple-raised-hover: var(--purple-5);
+    --purple-raised-active: var(--purple-6);
     --purple-solid: color(display-p3 0.488 0.068 1);
     --purple-solid-hover: color(display-p3 0.441 0 0.916);
     --purple-solid-active: color(display-p3 0.392 0 0.822);
@@ -2875,6 +3010,9 @@
     --success-soft-hover-solid: var(--success-4);
     --success-soft-active-solid: var(--success-5);
     --success-a3-solid: var(--success-3);
+    --success-raised: var(--success-4);
+    --success-raised-hover: var(--success-5);
+    --success-raised-active: var(--success-6);
     --success-solid: color(display-p3 0.266 0.796 0.299);
     --success-solid-hover: color(display-p3 0.325 0.849 0.35);
     --success-solid-active: color(display-p3 0.382 0.902 0.401);
@@ -2907,6 +3045,9 @@
     --warning-soft-hover-solid: var(--warning-4);
     --warning-soft-active-solid: var(--warning-5);
     --warning-a3-solid: var(--warning-3);
+    --warning-raised: var(--warning-4);
+    --warning-raised-hover: var(--warning-5);
+    --warning-raised-active: var(--warning-6);
     --warning-solid: color(display-p3 0.939 0.707 0.21);
     --warning-solid-hover: color(display-p3 0.992 0.759 0.274);
     --warning-solid-active: color(display-p3 1 0.826 0.495);
@@ -2939,6 +3080,9 @@
     --info-soft-hover-solid: var(--info-4);
     --info-soft-active-solid: var(--info-5);
     --info-a3-solid: var(--info-3);
+    --info-raised: var(--info-4);
+    --info-raised-hover: var(--info-5);
+    --info-raised-active: var(--info-6);
     --info-solid: color(display-p3 0 0.513 0.994);
     --info-solid-hover: color(display-p3 0 0.468 0.91);
     --info-solid-active: color(display-p3 0 0.423 0.828);
@@ -2994,6 +3138,9 @@
     --neutral-soft-hover-solid: var(--neutral-5);
     --neutral-soft-active-solid: var(--neutral-6);
     --neutral-a3-solid: var(--neutral-3);
+    --neutral-raised: var(--neutral-4);
+    --neutral-raised-hover: var(--neutral-5);
+    --neutral-raised-active: var(--neutral-6);
     --neutral-solid: color(display-p3 0.92 0.922 0.924);
     --neutral-solid-hover: color(display-p3 0.814 0.816 0.818);
     --neutral-solid-active: color(display-p3 0.711 0.712 0.715);
@@ -3026,6 +3173,9 @@
     --accent-soft-hover-solid: var(--accent-5);
     --accent-soft-active-solid: var(--accent-6);
     --accent-a3-solid: var(--accent-3);
+    --accent-raised: var(--accent-4);
+    --accent-raised-hover: var(--accent-5);
+    --accent-raised-active: var(--accent-6);
     --accent-solid: color(display-p3 0.92 0.922 0.924);
     --accent-solid-hover: color(display-p3 0.814 0.816 0.818);
     --accent-solid-active: color(display-p3 0.711 0.712 0.715);
@@ -3058,6 +3208,9 @@
     --destructive-soft-hover-solid: var(--destructive-5);
     --destructive-soft-active-solid: var(--destructive-6);
     --destructive-a3-solid: var(--destructive-3);
+    --destructive-raised: var(--destructive-4);
+    --destructive-raised-hover: var(--destructive-5);
+    --destructive-raised-active: var(--destructive-6);
     --destructive-solid: color(display-p3 0.902 0.299 0.308);
     --destructive-solid-hover: color(display-p3 0.847 0.241 0.262);
     --destructive-solid-active: color(display-p3 0.792 0.179 0.216);
@@ -3090,6 +3243,9 @@
     --blue-soft-hover-solid: var(--blue-5);
     --blue-soft-active-solid: var(--blue-6);
     --blue-a3-solid: var(--blue-3);
+    --blue-raised: var(--blue-4);
+    --blue-raised-hover: var(--blue-5);
+    --blue-raised-active: var(--blue-6);
     --blue-solid: color(display-p3 0 0.513 0.994);
     --blue-solid-hover: color(display-p3 0 0.468 0.91);
     --blue-solid-active: color(display-p3 0 0.423 0.828);
@@ -3122,6 +3278,9 @@
     --green-soft-hover-solid: var(--green-5);
     --green-soft-active-solid: var(--green-6);
     --green-a3-solid: var(--green-3);
+    --green-raised: var(--green-4);
+    --green-raised-hover: var(--green-5);
+    --green-raised-active: var(--green-6);
     --green-solid: color(display-p3 0.32 0.939 0.358);
     --green-solid-hover: color(display-p3 0.254 0.886 0.304);
     --green-solid-active: color(display-p3 0.178 0.833 0.248);
@@ -3154,6 +3313,9 @@
     --orange-soft-hover-solid: var(--orange-5);
     --orange-soft-active-solid: var(--orange-6);
     --orange-a3-solid: var(--orange-3);
+    --orange-raised: var(--orange-4);
+    --orange-raised-hover: var(--orange-5);
+    --orange-raised-active: var(--orange-6);
     --orange-solid: color(display-p3 0.971 0.436 0.084);
     --orange-solid-hover: color(display-p3 0.909 0.392 0);
     --orange-solid-active: color(display-p3 0.837 0.359 0);
@@ -3186,6 +3348,9 @@
     --amber-soft-hover-solid: var(--amber-5);
     --amber-soft-active-solid: var(--amber-6);
     --amber-a3-solid: var(--amber-3);
+    --amber-raised: var(--amber-4);
+    --amber-raised-hover: var(--amber-5);
+    --amber-raised-active: var(--amber-6);
     --amber-solid: color(display-p3 0.939 0.707 0.21);
     --amber-solid-hover: color(display-p3 0.992 0.759 0.274);
     --amber-solid-active: color(display-p3 1 0.826 0.495);
@@ -3218,6 +3383,9 @@
     --pink-soft-hover-solid: var(--pink-5);
     --pink-soft-active-solid: var(--pink-6);
     --pink-a3-solid: var(--pink-3);
+    --pink-raised: var(--pink-4);
+    --pink-raised-hover: var(--pink-5);
+    --pink-raised-active: var(--pink-6);
     --pink-solid: color(display-p3 0.864 0.365 0.648);
     --pink-solid-hover: color(display-p3 0.81 0.314 0.599);
     --pink-solid-active: color(display-p3 0.757 0.262 0.552);
@@ -3250,6 +3418,9 @@
     --purple-soft-hover-solid: var(--purple-5);
     --purple-soft-active-solid: var(--purple-6);
     --purple-a3-solid: var(--purple-3);
+    --purple-raised: var(--purple-4);
+    --purple-raised-hover: var(--purple-5);
+    --purple-raised-active: var(--purple-6);
     --purple-solid: color(display-p3 0.488 0.068 1);
     --purple-solid-hover: color(display-p3 0.441 0 0.916);
     --purple-solid-active: color(display-p3 0.392 0 0.822);
@@ -3282,6 +3453,9 @@
     --success-soft-hover-solid: var(--success-5);
     --success-soft-active-solid: var(--success-6);
     --success-a3-solid: var(--success-3);
+    --success-raised: var(--success-4);
+    --success-raised-hover: var(--success-5);
+    --success-raised-active: var(--success-6);
     --success-solid: color(display-p3 0.32 0.939 0.358);
     --success-solid-hover: color(display-p3 0.254 0.886 0.304);
     --success-solid-active: color(display-p3 0.178 0.833 0.248);
@@ -3314,6 +3488,9 @@
     --warning-soft-hover-solid: var(--warning-5);
     --warning-soft-active-solid: var(--warning-6);
     --warning-a3-solid: var(--warning-3);
+    --warning-raised: var(--warning-4);
+    --warning-raised-hover: var(--warning-5);
+    --warning-raised-active: var(--warning-6);
     --warning-solid: color(display-p3 0.939 0.707 0.21);
     --warning-solid-hover: color(display-p3 0.992 0.759 0.274);
     --warning-solid-active: color(display-p3 1 0.826 0.495);
@@ -3346,6 +3523,9 @@
     --info-soft-hover-solid: var(--info-5);
     --info-soft-active-solid: var(--info-6);
     --info-a3-solid: var(--info-3);
+    --info-raised: var(--info-4);
+    --info-raised-hover: var(--info-5);
+    --info-raised-active: var(--info-6);
     --info-solid: color(display-p3 0 0.513 0.994);
     --info-solid-hover: color(display-p3 0 0.468 0.91);
     --info-solid-active: color(display-p3 0 0.423 0.828);
@@ -5177,6 +5357,9 @@
   --tone-current: var(--neutral-current);
   --tone-a3: var(--neutral-a3);
   --tone-a3-solid: var(--neutral-a3-solid);
+  --tone-raised: var(--neutral-raised);
+  --tone-raised-hover: var(--neutral-raised-hover);
+  --tone-raised-active: var(--neutral-raised-active);
 }
 
 [data-tone="accent"] {
@@ -5200,6 +5383,9 @@
   --tone-current: var(--accent-current);
   --tone-a3: var(--neutral-a3);
   --tone-a3-solid: var(--neutral-a3-solid);
+  --tone-raised: var(--neutral-raised);
+  --tone-raised-hover: var(--neutral-raised-hover);
+  --tone-raised-active: var(--neutral-raised-active);
 }
 
 [data-tone="destructive"] {
@@ -5223,6 +5409,9 @@
   --tone-current: var(--destructive-current);
   --tone-a3: var(--destructive-a3);
   --tone-a3-solid: var(--destructive-a3-solid);
+  --tone-raised: var(--destructive-raised);
+  --tone-raised-hover: var(--destructive-raised-hover);
+  --tone-raised-active: var(--destructive-raised-active);
 }
 
 [data-tone="blue"] {
@@ -5246,6 +5435,9 @@
   --tone-current: var(--blue-current);
   --tone-a3: var(--blue-a3);
   --tone-a3-solid: var(--blue-a3-solid);
+  --tone-raised: var(--blue-raised);
+  --tone-raised-hover: var(--blue-raised-hover);
+  --tone-raised-active: var(--blue-raised-active);
 }
 
 [data-tone="green"] {
@@ -5269,6 +5461,9 @@
   --tone-current: var(--green-current);
   --tone-a3: var(--green-a3);
   --tone-a3-solid: var(--green-a3-solid);
+  --tone-raised: var(--green-raised);
+  --tone-raised-hover: var(--green-raised-hover);
+  --tone-raised-active: var(--green-raised-active);
 }
 
 [data-tone="orange"] {
@@ -5292,6 +5487,9 @@
   --tone-current: var(--orange-current);
   --tone-a3: var(--orange-a3);
   --tone-a3-solid: var(--orange-a3-solid);
+  --tone-raised: var(--orange-raised);
+  --tone-raised-hover: var(--orange-raised-hover);
+  --tone-raised-active: var(--orange-raised-active);
 }
 
 [data-tone="amber"] {
@@ -5315,6 +5513,9 @@
   --tone-current: var(--amber-current);
   --tone-a3: var(--amber-a3);
   --tone-a3-solid: var(--amber-a3-solid);
+  --tone-raised: var(--amber-raised);
+  --tone-raised-hover: var(--amber-raised-hover);
+  --tone-raised-active: var(--amber-raised-active);
 }
 
 [data-tone="pink"] {
@@ -5338,6 +5539,9 @@
   --tone-current: var(--pink-current);
   --tone-a3: var(--pink-a3);
   --tone-a3-solid: var(--pink-a3-solid);
+  --tone-raised: var(--pink-raised);
+  --tone-raised-hover: var(--pink-raised-hover);
+  --tone-raised-active: var(--pink-raised-active);
 }
 
 [data-tone="purple"] {
@@ -5361,6 +5565,9 @@
   --tone-current: var(--purple-current);
   --tone-a3: var(--purple-a3);
   --tone-a3-solid: var(--purple-a3-solid);
+  --tone-raised: var(--purple-raised);
+  --tone-raised-hover: var(--purple-raised-hover);
+  --tone-raised-active: var(--purple-raised-active);
 }
 
 [data-tone="success"] {
@@ -5384,6 +5591,9 @@
   --tone-current: var(--success-current);
   --tone-a3: var(--success-a3);
   --tone-a3-solid: var(--success-a3-solid);
+  --tone-raised: var(--success-raised);
+  --tone-raised-hover: var(--success-raised-hover);
+  --tone-raised-active: var(--success-raised-active);
 }
 
 [data-tone="warning"] {
@@ -5407,6 +5617,9 @@
   --tone-current: var(--warning-current);
   --tone-a3: var(--warning-a3);
   --tone-a3-solid: var(--warning-a3-solid);
+  --tone-raised: var(--warning-raised);
+  --tone-raised-hover: var(--warning-raised-hover);
+  --tone-raised-active: var(--warning-raised-active);
 }
 
 [data-tone="info"] {
@@ -5430,6 +5643,9 @@
   --tone-current: var(--info-current);
   --tone-a3: var(--info-a3);
   --tone-a3-solid: var(--info-a3-solid);
+  --tone-raised: var(--info-raised);
+  --tone-raised-hover: var(--info-raised-hover);
+  --tone-raised-active: var(--info-raised-active);
 }
 
 [data-pointer="fine"] {
@@ -6750,6 +6966,9 @@
   --accent-soft-hover-solid: var(--blue-soft-hover-solid);
   --accent-soft-active-solid: var(--blue-soft-active-solid);
   --accent-a3-solid: var(--blue-a3-solid);
+  --accent-raised: var(--blue-raised);
+  --accent-raised-hover: var(--blue-raised-hover);
+  --accent-raised-active: var(--blue-raised-active);
   --accent-solid: var(--blue-solid);
   --accent-solid-hover: var(--blue-solid-hover);
   --accent-solid-active: var(--blue-solid-active);
@@ -6796,6 +7015,9 @@
   --accent-soft-hover-solid: var(--purple-soft-hover-solid);
   --accent-soft-active-solid: var(--purple-soft-active-solid);
   --accent-a3-solid: var(--purple-a3-solid);
+  --accent-raised: var(--purple-raised);
+  --accent-raised-hover: var(--purple-raised-hover);
+  --accent-raised-active: var(--purple-raised-active);
   --accent-solid: var(--purple-solid);
   --accent-solid-hover: var(--purple-solid-hover);
   --accent-solid-active: var(--purple-solid-active);
@@ -6842,6 +7064,9 @@
   --accent-soft-hover-solid: var(--pink-soft-hover-solid);
   --accent-soft-active-solid: var(--pink-soft-active-solid);
   --accent-a3-solid: var(--pink-a3-solid);
+  --accent-raised: var(--pink-raised);
+  --accent-raised-hover: var(--pink-raised-hover);
+  --accent-raised-active: var(--pink-raised-active);
   --accent-solid: var(--pink-solid);
   --accent-solid-hover: var(--pink-solid-hover);
   --accent-solid-active: var(--pink-solid-active);
@@ -6888,6 +7113,9 @@
   --accent-soft-hover-solid: var(--orange-soft-hover-solid);
   --accent-soft-active-solid: var(--orange-soft-active-solid);
   --accent-a3-solid: var(--orange-a3-solid);
+  --accent-raised: var(--orange-raised);
+  --accent-raised-hover: var(--orange-raised-hover);
+  --accent-raised-active: var(--orange-raised-active);
   --accent-solid: var(--orange-solid);
   --accent-solid-hover: var(--orange-solid-hover);
   --accent-solid-active: var(--orange-solid-active);
@@ -6934,6 +7162,9 @@
   --accent-soft-hover-solid: var(--amber-soft-hover-solid);
   --accent-soft-active-solid: var(--amber-soft-active-solid);
   --accent-a3-solid: var(--amber-a3-solid);
+  --accent-raised: var(--amber-raised);
+  --accent-raised-hover: var(--amber-raised-hover);
+  --accent-raised-active: var(--amber-raised-active);
   --accent-solid: var(--amber-solid);
   --accent-solid-hover: var(--amber-solid-hover);
   --accent-solid-active: var(--amber-solid-active);
@@ -6980,6 +7211,9 @@
   --accent-soft-hover-solid: var(--green-soft-hover-solid);
   --accent-soft-active-solid: var(--green-soft-active-solid);
   --accent-a3-solid: var(--green-a3-solid);
+  --accent-raised: var(--green-raised);
+  --accent-raised-hover: var(--green-raised-hover);
+  --accent-raised-active: var(--green-raised-active);
   --accent-solid: var(--green-solid);
   --accent-solid-hover: var(--green-solid-hover);
   --accent-solid-active: var(--green-solid-active);

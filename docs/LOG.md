@@ -8,6 +8,16 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-11-25 A control on a tinted surface takes the surface's next step
+
+Kushagra, on the Notice example: the grey notice's button "look[s] flat, no bg at all", and on the warning notice "the gray button is totally wrong". Measured, light: the button's `--neutral-soft` and the notice's `--tone-a3-solid` are the same step 3 (dark sits 4 on 3, which is why it only showed in light); and the wash trio is neutral for every family by his own 2026-08-23 rule, so an amber strip carried a grey patch.
+
+**Rejected first, by the record: a see-through fill.** I proposed making the soft fill an alpha tint so it would show on any bed, which is the 2026-08-17 move. He had reversed that on 2026-09-08 ("solid = solid. If I have a button with content underneath, in a solid theme, it looks ugly"), the note is on the role in `color.ts`, and I found it only after recommending it. Withdrawn.
+
+**What shipped:** the tinted surface hands down its own family's next solid steps and the control ladder reads them first. He narrowed his August rule himself: it "was about avoiding colored medium emphasis in isolation... but also because the bg is neutral. Here, not doing a tinted button is actually wrong." **Rejected: only stepping light's neutral wash to 4.** It fixes grey on grey and leaves the grey patch on every status tone.
+
+**Not changed, and he knows:** dark's grey button on a grey notice is the same one step apart it was, and still faint.
+
 ## 2026-11-25 A panel's title condenses into its row, with no Navigator
 
 The behaviour existed twice (a `Page` in a pane, a Navigator in a panel) and a third time as hand wiring on a scratch dialog, which is the one Kushagra had been judging and had asked to have shipped more than once. I answered those asks as questions about where the behaviour lived instead of building it, and he said so ("Why haven't you shipped this, I asked several times already"). It is now what a dialog, a sheet and a popover do when they are written as a Toolbar and then a ScrollArea, with a wordless `ToolbarTitle` in the row.

@@ -105,6 +105,10 @@ rule of thumb that it overrules. If one looks wrong for your case, say so and as
 
 - Gray is the default accent. Pink and purple are named families beside blue and green.
  
+- A medium button's fill is neutral gray whatever its tone, on the page. Inside a tinted
+  surface such as a Notice it is one solid step darker than that surface, in the surface's own
+  colour: darker gray on a gray notice, darker amber on a warning one. Never a gray patch on a
+  tinted surface, and never a see-through fill.
 - The accent is fixed when the app is built. A section can be tinted with `<Theme accent>`.
   There is no built-in accent picker.
 

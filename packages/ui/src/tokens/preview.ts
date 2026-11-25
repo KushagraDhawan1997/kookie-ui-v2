@@ -195,6 +195,9 @@ function roleValue(s: Scale, role: (typeof ROLES)[number], mode: Mode): string {
     // The opaque twin (2026-08-26). By the recomposition law aN over the bed IS step N, which
     // is why the glass veil can swap one for the other without the tint moving.
     case "a3-solid": return s.steps[2]!;
+    case "raised": return s.steps[3]!;
+    case "raised-hover": return s.steps[4]!;
+    case "raised-active": return s.steps[5]!;
     default: {
       const unmapped: never = role;
       throw new Error(`accentSwap cannot express role: ${String(unmapped)}`);
@@ -899,6 +902,9 @@ const ROLE_NOTES: Record<(typeof ROLES)[number], [string, string]> = {
   current: ["the ink (light) or the glyph (dark)", "a current row's icon AND label, one value"],
   a3: ["step 3 as alpha over the page", "the tone-forward surface fill (Notice)"],
   "a3-solid": ["step 3, said opaquely", "the same fill ON GLASS — an alpha source multiplies through the veil"],
+  raised: ["step 4, solid", "a control's soft fill ON the tone-forward surface"],
+  "raised-hover": ["step 5, solid", "that control under the pointer"],
+  "raised-active": ["step 6, solid", "that control pressed"],
 };
 
 const ROLE_MAP: Array<[string, string, string]> = [

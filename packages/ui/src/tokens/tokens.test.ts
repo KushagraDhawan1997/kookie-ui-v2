@@ -2403,6 +2403,9 @@ describe("the wash is neutral for everyone; accent gives up more (§7, §9, §11
                          // on the material — the axis deciding a colour it has no business in.
     "ink-muted",         // the type ladder's middle rung
     "ink-faint",         // and its quiet one
+    "raised",            // a control's soft fill ON the tone-forward surface (2026-11-25): it
+    "raised-hover",      // travels with the bed it stands on, so a neutral bed gets a
+    "raised-active",     // neutral control and a tinted one a tinted control
   ] as const;
   /** What no tone ever gives up: the pigment, the line, and the inks that sit on a fill. */
   const KEPT = [

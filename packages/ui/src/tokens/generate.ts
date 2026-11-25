@@ -833,6 +833,11 @@ export const ROLES = [
   // Same argument as the soft trio's twins, and it needs a name of its own because `soft` is
   // a wash role (neutral for every family) and is a4's twin in dark.
   "a3-solid",
+  // RAISED (2026-11-25): a control's soft fill ON that tinted surface, one solid step up, with
+  // hover and pressed the two after. The surface hands them to the controls inside it.
+  "raised",
+  "raised-hover",
+  "raised-active",
 ] as const;
 
 /**
@@ -895,6 +900,10 @@ const DILUTED_ROLES: ReadonlySet<string> = new Set([
   // The twin travels with the role it is a twin OF, or an undiluted tone would paint one
   // family solid and another neutral for the same rung depending on the material.
   "a3-solid",
+  // And what rests on that surface travels with it: a neutral bed gets a neutral control.
+  "raised",
+  "raised-hover",
+  "raised-active",
 ]);
 
 /** Every role that resolves NEUTRAL for this tone — the union the emitter walks. */

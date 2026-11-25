@@ -871,6 +871,14 @@ export function colorDeclarations(
       // it existed: a destructive thin strip painted color(srgb .788 .051 0 / .0255) against
       // a designed 34% veil — the family gone, the strip a grey smudge.
       decl(`${tone}-a3-solid`, `var(--${tone}-3)`),
+      // RAISED (2026-11-25, Kushagra, of a medium button on a Notice: on a tinted surface "not
+      // doing a tinted button is actually wrong"). What a control's soft fill is when the
+      // control rests ON that tinted surface: the surface is step 3 in both modes, so the
+      // control is the next solid step of the SAME family, and hover and pressed the two after.
+      // Solid, not alpha: a control is an object (2026-09-08, "solid = solid").
+      decl(`${tone}-raised`, `var(--${tone}-4)`),
+      decl(`${tone}-raised-hover`, `var(--${tone}-5)`),
+      decl(`${tone}-raised-active`, `var(--${tone}-6)`),
       decl(`${tone}-solid`, s.solid),
       decl(`${tone}-solid-hover`, s.solidHover),
       decl(`${tone}-solid-active`, s.solidActive),
