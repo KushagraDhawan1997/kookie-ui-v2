@@ -331,7 +331,7 @@ function DialogPopup({
       <div className="kui-dialog-body" role="presentation">
         <HostTitleContext.Provider value={DialogHostTitle}>
           <HostCloseContext.Provider value={DialogClose as React.ComponentType<{ render: React.ReactElement }>}>
-            <GlassScope material={material}>
+            <GlassScope material={material} panel>
               {/* The panel's own scope: its title claims it, and a `ToolbarTitle` given no words
                   shows that title once it has scrolled behind the row. */}
               <PageScope kind="panel">{children}</PageScope>

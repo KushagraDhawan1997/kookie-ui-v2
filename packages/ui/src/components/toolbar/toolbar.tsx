@@ -7,7 +7,7 @@ import * as React from "react";
 import type { Size } from "../../system/axes.ts";
 import { useLensRef } from "../../system/refraction.tsx";
 import { rootsInButton, unwrapLazy, type RenderElement } from "../../system/render.ts";
-import { BackdropContext, GlassScope, useMaterial } from "../../theme/theme.tsx";
+import { BackdropContext, GlassScope, PanelBandScope, useMaterial } from "../../theme/theme.tsx";
 import { BAND_STEP, SizeScopeContext, useSize } from "../../system/size.ts";
 import { BAND_TITLE_STEP } from "../../system/type-steps.ts";
 import { SpokenTitleContext, usePageMirror, usePageScope, usePageTitle } from "../../system/page.tsx";
@@ -106,6 +106,10 @@ export function Toolbar({
   // caller's size becomes undefined.
   const app = useSize();
   const size = sizeProp ?? BAND_STEP[app];
+  // In a glass dialog, sheet or popover a band's controls are glass again. The scope itself
+  // knows whether the nearest pane is such a panel (theme.tsx, PanelBandScope).
+  const marked =
+    backdrop === undefined ? children : <BackdropContext.Provider value={backdrop}>{children}</BackdropContext.Provider>;
   return (
     <BaseToolbar.Root
       orientation={orientation}
@@ -119,11 +123,7 @@ export function Toolbar({
             reason: components resolve their material in React, so an attribute here would be a
             second and unread home for one fact. Nothing is provided when nothing is said, so a
             toolbar inside a marked region keeps that region's answer. */}
-        {backdrop === undefined ? (
-          children
-        ) : (
-          <BackdropContext.Provider value={backdrop}>{children}</BackdropContext.Provider>
-        )}
+        <PanelBandScope>{marked}</PanelBandScope>
         </ToolbarOrientation.Provider>
       </SizeScopeContext.Provider>
     </BaseToolbar.Root>

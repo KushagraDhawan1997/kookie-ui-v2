@@ -8,6 +8,14 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-11-25 A toolbar in a glass dialog, sheet or popover is glass again
+
+"One glass per stack" was questioned and re-affirmed on 2026-08-16 ("generally, glass on glass doesn't be allowed"). It bent today on one ground. On the test dialogs a floating Close on a glass panel was the on-glass veil, a disc within two points of the panel's own lightness, and Kushagra said "Needs glass"; with the theme's material on it, "I think this is good". He drew the line himself when the same question came up for Notice: no glass inside a glass notice, but dialogs, sheets and popovers are different "because those have a scrim behind, so its not apples to apples".
+
+So the exception is narrow and structural: only a `Toolbar`, only in a pane that is a panel, only when that pane is glass. **Rejected: every control in a glass panel.** He named it: "When glass, controls like segmented control get a different look, thats not what I mean." **Rejected: reading the panel off the host Close context,** the first spelling, which a law caught: a toolbar on a Card inside a glass dialog inherited the dialog's context and became glass on a pane that was not the panel. The pane now says what it is.
+
+**Open, his:** a button in a glass panel that is NOT in a toolbar still gets the on-glass look, so one dialog can show both. A popover draws no scrim; it is included because he named it.
+
 ## 2026-11-25 A notice has two distances, not one
 
 Notice laid its mark, its words, its action and its dismiss on one flex gap, `--layout-space-4`, at every size. Kushagra asked how the distance between the two buttons was calculated, and on hearing it was the same 12px as everything else: "thats wrong principle right, to have one spacing". It is RULES 11 ("Distance is relationship") broken by the component that should have been the example.

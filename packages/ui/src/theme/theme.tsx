@@ -494,7 +494,16 @@ export function useMaterial(opts?: { backdrop?: boolean }): SurfaceMaterial {
     members go on-glass, a solid pane so its members know they stand on calm ground and stop
     expressing the theme's material (the selectivity rule's second half: a button on an opaque
     card never wears glass the card itself refused). */
-export function GlassScope({ material, children }: { material: SurfaceMaterial; children: React.ReactNode }) {
+export function GlassScope({
+  material,
+  panel = false,
+  children,
+}: {
+  material: SurfaceMaterial;
+  /** True for a dialog, a sheet and a popover: the panes whose bands are glass again. */
+  panel?: boolean;
+  children: React.ReactNode;
+}) {
   // The pane RESETS the region (2026-08-19): its own face is the ground its members stand on,
   // so a `<Box backdrop>` marked outside it stops at its edge — on a solid pane because the
   // pane sealed that backdrop away, on a glass pane because the backdrop is spent. A member
@@ -504,7 +513,42 @@ export function GlassScope({ material, children }: { material: SurfaceMaterial; 
   // card re-open glass-on-glass through the stale outer region.
   return (
     <PaneContext.Provider value={material === "solid" ? "solid" : "glass"}>
-      <BackdropContext.Provider value={false}>{children}</BackdropContext.Provider>
+      {/* Every pane says whether it is a panel, so a card inside a dialog says it is not and
+          a toolbar on that card is not taken for the dialog's band (PanelBandScope). */}
+      <PanelPaneContext.Provider value={panel}>
+        <BackdropContext.Provider value={false}>{children}</BackdropContext.Provider>
+      </PanelPaneContext.Provider>
+    </PaneContext.Provider>
+  );
+}
+
+/** Whether the nearest pane is a dialog, a sheet or a popover. */
+const PanelPaneContext = React.createContext(false);
+
+/**
+ * A panel's band is glass again (2026-11-25, Kushagra: "Needs glass", then yes to making it the
+ * default; and of why a panel and not a notice, "those have a scrim behind, so its not apples
+ * to apples"). Inside a glass panel a member resolves `on-glass`: the veil with no filter and no
+ * lens, because the panel already spent the backdrop. That rule holds for the panel's CONTENT.
+ * Its bands are the exception: Close, the tools beside it and the action row are chrome that
+ * sits on the panel the way a Shell pane's band sits on the app, and content may pass behind
+ * them. So a Toolbar in a glass dialog, sheet or popover clears the pane mark and marks its own
+ * region, and its controls express the theme's material like any band over content.
+ *
+ * Only under a GLASS pane that is a PANEL. A Toolbar on a Card inside that dialog stands on the
+ * card, which is a pane of its own and not a panel, so it follows the card; a glass Notice is
+ * not a panel either (same day: "we dont need to allow glass on glass notice"); and outside
+ * any pane nothing changes. A `ToolbarGroup` inside the band is the
+ * glass capsule and scopes its own buttons back to `on-glass`, so the stack is still one glass
+ * deep from the band down.
+ */
+export function PanelBandScope({ children }: { children: React.ReactNode }) {
+  const pane = React.use(PaneContext);
+  const panel = React.use(PanelPaneContext);
+  if (pane !== "glass" || !panel) return children;
+  return (
+    <PaneContext.Provider value={null}>
+      <BackdropContext.Provider value={true}>{children}</BackdropContext.Provider>
     </PaneContext.Provider>
   );
 }

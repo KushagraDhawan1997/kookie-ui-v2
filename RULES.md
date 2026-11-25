@@ -55,7 +55,8 @@ the disagreement is a bug to report.
    pane headers and footers, pinned or floating. Enforced by: default (Navigator; pane bands:
    coming), check (screen `band-inset`).
 4. **Toolbar buttons are glass.** Controls in a band use the band's material, not an opaque
-   fill. Enforced by: default inside `Toolbar`, review.
+   fill. In a glass dialog, sheet or popover they are real glass, not the flatter on-glass
+   look the panel's content gets. Enforced by: default inside `Toolbar`, review.
 5. **Everything in a glass panel reads the glass.** Cards and controls inside a glass panel
    take the panel's material. An opaque `Surface` inside glass is a break. Enforced by: check
    (screen `opaque-in-glass`).

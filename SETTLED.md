@@ -42,6 +42,9 @@ When Kushagra settles something new, add its line here in the same change.
   padding step 2. A dialog does not pad one size up.
 - A scroll edge fades on a curve, not evenly: content stays faint for most of the fade and
   comes back near the end. One value sets it for every fade (`--scrollbar-fade-curve`, 0.8).
+- A toolbar inside a glass dialog, sheet or popover has real glass buttons, with no prop: Close,
+  the tools beside it, a Navigator's Back, an action row written as a toolbar. This is the one
+  exception to "one glass per stack". Other controls in the panel keep the on-glass look.
 - A solid notice's own buttons, the action and the X, are real glass with no prop when the
   theme uses glass. A glass notice never holds real glass: its buttons keep the on-glass look.
   Dialogs, sheets and popovers are a different case, because of the scrim behind them.

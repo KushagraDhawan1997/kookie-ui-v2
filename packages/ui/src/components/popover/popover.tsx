@@ -297,7 +297,7 @@ function PopoverPopup({
         <FloatingBody>
           <HostTitleContext.Provider value={PopoverHostTitle}>
           <HostCloseContext.Provider value={PopoverClose as React.ComponentType<{ render: React.ReactElement }>}>
-            <GlassScope material={material}>
+            <GlassScope material={material} panel>
               <PageScope kind="panel">{children}</PageScope>
             </GlassScope>
           </HostCloseContext.Provider>

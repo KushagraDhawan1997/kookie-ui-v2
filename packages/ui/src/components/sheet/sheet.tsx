@@ -386,7 +386,7 @@ function SheetPopup({
       <BaseDrawer.Content className="kui-sheet-body kui-dialog-body">
         <HostTitleContext.Provider value={SheetHostTitle}>
           <HostCloseContext.Provider value={SheetClose as React.ComponentType<{ render: React.ReactElement }>}>
-            <GlassScope material={material}>
+            <GlassScope material={material} panel>
               <PageScope kind="panel">{children}</PageScope>
             </GlassScope>
           </HostCloseContext.Provider>
