@@ -27,7 +27,7 @@ Pass your own Button to `PopoverTrigger` through `render`, and the panel opens b
 
 `size` on `Popover` sets the panel's padding and corner, together with the text size of `PopoverTitle` and `PopoverDescription`. Content that you add keeps the sizes you give it. The panel uses the material that your `Theme` sets, so it is glass when the theme's material is glass and solid otherwise.
 
-Give every panel a `PopoverTitle`, because screen readers announce the panel by its title and read `PopoverDescription` with it. Escape or a press outside the panel closes it and returns focus to the trigger. For a close or save action inside the panel, wrap your own Button in `PopoverClose`. To open and close the panel from your own code, use `open` and `onOpenChange`.
+Give every panel a `PopoverTitle`, because screen readers announce the panel by its title and read `PopoverDescription` with it. The panel spaces the two as a Dialog does, so you add no space between them or under the panel's `Toolbar`. Escape or a press outside the panel closes it and returns focus to the trigger. For a close or save action inside the panel, wrap your own Button in `PopoverClose`. To open and close the panel from your own code, use `open` and `onOpenChange`.
 
 ## Use instead
 

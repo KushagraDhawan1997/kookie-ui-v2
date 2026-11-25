@@ -8,6 +8,10 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-11-25 A popover spaces its title and description as a dialog does
+
+The third panel of the same finding (the entry below is the sheet). A popover's band gave everything under it a section's distance and its title and description had no rule, so a titled popover with a description read looser than the same content in a dialog. Kushagra, asked whether a popover should follow the dialog's rules: "Yes". `PopoverTitle` and `PopoverDescription` carry the dialog's marks, the three band rules name the popover's body, and the popover states the room for its title's step per size (it is an anchored panel, outside the overlay join where a dialog and a sheet get that).
+
 ## 2026-11-25 A sheet spaces its title and description as a dialog does
 
 The panel's rules for what sits under a band named the sheet's body but matched the dialog's marks, and a sheet's title and description carried none. So one call site gave a description 4px under the band in a dialog and 24px in a sheet. Found while laying out every place a title or content sits under a row (the scratch spacing page); Kushagra: "sheet should follow same rules". `SheetTitle` and `SheetDescription` now carry the marks, and a sheet gets all three of the dialog's answers: description under the band a group away, title under the band the room its step carries, anything else a section away. A sheet's body was already a `kui-dialog-body`, so no rule changed, only what matches it.

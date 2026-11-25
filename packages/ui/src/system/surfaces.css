@@ -2557,7 +2557,7 @@
 /* Unless the content opens with the description. The description belongs to the title, so it
    sits a group's distance under the band, not a section's (2026-11-23, Kushagra: the title and
    its description must be close). The same pairing AlertDialog gives its title and text. */
-:is(.kui-dialog-body, .kui-sheet-body) > .kui-toolbar:first-child:has(
+:is(.kui-dialog-body, .kui-sheet-body, .kui-popover-popup .kui-floating-body) > .kui-toolbar:first-child:has(
     + .kui-dialog-description,
     + * > .kui-dialog-description:first-child
   ) {
@@ -2568,7 +2568,7 @@
    its own type step carries, which is what a Page's title gets under its row: one rule for a
    title under a row, wherever it is. This stood at a group's 4px for a few hours on 2026-11-25;
    with Back above the title it read as attached to it (Kushagra: "it needs more room"). */
-:is(.kui-dialog-body, .kui-sheet-body) > .kui-toolbar:first-child:has(
+:is(.kui-dialog-body, .kui-sheet-body, .kui-popover-popup .kui-floating-body) > .kui-toolbar:first-child:has(
     + .kui-dialog-title,
     + * > .kui-dialog-title:first-child
   ) {
@@ -2577,8 +2577,24 @@
 
 /* And a description written straight after that title sits the same distance under it. Direct
    children of the body only: inside a Stack the Stack's own gap already says it. */
-.kui-dialog-body > .kui-dialog-title:has(+ .kui-dialog-description) {
+:is(.kui-dialog-body, .kui-popover-popup .kui-floating-body) > .kui-dialog-title:has(+ .kui-dialog-description) {
   margin-block-end: var(--layout-space-2);
+}
+
+/* A popover's title takes the same steps a dialog's does (OWNED_TITLE_STEP), so it carries the
+   same room. It is not in the overlay join above, which is where a dialog and a sheet get this,
+   because a popover is an anchored panel and takes its padding and corner from another band. */
+.kui-popover-popup[data-size="1"] {
+  --kui-title-space: var(--title-space-4);
+}
+.kui-popover-popup[data-size="2"] {
+  --kui-title-space: var(--title-space-5);
+}
+.kui-popover-popup[data-size="3"] {
+  --kui-title-space: var(--title-space-6);
+}
+.kui-popover-popup[data-size="4"] {
+  --kui-title-space: var(--title-space-7);
 }
 
 /* With nothing before it in the band, the title lines up with the content under it rather than

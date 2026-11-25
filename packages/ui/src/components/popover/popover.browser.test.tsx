@@ -19,6 +19,8 @@ import * as React from "react";
 import { Theme, type ThemeProps } from "../../theme/theme.tsx";
 import { SIZES, computed, mounted, render, tokenOn } from "../../test/browser.tsx";
 import { ScrollArea } from "../scroll-area/scroll-area.tsx";
+import { OWNED_TITLE_STEP } from "../../system/type-steps.ts";
+import { Toolbar, ToolbarButton, ToolbarTitle } from "../toolbar/toolbar.tsx";
 import { Button } from "../button/button.tsx";
 import { Card } from "../card/card.tsx";
 import { Dialog, DialogContent, DialogTrigger } from "../dialog/dialog.tsx";
@@ -867,5 +869,82 @@ describe("a popover is made of what the app is made of (§10, §31)", () => {
       alpha(computed(inner, "background-color")),
       "the card sealed itself onto the panel",
     ).toBeLessThan(1);
+  });
+});
+
+/* ── The same layout must not space differently in a popover (2026-11-25) ─────────────── */
+
+describe("a popover's title and description take the dialog's gaps", () => {
+  /* A popover's band gave everything a section's distance, and its title and description had no
+     rule at all. Each case is the dialog's own law asked of a popover, against the same tokens. */
+  const mount = (size: (typeof SIZES)[number], body: React.ReactNode) => {
+    render(
+      <Theme>
+        <Popover defaultOpen size={size}>
+          <PopoverTrigger render={<Button>Open</Button>} />
+          <PopoverContent>{body}</PopoverContent>
+        </Popover>
+      </Theme>,
+    );
+    const popups = document.querySelectorAll<HTMLElement>(".kui-popover-popup");
+    const popup = popups[popups.length - 1];
+    const bar = popup?.querySelector<HTMLElement>(".kui-toolbar");
+    if (!popup || !bar) throw new Error("the band never mounted");
+    return { popup, bar };
+  };
+  const close = <PopoverClose render={<ToolbarButton iconOnly aria-label="Close">x</ToolbarButton>} />;
+
+  it("title in the band, description under it: a group", () => {
+    const { bar } = mount(
+      "2",
+      <>
+        <Toolbar>
+          <ToolbarTitle render={<PopoverTitle />}>Rename</ToolbarTitle>
+          {close}
+        </Toolbar>
+        <PopoverDescription>This changes the name everywhere.</PopoverDescription>
+      </>,
+    );
+    expect(computed(bar, "margin-bottom")).toBe(tokenOn(bar, "--layout-space-2"));
+  });
+
+  it("title under the band: the room its type step carries, at every size; then the description a group under it", () => {
+    for (const size of SIZES) {
+      const { popup, bar } = mount(
+        size,
+        <>
+          <Toolbar>{close}</Toolbar>
+          <PopoverTitle>Rename</PopoverTitle>
+          <PopoverDescription>This changes the name everywhere.</PopoverDescription>
+        </>,
+      );
+      const room = tokenOn(bar, `--title-space-${OWNED_TITLE_STEP[size]}`);
+      expect(computed(bar, "margin-bottom"), `size ${size}`).toBe(room);
+      const title = popup.querySelector<HTMLElement>(".kui-dialog-title");
+      const description = popup.querySelector<HTMLElement>(".kui-dialog-description");
+      if (!title || !description) throw new Error("the popover's title or description carries no mark");
+      expect(
+        title.getBoundingClientRect().top - bar.getBoundingClientRect().bottom,
+        `size ${size}`,
+      ).toBeCloseTo(parseFloat(room), 0);
+      expect(
+        description.getBoundingClientRect().top - title.getBoundingClientRect().bottom,
+        `size ${size}`,
+      ).toBeCloseTo(parseFloat(tokenOn(bar, "--layout-space-2")), 0);
+    }
+  });
+
+  it("title in the band, other content under it: still a section", () => {
+    const { bar } = mount(
+      "2",
+      <>
+        <Toolbar>
+          <ToolbarTitle render={<PopoverTitle />}>Rename</ToolbarTitle>
+          {close}
+        </Toolbar>
+        <Button>Save</Button>
+      </>,
+    );
+    expect(computed(bar, "margin-bottom")).toBe(tokenOn(bar, "--layout-space-6"));
   });
 });

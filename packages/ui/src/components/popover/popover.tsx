@@ -323,7 +323,13 @@ export type PopoverTitleProps = ComponentRefusals & Omit<
 export function PopoverTitle({ children, ...props }: PopoverTitleProps) {
   const size = React.use(PopoverSizeContext);
   return (
-    <BasePopover.Title render={<Heading size={OWNED_TITLE_STEP[size]} />} {...props}>
+    // The panel's spacing reads these two classes (surfaces.css), the dialog's own: a popover's
+    // title and description get a dialog's gaps, because the same layout must not space
+    // differently by which panel holds it (2026-11-25).
+    <BasePopover.Title
+      render={<Heading className="kui-dialog-title" size={OWNED_TITLE_STEP[size]} />}
+      {...props}
+    >
       {children}
     </BasePopover.Title>
   );
@@ -352,7 +358,17 @@ export type PopoverDescriptionProps = ComponentRefusals & Omit<
 export function PopoverDescription({ children, ...props }: PopoverDescriptionProps) {
   const size = React.use(PopoverSizeContext);
   return (
-    <BasePopover.Description render={<Text size={OWNED_BODY_STEP[size]} emphasis="medium" render={<p />} />} {...props}>
+    <BasePopover.Description
+      render={
+        <Text
+          className="kui-dialog-description"
+          size={OWNED_BODY_STEP[size]}
+          emphasis="medium"
+          render={<p />}
+        />
+      }
+      {...props}
+    >
       {children}
     </BasePopover.Description>
   );
