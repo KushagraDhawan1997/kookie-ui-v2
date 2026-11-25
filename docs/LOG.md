@@ -14,7 +14,7 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 So the exception is narrow and structural: only a `Toolbar`, only in a pane that is a panel, only when that pane is glass. **Rejected: every control in a glass panel.** He named it: "When glass, controls like segmented control get a different look, thats not what I mean." **Rejected: reading the panel off the host Close context,** the first spelling, which a law caught: a toolbar on a Card inside a glass dialog inherited the dialog's context and became glass on a pane that was not the panel. The pane now says what it is.
 
-**Open, his:** a button in a glass panel that is NOT in a toolbar still gets the on-glass look, so one dialog can show both. A popover draws no scrim; it is included because he named it.
+**Closed the same evening.** I showed him a dialog with Cancel and Rename in a plain row, flat beside a glass Close, and asked whether they should be glass. His answer made the question wrong: "we decided yesterday that the cancel is redundant with x, and the main cta is also a toolbar, so why is that flat?" and the principle, "the region is what decides glass, making other controls have the same behaviour as button". That is what the scope already does: it opens a region, so a segmented control in a band is glass and the same control in the content is not, and a law now says so. A popover is included by his word ("popover included"), on the ground that a toolbar "is designed to have items go behind", not on the scrim.
 
 ## 2026-11-25 A notice has two distances, not one
 

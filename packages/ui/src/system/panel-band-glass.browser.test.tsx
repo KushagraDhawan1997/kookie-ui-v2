@@ -14,6 +14,7 @@ import { Button } from "../components/button/button.tsx";
 import { Card } from "../components/card/card.tsx";
 import { Dialog, DialogClose, DialogContent, DialogTitle } from "../components/dialog/dialog.tsx";
 import { Popover, PopoverClose, PopoverContent, PopoverTitle, PopoverTrigger } from "../components/popover/popover.tsx";
+import { SegmentedControl, SegmentedItem } from "../components/segmented-control/segmented-control.tsx";
 import { Sheet, SheetClose, SheetContent, SheetTitle } from "../components/sheet/sheet.tsx";
 import { Toolbar, ToolbarButton, ToolbarGroup, ToolbarTitle } from "../components/toolbar/toolbar.tsx";
 
@@ -30,6 +31,17 @@ function body(Title: React.ComponentType<{ children?: React.ReactNode }>, Close:
         <Close render={<ToolbarButton iconOnly aria-label="Close" data-band>x</ToolbarButton>} />
       </Toolbar>
       <Button data-content>In the content</Button>
+      <SegmentedControl defaultValue="a" aria-label="In the content" data-content-track>
+        <SegmentedItem value="a">A</SegmentedItem>
+        <SegmentedItem value="b">B</SegmentedItem>
+      </SegmentedControl>
+      <Toolbar aria-label="Actions">
+        <SegmentedControl defaultValue="a" aria-label="In the band" data-band-track>
+          <SegmentedItem value="a">A</SegmentedItem>
+          <SegmentedItem value="b">B</SegmentedItem>
+        </SegmentedControl>
+        <ToolbarButton emphasis="loud" data-action>Rename</ToolbarButton>
+      </Toolbar>
       <Card>
         <Toolbar>
           <ToolbarButton data-carded>On a card</ToolbarButton>
@@ -65,6 +77,13 @@ describe("a toolbar in a glass panel is glass again, and nothing else in the pan
     expect(getComputedStyle(band).backdropFilter).not.toBe("none");
     // The panel's content keeps the rule: one glass per stack.
     expect(materialOf(panel.querySelector("[data-content]"))).toBe("on-glass");
+    // THE REGION DECIDES, NOT THE KIND OF CONTROL (Kushagra, same day: "the region is what
+    // decides glass, making other controls have the same behaviour as button"). A bottom
+    // toolbar is a band like the top one, and a segmented control in a band is glass where the
+    // same control in the content is not.
+    expect(materialOf(panel.querySelector("[data-action]"))).toMatch(/^g\d$/);
+    expect(materialOf(panel.querySelector("[data-band-track]"))).toMatch(/^g\d$/);
+    expect(materialOf(panel.querySelector("[data-content-track]"))).toBe("on-glass");
     // A group in the band is the glass capsule, and its buttons stand on it.
     expect(materialOf(panel.querySelector("[data-grouped]"))).toBe("on-glass");
     // A toolbar on a card inside the panel is the card's, not the panel's band: the card is
@@ -76,7 +95,7 @@ describe("a toolbar in a glass panel is glass again, and nothing else in the pan
     mounted(ui, { theme: {} });
     expect(await until(() => document.querySelector(`${selector} [data-band]`) !== null)).toBe(true);
     const panel = document.querySelector(selector)!;
-    for (const mark of ["[data-band]", "[data-content]", "[data-grouped]", "[data-carded]"]) {
+    for (const mark of ["[data-band]", "[data-content]", "[data-grouped]", "[data-carded]", "[data-action]", "[data-band-track]"]) {
       expect(materialOf(panel.querySelector(mark)), mark).toBeNull();
     }
   });

@@ -104,5 +104,8 @@ When Kushagra settles something new, add its line here in the same change.
 - A Notice has two distances, never one gap for everything: its icon and words are one group,
   its action and X are another. Inside a group the gap is small (8px by default); between the
   groups it is two steps bigger (16px). Both follow the notice's size.
-- The action row of a dialog is a plain `Flex` today. Whether actions and Close move into a
-  navigation bar is still open. Don't decide it.
+- A dialog needs no Cancel button: Close already does that. Its one main action sits alone in a
+  toolbar at the bottom, at the trailing edge.
+- In a dialog, sheet or popover the REGION decides glass, not the kind of control. Anything in a
+  toolbar, top or bottom, is real glass: buttons, a segmented control, any control. Anything in
+  the content keeps the on-glass look.
