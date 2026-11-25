@@ -1888,6 +1888,11 @@ export const scrollbar = {
       them (see the nesting stand-down in `scroll-area.css`), which is the first day the
       designed number was what those blocks actually rendered. */
   fade: 48,
+  /** Where the fade is half see-through, as a share of the way from the edge to solid
+      (2026-11-24, Kushagra: "curve"). 0.5 is an even ramp; higher keeps content faint for
+      longer and brings it back quickly near the end, which reads as a deeper edge. The one
+      setting for how strong every fade is, under a floating bar or not. */
+  fadeCurve: 0.9,
 } as const;
 
 export const kbdRelief = {

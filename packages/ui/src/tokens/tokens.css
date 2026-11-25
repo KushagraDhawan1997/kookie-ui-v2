@@ -1168,6 +1168,7 @@
   --scrollbar-thumb: var(--neutral-a6);
   --scrollbar-thumb-active: var(--neutral-a8);
   --scrollbar-fade: 48px;
+  --scrollbar-fade-curve: 0.9;
   --disabled-dim: 70%;
   --disabled-fill: var(--neutral-2);
   --disabled-fill-solid: var(--neutral-2);
@@ -2082,6 +2083,7 @@
   --scrollbar-thumb: var(--neutral-a6);
   --scrollbar-thumb-active: var(--neutral-a8);
   --scrollbar-fade: 48px;
+  --scrollbar-fade-curve: 0.9;
   --disabled-dim: 70%;
   --disabled-fill: var(--neutral-3);
   --disabled-fill-solid: var(--neutral-3);

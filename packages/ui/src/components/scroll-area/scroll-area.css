@@ -82,12 +82,27 @@
    outside the mask, so the thumb stays crisp over the faded band. */
 .kui-scroll-area[data-fade] > .kui-scroll-viewport {
   --kui-sa-x-dir: to right;
+  /* THE CURVE (2026-11-24, Kushagra). Each ramp carries a colour hint, the point where the edge
+     is half see-through, placed at `--scrollbar-fade-curve` of the way from the edge to solid.
+     0.5 is the even ramp this shipped with; above it, content stays faint for longer and comes
+     back quickly at the end. One token, so every fade, under a floating bar or not, changes
+     together. The four lengths are named once here because each is used twice. */
+  --kui-sa-curve: var(--scrollbar-fade-curve, 0.5);
+  --kui-sa-xs: min(var(--scroll-area-overflow-x-start, 0px), var(--scrollbar-fade));
+  --kui-sa-xe: min(var(--scroll-area-overflow-x-end, 0px), var(--scrollbar-fade));
+  --kui-sa-ye: min(var(--scroll-area-overflow-y-end, 0px), var(--kui-sa-fade-end, var(--scrollbar-fade)));
+  --kui-sa-ys: max(
+    min(var(--scroll-area-overflow-y-start, 0px), var(--kui-sa-fade-start, var(--scrollbar-fade))),
+    var(--kui-sa-ramp-end, 0px)
+  );
   mask-image:
     linear-gradient(
       var(--kui-sa-x-dir),
       transparent 0%,
-      black min(var(--scroll-area-overflow-x-start, 0px), var(--scrollbar-fade)),
-      black calc(100% - min(var(--scroll-area-overflow-x-end, 0px), var(--scrollbar-fade))),
+      calc(var(--kui-sa-xs) * var(--kui-sa-curve)),
+      black var(--kui-sa-xs),
+      black calc(100% - var(--kui-sa-xe)),
+      calc(100% - var(--kui-sa-xe) * var(--kui-sa-curve)),
       transparent 100%
     ),
     linear-gradient(
@@ -97,13 +112,15 @@
          at rest the content starts below it, so it hides nothing, and once anything moves under
          the band it must be gone at once, not after the scroll distance has caught up. */
       transparent var(--kui-sa-hold-start, 0px),
+      calc(
+        var(--kui-sa-hold-start, 0px) +
+          (var(--kui-sa-ys) - var(--kui-sa-hold-start, 0px)) * var(--kui-sa-curve)
+      ),
       /* Under a hold, the ramp always spans from the hold to the band's edge, so content passing
          beneath the last row is never cut hard at the hold. */
-      black max(
-        min(var(--scroll-area-overflow-y-start, 0px), var(--kui-sa-fade-start, var(--scrollbar-fade))),
-        var(--kui-sa-ramp-end, 0px)
-      ),
-      black calc(100% - min(var(--scroll-area-overflow-y-end, 0px), var(--kui-sa-fade-end, var(--scrollbar-fade)))),
+      black var(--kui-sa-ys),
+      black calc(100% - var(--kui-sa-ye)),
+      calc(100% - var(--kui-sa-ye) * var(--kui-sa-curve)),
       transparent 100%
     );
   mask-composite: intersect;

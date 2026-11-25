@@ -8,6 +8,12 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-11-25 The scroll-edge fade follows a curve
+
+The fade was an even ramp from see-through to solid. Under a floating row inside a dialog, text passing behind the row stayed readable through most of it and collided with the row's own title. Kushagra chose a curve over a fully hidden strip, then tuned it by eye on a scratch dialog: 0.7, then 0.9 ("Try 0.9", "I think works"). Each ramp now carries a colour hint, the point where the edge is half see-through, placed `--scrollbar-fade-curve` of the way from the edge to solid (config: `scrollbar.fadeCurve`, 0.9; 0.5 is the old even ramp). One value shapes every fade, top and bottom, under a floating row or not, so there is now a single place to make it stronger; before, only the LENGTH had one, and a floating row replaced even that with its own reach.
+
+**Rejected: a fully hidden strip under the row.** It hides the content completely, but he wanted content to stay visible behind the row, faintly. **Not changed:** how far a fade reaches under a floating row is still the row's reach.
+
 ## 2026-11-25 A popover spaces its title and description as a dialog does
 
 The third panel of the same finding (the entry below is the sheet). A popover's band gave everything under it a section's distance and its title and description had no rule, so a titled popover with a description read looser than the same content in a dialog. Kushagra, asked whether a popover should follow the dialog's rules: "Yes". `PopoverTitle` and `PopoverDescription` carry the dialog's marks, the three band rules name the popover's body, and the popover states the room for its title's step per size (it is an anchored panel, outside the overlay join where a dialog and a sheet get that).

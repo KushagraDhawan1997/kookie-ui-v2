@@ -402,8 +402,14 @@ describe("the scroll-edge fade (2026-08-29)", () => {
   const yStops = (vp: HTMLElement) => {
     const layers = computed(vp, "mask-image").split("), linear-gradient(");
     const y = layers.find((l) => !l.includes("to right") && !l.includes("to left"));
-    const stops = /rgb\(0, 0, 0\) (.+?), rgb\(0, 0, 0\) (.+?), rgba/.exec(y ?? "");
-    return { start: stops?.[1], end: stops?.[2] };
+    // Each ramp carries a colour HINT since 2026-11-25 (the curve): a bare position between two
+    // stops, the point where the edge is half see-through. Read apart from the stops, so the laws
+    // about WHERE a fade starts and ends are untouched by how it is shaped.
+    const hint = String.raw`(calc\([^)]*\)|[^,]+)`;
+    const stops = new RegExp(
+      String.raw`rgba\(0, 0, 0, 0\) [^,]+, rgba\(0, 0, 0, 0\) [^,]+, ${hint}, rgb\(0, 0, 0\) (.+?), rgb\(0, 0, 0\) (.+?), ${hint}, rgba`,
+    ).exec(y ?? "");
+    return { startHint: stops?.[1], start: stops?.[2], end: stops?.[3], endHint: stops?.[4] };
   };
 
   it("without the prop there is no mask at all — the fade is opt-in", async () => {
@@ -445,6 +451,26 @@ describe("the scroll-edge fade (2026-08-29)", () => {
     await laidOut(root);
     // Chrome simplifies calc(100% - 0px) to a plain 100%.
     expect(yStops(vp).end, "the settled bottom edge must not fade").toBe("100%");
+  });
+
+  it("the fade follows a curve: half see-through sits `--scrollbar-fade-curve` of the way in (2026-11-25)", async () => {
+    // An even ramp left text passing under a floating row too readable (Kushagra: "the fade curve
+    // should be stronger to hide items towards top"). The hint moves the half-way point toward
+    // the solid end, so content stays faint for longer and returns quickly. One token, read here
+    // from the stylesheet, shapes the top and the bottom ramp alike.
+    const root = await laidOut(mounted(faded, { theme: {} }));
+    const vp = within(root, ".kui-scroll-viewport");
+    const fade = parseFloat(tokenOn(root, "--scrollbar-fade"));
+    const curve = parseFloat(getComputedStyle(root).getPropertyValue("--scrollbar-fade-curve"));
+    expect(curve, "past the even ramp, short of a hard edge").toBeGreaterThan(0.5);
+    expect(curve).toBeLessThan(1);
+
+    vp.scrollTop = 200;
+    await laidOut(root);
+    const stops = yStops(vp);
+    expect(parseFloat(stops.startHint ?? ""), "the top ramp").toBeCloseTo(fade * curve, 1);
+    const fromEnd = /calc\(100% - ([\d.]+)px\)/.exec(stops.endHint ?? "")?.[1];
+    expect(parseFloat(fromEnd ?? ""), "the bottom ramp").toBeCloseTo(fade * curve, 1);
   });
 
   it("content that does not overflow never fades — both stops sit at the edges", async () => {

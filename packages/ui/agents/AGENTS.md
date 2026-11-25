@@ -95,6 +95,8 @@ rule of thumb that it overrules. If one looks wrong for your case, say so and as
 - Glass has one anatomy, locked. The app decides where glass goes; the default is solid.
 - Every surface pads at its own size: a card, a shell pane and a dialog of size 2 all use
   padding step 2. A dialog does not pad one size up.
+- A scroll edge fades on a curve, not evenly: content stays faint for most of the fade and
+  comes back near the end. One value sets it for every fade (`--scrollbar-fade-curve`, 0.9).
 - A pane inside a pane has a concentric corner: inner corner = outer corner − outer padding.
  
 - Corners are squircles where the browser can draw them.
