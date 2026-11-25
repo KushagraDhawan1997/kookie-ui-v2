@@ -159,11 +159,14 @@ rule of thumb that it overrules. If one looks wrong for your case, say so and as
 - A Notice has two distances, never one gap for everything: its icon and words are one group,
   its action and X are another. Inside a group the gap is small (8px by default); between the
   groups it is two steps bigger (16px). Both follow the notice's size.
-- A dialog needs no Cancel button: Close already does that. Its one main action sits alone in a
-  toolbar at the bottom, at the trailing edge.
-- In a dialog, sheet or popover the REGION decides glass, not the kind of control. Anything in a
-  toolbar, top or bottom, is real glass: buttons, a segmented control, any control. Anything in
-  the content keeps the on-glass look.
+- NOT SETTLED, a current leaning (Kushagra, 2026-11-25: "this isn't fixed, i might change my
+  mind"). Follow it in new work, don't cite it as a rule, and ask before changing existing
+  screens to match:
+  - A dialog needs no Cancel button, because Close already does that, and its one main action
+    sits alone in a toolbar at the bottom, at the trailing edge.
+  - In a dialog, sheet or popover the region decides glass, not the kind of control: anything
+    in a toolbar, top or bottom, is real glass, and anything in the content keeps the on-glass
+    look.
 
 ## Patterns already solved
 
