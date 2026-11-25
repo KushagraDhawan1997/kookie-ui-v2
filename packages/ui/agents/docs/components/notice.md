@@ -72,7 +72,7 @@ export default function Example({
       >
         <Text size="2">Approaching weekly usage limit</Text>
       </Notice>
-      <Notice size={size} tone="warning" action={<Button size="2">Renew</Button>}>
+      <Notice size={size} tone="warning" backdrop={backdrop} action={<Button size="2">Renew</Button>}>
         Your certificate expires in six days.
       </Notice>
     </Stack>
