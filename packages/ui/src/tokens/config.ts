@@ -1892,7 +1892,7 @@ export const scrollbar = {
       (2026-11-24, Kushagra: "curve"). 0.5 is an even ramp; higher keeps content faint for
       longer and brings it back quickly near the end, which reads as a deeper edge. The one
       setting for how strong every fade is, under a floating bar or not. */
-  fadeCurve: 0.9,
+  fadeCurve: 0.8,
 } as const;
 
 export const kbdRelief = {
