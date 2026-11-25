@@ -6,7 +6,7 @@
  *
  * - The screen and the panel's height change at once, without motion (2026-11-03, Kushagra:
  *   "Remove motion on content", then "skip the dialog animation too").
- * - The band's title glides the way the stack went; Back fades where it appears; Close never moves.
+ * - Back fades where it appears; Close never moves. The title's glide was switched off 2026-11-25.
  * - The curve decelerates hard (quick start, long settle), so a short move reads as arriving
  *   rather than drifting.
  * - Reduced motion: a short fade, never nothing, because the change still needs a sign.
@@ -58,10 +58,7 @@
     --kui-navigator-travel: calc(0 * var(--layout-space-7));
     --kui-navigator-blur: calc(0 * var(--space-1));
   }
-  .kui-navigator-bar[data-direction] .kui-navigator-back,
-  .kui-navigator-bar[data-direction] .kui-navigator-title,
-  .kui-navigator-leaving .kui-navigator-title-leaving,
-  .kui-navigator-leaving .kui-navigator-back-leaving {
+  .kui-navigator-bar[data-direction] .kui-navigator-back {
     animation-duration: 160ms;
   }
 }
@@ -77,9 +74,102 @@
 
 /* Where the band sits against the panel's edges is the panel's to say (surfaces.css, "THE
    PANEL PLACES ITS BAND"), the same for this band as for a Toolbar written by hand. */
+/* THE ROW FLOATS, AND THE TITLE IS UNDER IT (2026-11-25, Kushagra: "it should be center, no prop. On default, title under row
+   by default, and on scroll, center"). Outside a pane the row FLOATS over the navigator's own
+   scroller. The panel still places it one step closer to its edges (surfaces.css). */
+/* It takes no room of its own, so it needs no positioned ancestor and sits wherever the panel's
+   padding puts its first child: a dialog pads its pane, a sheet pads its body, and both come
+   out the same. What a panel does to it is the panel's to say (surfaces.css, "THE PANEL PLACES
+   ITS BAND"). */
 .kui-navigator-bar {
   position: relative;
+  z-index: 1;
+  block-size: 0;
+  pointer-events: none;
+}
+
+.kui-navigator-bar > .kui-toolbar {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+}
+
+/* THE TITLE IS IN THE MIDDLE OF THE ROW, whatever stands beside it, so Back arriving does not
+   move it. Three columns: Back, the title, Close. */
+.kui-navigator-bar > .kui-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+}
+
+/* The class twice: the row's own title spacing (toolbar.css) is as specific and comes later. */
+.kui-navigator-bar > .kui-toolbar > .kui-toolbar-title.kui-toolbar-title {
+  grid-column: 2;
+  margin-inline: 0;
+}
+
+.kui-navigator-bar > .kui-toolbar > .kui-navigator-back {
+  grid-column: 1;
+  justify-self: start;
+}
+
+.kui-navigator-bar > .kui-toolbar > :last-child:not(.kui-toolbar-title, .kui-navigator-back) {
+  grid-column: 3;
+  justify-self: end;
+}
+
+/* One control row at the row's own size, which is the size its Toolbar resolves. */
+.kui-navigator-row-1 {
+  --kui-navigator-row: var(--control-height-1);
+}
+.kui-navigator-row-2 {
+  --kui-navigator-row: var(--control-height-2);
+}
+.kui-navigator-row-3 {
+  --kui-navigator-row: var(--control-height-3);
+}
+.kui-navigator-row-4 {
+  --kui-navigator-row: var(--control-height-4);
+}
+
+/* How far the row reaches down the scroller: the panel's padding, less the step the row sits
+   outside the content, plus one control row. The content fades across it and a small step more. */
+/* The class twice: a scroller inside another has these handed-down lengths cleared
+   (scroll-area.css), and in a popover this one is inside the panel's own. */
+.kui-scroll-area.kui-navigator-scroll.kui-navigator-scroll {
+  --kui-navigator-reach: calc(var(--kui-sf-p, 0px) - var(--kui-navigator-lift, 0px) + var(--kui-navigator-row));
+  --kui-sa-fade-start: calc(var(--kui-navigator-reach) + var(--layout-space-2));
+}
+
+.kui-navigator-scroll > .kui-scrollbar[data-orientation="vertical"] {
+  margin-block-start: var(--kui-navigator-reach);
+}
+
+/* THE TITLE UNDER THE ROW takes the room its own type step carries, measured from the row's
+   bottom edge: the same rule a dialog's title and a Page's title follow. */
+.kui-navigator-scroll .kui-navigator-screen {
+  padding-block-start: calc(
+    var(--kui-navigator-row) - var(--kui-navigator-lift, 0px) + var(--kui-title-space, var(--title-space-5))
+  );
+}
+
+/* Content starts a section under the title; a description that opens it sits a group under. */
+.kui-navigator-heading {
+  position: relative;
   margin-block-end: var(--layout-space-6);
+}
+
+.kui-navigator-heading:has(+ .kui-dialog-description, + * > .kui-dialog-description:first-child) {
+  margin-block-end: var(--layout-space-2);
+}
+
+/* Crosses the top of the scroller when the title's foot passes behind the row (Page's marker). */
+.kui-navigator-marker {
+  position: absolute;
+  inset-block-end: var(--kui-navigator-reach);
+  inset-inline-start: 0;
+  block-size: var(--border-width);
+  inline-size: 100%;
+  pointer-events: none;
 }
 
 .kui-navigator-back-glyph,
@@ -100,69 +190,10 @@
   scale: 1 1;
 }
 
-/* THE TITLE IN THE BAND (2026-11-02) is the band's `ToolbarTitle`, between Back and Close, so
-   the toolbar states its distance from Back. It takes the row's free space, so it stays beside
-   Back at the leading edge and Close goes to the far end, instead of the three reading leading /
-   centre / trailing. */
-.kui-navigator-bar .kui-toolbar > .kui-toolbar-title {
-  flex: 1 1 auto;
-  min-inline-size: 0;
-}
-
-/* THE BAND'S MOTION (2026-11-03): only what changed moves, with the screen's one keyframe.
-   Back fades in where it appears. The new title comes in a short way behind where the stack
-   went, and the old one, drawn once more where it was, carries on that way while it fades
-   (the same keyframe, reversed). Close is the panel's, and never moves. */
+/* THE ROW'S MOTION: Back fades in where it appears, and that is all. The title's slide between
+   screens is off (2026-11-25, Kushagra: "Switch off the animation"): the title now sits under
+   the row, in the screen, and a screen changes at once. Close is the panel's, and never moves. */
 .kui-navigator-bar[data-direction] .kui-navigator-back {
   animation: kui-navigator-in var(--kui-navigator-duration) var(--kui-navigator-ease) both;
   --kui-navigator-from: calc(0 * var(--kui-navigator-travel));
-}
-
-.kui-navigator-bar[data-direction] .kui-navigator-title {
-  animation: kui-navigator-in var(--kui-navigator-duration) var(--kui-navigator-ease) both;
-}
-
-.kui-navigator-bar[data-direction="push"] {
-  --kui-navigator-from: calc(-0.5 * var(--kui-navigator-travel));
-  --kui-navigator-to: var(--kui-navigator-travel);
-}
-
-.kui-navigator-bar[data-direction="pop"] {
-  --kui-navigator-from: calc(0.5 * var(--kui-navigator-travel));
-  --kui-navigator-to: calc(-1 * var(--kui-navigator-travel));
-}
-
-/* The row that is leaving, laid over the band in the band's own geometry. */
-.kui-navigator-leaving {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  pointer-events: none;
-}
-
-.kui-navigator-leaving .kui-toolbar > * {
-  pointer-events: none;
-}
-
-/* Leaving is quicker than arriving, and it leaves at speed: half the time, on the arriving curve
-   mirrored, which played in reverse is the arriving curve's own quick start. Two titles never
-   sit on top of each other for long. */
-.kui-navigator-leaving {
-  --kui-navigator-leave: calc(var(--kui-navigator-duration) / 2);
-  --kui-navigator-leave-ease: cubic-bezier(1, 0, 0.68, 0.28);
-}
-
-.kui-navigator-leaving .kui-navigator-title-leaving {
-  animation: kui-navigator-in var(--kui-navigator-leave) var(--kui-navigator-leave-ease) reverse both;
-  --kui-navigator-from: var(--kui-navigator-to);
-}
-
-.kui-navigator-leaving .kui-navigator-back-leaving {
-  animation: kui-navigator-in var(--kui-navigator-leave) var(--kui-navigator-leave-ease) reverse both;
-  --kui-navigator-from: calc(0 * var(--kui-navigator-travel));
-}
-
-/* Back is staying: it holds its room in the leaving row and the live one shows through. */
-.kui-navigator-leaving .kui-navigator-back-held {
-  visibility: hidden;
 }

@@ -39,7 +39,10 @@ the disagreement is a bug to report.
    Enforced by: default (Navigator screens; panels themselves: coming), check (screen
    `panel-close`).
 2. **A panel's band is a real `Toolbar`.** Back at the leading edge, the title, Close at the
-   trailing edge, all on one row. The title stays at the panel's own title size. Test: no
+   trailing edge, all on one row. A title in the band is the band's own title size, the same in
+   every band; under the band it is the panel's title size. In a `Navigator` the title is not
+   in the band: each screen's title sits under it, and the band shows it in its centre once it
+   scrolls away, so Back appearing never moves it. Test: no
    button in the panel's top row is placed by hand, and any title in the band is a
    `ToolbarTitle`, which brings the title's air. Grouping band items in a `Flex` cluster is
    fine; that's how a band is written. Enforced by: default (Navigator), check (screen

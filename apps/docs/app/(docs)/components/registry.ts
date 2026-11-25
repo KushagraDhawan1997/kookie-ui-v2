@@ -1584,7 +1584,7 @@ const DECLARED: Entry[] = [
       { name: "A URL", why: "Kookie has no router. Keep the path in your URL yourself with `path` and `onPathChange`." },
     ],
     parts: [
-      { part: "NavigatorScreen", blurb: "One screen, with its `title`. In a pane it is a Page, and elsewhere it shows a row with Back and a small heading" },
+      { part: "NavigatorScreen", blurb: "One screen, with its `title`. In a pane it is a Page. Elsewhere, such as in a dialog, the title sits under a row that holds Back and Close, and the row shows the title in its centre once it scrolls away" },
       { part: "NavigatorLink", blurb: "A row that opens the next screen when pressed. It pushes its `value` onto the path and shows a chevron" },
       { part: "NavigatorBack", blurb: "The Back button for a toolbar. It names the screen it returns to and isn't shown on the root" },
       { part: "NavigatorOutlet", blurb: "Where the screens go when you pass a frame, such as a pane's header and scroller, as the navigator's children" },

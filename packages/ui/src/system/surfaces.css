@@ -2549,6 +2549,40 @@
   flex: none;
 }
 
+/* A NAVIGATOR'S ROW FLOATS (2026-11-25): it takes no room, so the step the panel pulls it up by
+   is given back below it and the scroller after it starts where the content would. */
+:is(.kui-dialog-body, .kui-sheet-body, .kui-popover-popup .kui-floating-body) > .kui-navigator-bar:first-child {
+  margin-block-end: var(--layout-space-2);
+}
+
+/* That step, told to the scroller after the row, which works out the row's reach from it.
+   Outside a panel nothing pulls the row up, and it is zero. */
+:is(.kui-dialog-body, .kui-sheet-body, .kui-popover-popup .kui-floating-body)
+  > .kui-navigator-bar:first-child
+  + .kui-navigator-scroll {
+  --kui-navigator-lift: var(--layout-space-2);
+}
+
+
+/* A POPOVER'S CONTENT ALREADY SITS IN A SCROLLER, the panel's own. With a navigator in it the
+   navigator's scroller is the one that moves, so the row stays put: the body takes the room the
+   positioner reports, less the panel's padding, and the navigator's scroller reaches the
+   panel's edges the way a scroller in a dialog does. */
+.kui-popover-popup .kui-floating-body:has(> .kui-navigator-bar) {
+  display: flex;
+  flex-direction: column;
+  max-block-size: calc(var(--available-height, 100vh) - 2 * var(--border-width) - 2 * var(--kui-sf-p));
+}
+
+.kui-popover-popup .kui-floating-body > .kui-navigator-scroll {
+  flex: 1;
+  margin: calc(-1 * var(--kui-sf-p));
+}
+
+.kui-popover-popup .kui-floating-body > .kui-navigator-scroll > .kui-scroll-viewport {
+  padding: var(--kui-sf-p);
+}
+
 /* And the content starts a section's distance under it, as it does under a Navigator's band. */
 :is(.kui-dialog-body, .kui-sheet-body, .kui-popover-popup .kui-floating-body) > .kui-toolbar:first-child {
   margin-block-end: var(--layout-space-6);
@@ -2601,10 +2635,6 @@
    with the band's edge, which sits one step further out. */
 :is(.kui-dialog-body, .kui-sheet-body, .kui-popover-popup .kui-floating-body)
   > .kui-toolbar:first-child
-  > .kui-toolbar-title:first-child,
-:is(.kui-dialog-body, .kui-sheet-body, .kui-popover-popup .kui-floating-body)
-  > .kui-navigator-bar:first-child
-  > .kui-toolbar
   > .kui-toolbar-title:first-child {
   padding-inline-start: var(--layout-space-2);
 }

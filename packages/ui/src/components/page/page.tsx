@@ -4,7 +4,7 @@ import type { ComponentRefusals } from "../../system/refused.ts";
 import * as React from "react";
 
 import { PAGE_DECK_STEP, PAGE_TITLE_STEP } from "../../system/type-steps.ts";
-import { setPageCollapsed, useClaimPage, usePageScope } from "../../system/page.tsx";
+import { setPageCollapsed, useClaimPage, usePageScope, type PageStore } from "../../system/page.tsx";
 import { usePageScrollMedia } from "../../system/page-scroll.ts";
 import { Heading } from "../heading/heading.tsx";
 import { Text } from "../text/text.tsx";
@@ -26,6 +26,58 @@ export type PageProps = ComponentRefusals & Omit<React.ComponentPropsWithoutRef<
   mark?: React.ReactNode;
   ref?: React.Ref<HTMLDivElement>;
 };
+
+/**
+ * THE COLLAPSE, as one hook: the ref of a marker at the foot of a title, and the observer that
+ * tells the pane's row when that marker has gone behind it.
+ *
+ * It is here, and a `Navigator` outside a pane borrows it (2026-11-25), because the two are the
+ * same fact: a title under a row of controls, scrolled away, shown again in the row. One
+ * observer, in the one file the system allows it in.
+ */
+export function useCollapseMarker(store: PageStore | null): React.RefObject<HTMLDivElement | null> {
+  const marker = React.useRef<HTMLDivElement>(null);
+  // Re-read when a touch window crosses the phone boundary: the scroller changes from the
+  // content's viewport to the page, and an observer built for one never fires for the other.
+  const pageScrolls = usePageScrollMedia();
+  React.useEffect(() => {
+    const el = marker.current;
+    if (!el || !store) return;
+    // The scroller is whatever `ShellScroll` (or any `ScrollArea`) put around this; `null`
+    // means the document scrolls, which is the ordinary page outside a frame. `closest` is
+    // read ONCE, on mount — this is machinery, not interaction handling, and the observer that
+    // follows fires twice per visit rather than per frame (§8).
+    // A viewport that does not scroll is not the scroller: a window Shell on a phone lets the
+    // page scroll and leaves its viewport `overflow: visible` (§27, 2026-09-11), and observing
+    // against a box that never moves would never collapse the title.
+    const viewport = el.closest<HTMLElement>(".kui-scroll-viewport");
+    const scrolls = viewport !== null && !/^(visible|clip)$/.test(getComputedStyle(viewport).overflowY);
+    const root = scrolls ? viewport : null;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[entries.length - 1];
+        if (!entry) return;
+        // Gone off the TOP, not merely gone: a marker below the fold is also unintersecting,
+        // and a page shorter than its scroller would otherwise open collapsed.
+        const top = entry.rootBounds?.top;
+        setPageCollapsed(
+          store,
+          !entry.isIntersecting &&
+            (top === undefined || entry.boundingClientRect.top <= top),
+        );
+      },
+      { root, threshold: 0 },
+    );
+    observer.observe(el);
+    return () => {
+      observer.disconnect();
+      // A page that unmounts takes its collapse with it, or the next route's band opens
+      // holding the last one's answer.
+      setPageCollapsed(store, false);
+    };
+  }, [store, pageScrolls]);
+  return marker;
+}
 
 /**
  * Page (§46) — the screen you navigated to, and its title.
@@ -68,48 +120,8 @@ export function Page({
   ...props
 }: PageProps) {
   const store = usePageScope();
-  const marker = React.useRef<HTMLDivElement>(null);
   useClaimPage(store, title);
-
-  // Re-read when a touch window crosses the phone boundary: the scroller changes from the
-  // content's viewport to the page, and an observer built for one never fires for the other.
-  const pageScrolls = usePageScrollMedia();
-  React.useEffect(() => {
-    const el = marker.current;
-    if (!el || !store) return;
-    // The scroller is whatever `ShellScroll` (or any `ScrollArea`) put around this; `null`
-    // means the document scrolls, which is the ordinary page outside a frame. `closest` is
-    // read ONCE, on mount — this is machinery, not interaction handling, and the observer that
-    // follows fires twice per visit rather than per frame (§8).
-    // A viewport that does not scroll is not the scroller: a window Shell on a phone lets the
-    // page scroll and leaves its viewport `overflow: visible` (§27, 2026-09-11), and observing
-    // against a box that never moves would never collapse the title.
-    const viewport = el.closest<HTMLElement>(".kui-scroll-viewport");
-    const scrolls = viewport !== null && !/^(visible|clip)$/.test(getComputedStyle(viewport).overflowY);
-    const root = scrolls ? viewport : null;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const entry = entries[entries.length - 1];
-        if (!entry) return;
-        // Gone off the TOP, not merely gone: a marker below the fold is also unintersecting,
-        // and a page shorter than its scroller would otherwise open collapsed.
-        const top = entry.rootBounds?.top;
-        setPageCollapsed(
-          store,
-          !entry.isIntersecting &&
-            (top === undefined || entry.boundingClientRect.top <= top),
-        );
-      },
-      { root, threshold: 0 },
-    );
-    observer.observe(el);
-    return () => {
-      observer.disconnect();
-      // A page that unmounts takes its collapse with it, or the next route's band opens
-      // holding the last one's answer.
-      setPageCollapsed(store, false);
-    };
-  }, [store, pageScrolls]);
+  const marker = useCollapseMarker(store);
 
   return (
     <div className={className ? `kui-page ${className}` : "kui-page"} {...props}>

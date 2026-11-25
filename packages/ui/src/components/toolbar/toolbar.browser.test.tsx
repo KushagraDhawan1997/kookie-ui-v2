@@ -16,6 +16,7 @@ import { describe, expect, it } from "vitest";
 import { APPEARANCES, SIZES, computed, mounted, tokenOn, until } from "../../test/browser.tsx";
 import type { Size } from "../../system/axes.ts";
 import { Box } from "../box/box.tsx";
+import { Dialog, DialogContent, DialogTitle } from "../dialog/dialog.tsx";
 import { Flex } from "../flex/flex.tsx";
 import { BAND_STEP } from "../../system/size.ts";
 import { themeDefaults } from "../../theme/theme.tsx";
@@ -818,5 +819,41 @@ describe("a cluster sheds by rank (2026-11-03)", () => {
     for (const row of text) expect(row.querySelector('[data-slot="leading"]'), row.textContent ?? "").toBeNull();
     const icon = rows.find((row) => row.textContent === "Publish");
     expect(icon?.querySelector('[data-slot="leading"] [data-art]'), "the icon button keeps its art in the slot").not.toBeNull();
+  });
+});
+
+/**
+ * EVERY TITLE IN A ROW IS THE ROW'S STEP (2026-11-25, Kushagra: a title in a row "should be
+ * identical everywhere", "18 is the right choice"). A panel's title written in the row used to
+ * keep the panel's step, so the same words were one size in a dialog's row and another in the
+ * row of a pane.
+ */
+describe("a panel's title written in the row takes the row's title step (2026-11-25)", () => {
+  it("is the size of a plain row title, and not the size it has under the row", async () => {
+    mounted(
+      <Dialog defaultOpen>
+        <DialogContent>
+          <Toolbar>
+            <ToolbarTitle render={<DialogTitle />}>Rename project</ToolbarTitle>
+          </Toolbar>
+          <Toolbar>
+            <ToolbarTitle>Rename project</ToolbarTitle>
+          </Toolbar>
+          <DialogTitle>Rename project</DialogTitle>
+        </DialogContent>
+      </Dialog>,
+      { theme: {} },
+    );
+    expect(await until(() => document.querySelectorAll('[role="dialog"] .kui-toolbar-title').length === 2)).toBe(true);
+    const dialog = document.querySelector('[role="dialog"]')!;
+    const [panelTitle, plain] = [...dialog.querySelectorAll<HTMLElement>(".kui-toolbar-title")];
+    const under = dialog.querySelector<HTMLElement>(".kui-dialog-title:not(.kui-toolbar-title)")!;
+    // Still the panel's own title part, so the panel is still named by it.
+    expect(panelTitle!.tagName).toBe("H2");
+    expect(dialog.getAttribute("aria-labelledby")).toBeTruthy();
+    const type = (el: HTMLElement) => [getComputedStyle(el).fontSize, getComputedStyle(el).lineHeight, getComputedStyle(el).fontWeight];
+    expect(type(panelTitle!)).toEqual(type(plain!));
+    // The guard: under the row the same part is a step larger, so the two could have differed.
+    expect(parseFloat(getComputedStyle(under).fontSize)).toBeGreaterThan(parseFloat(getComputedStyle(panelTitle!).fontSize));
   });
 });

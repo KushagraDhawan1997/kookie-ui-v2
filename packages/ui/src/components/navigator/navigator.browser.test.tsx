@@ -12,6 +12,8 @@ import { mounted, until } from "../../test/browser.tsx";
 import { Shell, ShellContent, ShellPaneHeader, ShellScroll } from "../shell/shell.tsx";
 import { Toolbar, ToolbarTitle } from "../toolbar/toolbar.tsx";
 import { Dialog, DialogContent } from "../dialog/dialog.tsx";
+import { Popover, PopoverContent, PopoverTrigger } from "../popover/popover.tsx";
+import { Sheet, SheetContent } from "../sheet/sheet.tsx";
 import {
   Navigator,
   NavigatorBack,
@@ -34,8 +36,9 @@ function screen(title: string) {
 
 /** The band and the screens are siblings, so the test holds both in one box. */
 const mountedNav = (ui: React.ReactElement) => mounted(<div>{ui}</div>, { theme: {} });
-/** The title the band shows: one band for the stack, outside the screens (2026-11-03). */
-const bandTitle = (root: Element) => root.querySelector(".kui-navigator-bar h2")?.textContent;
+/** The title of the screen on show. It sits under the row, in the screen (2026-11-25). */
+const bandTitle = (root: Element) =>
+  [...root.querySelectorAll(".kui-navigator-heading > :first-child")].find((el) => el.checkVisibility())?.textContent;
 
 const visibleLevels = (root: Element) =>
   [...root.querySelectorAll(".kui-navigator > .kui-navigator-level")].filter(
@@ -149,9 +152,9 @@ describe("in a card, the navigator keeps to the card (2026-11-03)", () => {
       { theme: {} },
     );
     const card = root.querySelector(".kui-card")!;
-    await until(() => card.querySelector(".kui-navigator-bar h2")?.textContent === "Settings");
+    await until(() => bandTitle(card) === "Settings");
     card.querySelector<HTMLButtonElement>(".kui-navigator-level button")!.click();
-    await until(() => card.querySelector(".kui-navigator-bar h2")?.textContent === "Notifications");
+    await until(() => bandTitle(card) === "Notifications");
     expect(card.querySelector("[aria-label='Back to Settings']")).not.toBeNull();
     // The pane still belongs to its page: one large title, the page's.
     expect([...root.querySelectorAll("h1")].map((h) => h.textContent)).toEqual(["Billing"]);
@@ -249,5 +252,99 @@ describe("in a dialog, only the top screen names the panel (2026-11-03)", () => 
     expect(await until(() => name() === "Settings")).toBe(true);
     expect(shared()).toBe(1);
     expect(titles()).toBe(1);
+  });
+});
+
+/**
+ * THE ROW FLOATS AND THE TITLE SITS UNDER IT (2026-11-25, Kushagra: "it should be center, no
+ * prop. On default, title under row by default, and on scroll, center"; "Navigator should follow
+ * whatever we have so far with toolbar"). Outside a pane the navigator is its own frame, and it
+ * is the same frame in a dialog, a sheet and a popover.
+ */
+describe("outside a pane, the title sits under the row and the row shows it on scroll (2026-11-25)", () => {
+  const long = (title: string) => {
+    const next = LEVELS[LEVELS.indexOf(title) + 1];
+    return (
+      <NavigatorScreen title={title}>
+        <div data-filler style={{ blockSize: "900px" }} />
+        {next ? <NavigatorLink value={next}>{next}</NavigatorLink> : null}
+      </NavigatorScreen>
+    );
+  };
+  const nav = <Navigator root={long("Settings")} screen={long} />;
+  const hosts: [string, React.ReactElement, string][] = [
+    ["dialog", <Dialog defaultOpen><DialogContent style={{ maxBlockSize: "400px" }}>{nav}</DialogContent></Dialog>, ".kui-dialog-popup"],
+    ["sheet", <Sheet defaultOpen><SheetContent style={{ maxBlockSize: "400px" }}>{nav}</SheetContent></Sheet>, ".kui-sheet-popup"],
+    [
+      "popover",
+      <Popover defaultOpen>
+        <PopoverTrigger render={<button type="button">Open</button>} />
+        <PopoverContent style={{ inlineSize: "320px", maxBlockSize: "400px" }}>{nav}</PopoverContent>
+      </Popover>,
+      ".kui-popover-popup",
+    ],
+  ];
+  /** What a length written in tokens comes to, inside this panel. */
+  const px = (panel: Element, value: string) => {
+    const probe = document.createElement("div");
+    probe.style.inlineSize = value;
+    panel.querySelector(".kui-navigator-scroll")!.append(probe);
+    const size = probe.getBoundingClientRect().width;
+    probe.remove();
+    return size;
+  };
+  const open = async (ui: React.ReactElement, selector: string) => {
+    mounted(ui, { theme: {} });
+    expect(await until(() => document.querySelector(`${selector} .kui-navigator-heading`) !== null)).toBe(true);
+    const panel = document.querySelector<HTMLElement>(selector)!;
+    const row = () => panel.querySelector<HTMLElement>(".kui-navigator-bar > .kui-toolbar")!;
+    const title = () =>
+      [...panel.querySelectorAll<HTMLElement>(".kui-navigator-heading > :first-child")].find((el) => el.checkVisibility())!;
+    const mirror = () => panel.querySelector<HTMLElement>(".kui-navigator-bar .kui-toolbar-title")!;
+    const scroller = () => panel.querySelector<HTMLElement>(".kui-navigator-scroll > .kui-scroll-viewport")!;
+    return { panel, row, title, mirror, scroller };
+  };
+
+  it.each(hosts)("in a %s the title takes its own room under the row, and the row stays put", async (_name, ui, selector) => {
+    const { panel, row, title, mirror, scroller } = await open(ui, selector);
+    await until(() => mirror() !== null);
+    // The room above a title is the room its type step carries: the rule a dialog's title and a
+    // Page's title follow, read from the same token.
+    const room = px(panel, "var(--kui-title-space)");
+    expect(room).toBeGreaterThan(0);
+    expect(title().getBoundingClientRect().top - row().getBoundingClientRect().bottom).toBeCloseTo(room, 0);
+    // The row sits one step closer to the panel's edges than the content, as any band does.
+    const step = px(panel, "var(--layout-space-2)");
+    expect(title().getBoundingClientRect().left - row().getBoundingClientRect().left).toBeCloseTo(step, 0);
+
+    // While the title is on screen the row does not say it again.
+    expect(getComputedStyle(mirror()).opacity).toBe("0");
+    // Measured from the panel, which a popover may move as the window changes under it.
+    const inPanel = () => row().getBoundingClientRect().top - panel.getBoundingClientRect().top;
+    const rowTop = inPanel();
+    scroller().scrollTop = 200;
+    expect(await until(() => getComputedStyle(mirror()).opacity === "1")).toBe(true);
+    expect(mirror().textContent).toBe("Settings");
+    // The row floats: the content moved and it did not.
+    expect(inPanel()).toBeCloseTo(rowTop, 0);
+    expect(title().getBoundingClientRect().bottom).toBeLessThan(row().getBoundingClientRect().bottom);
+  });
+
+  it("the row's title is in the middle of the row with Back and without it", async () => {
+    const { panel, row, mirror, scroller } = await open(hosts[0]![1], hosts[0]![2]);
+    await until(() => mirror() !== null);
+    const off = () => {
+      const m = mirror().getBoundingClientRect();
+      const r = row().getBoundingClientRect();
+      return m.left + m.width / 2 - (r.left + r.width / 2);
+    };
+    expect(panel.querySelector(".kui-navigator-back")).toBeNull();
+    expect(Math.abs(off())).toBeLessThan(1);
+    scroller().scrollTop = scroller().scrollHeight;
+    [...panel.querySelectorAll<HTMLButtonElement>(".kui-navigator-level button")].find((b) => b.checkVisibility())!.click();
+    expect(await until(() => panel.querySelector(".kui-navigator-back") !== null && mirror().textContent === "Notifications")).toBe(true);
+    expect(Math.abs(off())).toBeLessThan(1);
+    // A new screen opens at its top, not where the last one was left.
+    expect(scroller().scrollTop).toBe(0);
   });
 });

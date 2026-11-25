@@ -567,8 +567,8 @@ export type ToolbarTitleProps = ComponentRefusals & {
   id?: string;
   /**
    * The element the title IS, when it must be more than words: a panel's own title part, so one
-   * heading both names the panel and sits in the row. It keeps its own element and type step,
-   * and takes the row's title spacing.
+   * heading both names the panel and sits in the row. It keeps its own element, and takes the
+   * row's title size and spacing.
    */
   render?: React.ReactElement<{ className?: string; id?: string; style?: React.CSSProperties; children?: React.ReactNode }>;
 };
@@ -592,7 +592,7 @@ export function ToolbarTitle({ className, children, style, id, render }: Toolbar
   const cls = className ? `kui-toolbar-title ${className}` : "kui-toolbar-title";
   // ONE ELEMENT, NOT A HEADING IN A SPAN (2026-11-03): the row's title wrapping a panel's
   // heading was a block inside phrasing content, which HTML forbids. Rendered AS the heading,
-  // the element is the heading's, at its own step, and the row only adds its spacing.
+  // the element is the heading's, and the row adds its spacing and its own title step.
   if (render) {
     // A server-rendered call site hands the element over as a lazy reference (render.ts).
     const target = unwrapLazy(render as RenderElement) as typeof render;
@@ -601,8 +601,14 @@ export function ToolbarTitle({ className, children, style, id, render }: Toolbar
       className: own ? `${cls} ${own}` : cls,
       ...(style === undefined ? {} : { style }),
       ...(id === undefined ? {} : { id }),
+      // EVERY TITLE IN A ROW IS THE ROW'S STEP (2026-11-25, Kushagra: a title in a row "should
+      // be identical everywhere", "18 is the right choice"). A panel's title written in the
+      // row keeps its element, so it still names the panel, and takes the row's title step
+      // like the title a row shows for a page that has scrolled away. Until this it kept the
+      // panel's own step, and the same words were 20px in one row and 18px in the next.
+      "data-size": BAND_TITLE_STEP[size],
       children: words,
-    });
+    } as Partial<typeof target.props>);
   }
   return (
     <Text

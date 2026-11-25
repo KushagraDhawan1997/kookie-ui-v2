@@ -76,5 +76,16 @@ When Kushagra settles something new, add its line here in the same change.
 - A large title under a row of navigation and tools follows `Page`: the row stays in place,
   the title sits below it, and when the title scrolls up behind the row a `ToolbarTitle` in the
   row shows the same words. Check `Page` before asking how a title and its row behave.
+- A `Navigator` outside a pane puts each screen's title under its row, never in it. The row
+  holds Back and Close and floats over the content. When the title scrolls away, the row shows
+  it in its centre, so Back appearing never moves it. There is no prop for any of this, and it
+  is the same in a dialog, a sheet and a popover.
+- A Navigator's row spaces what follows exactly as a toolbar in a dialog does: the title's own
+  room above the title, a small step to a description, a section to content.
+- Every title in a row is the row's title size (18px by default), wherever the row is: a
+  dialog's title written in the row, and the title a row shows after a page or screen title
+  scrolls away. A title under the row keeps its own size.
+- A new Navigator screen opens at the top. The title does not slide between screens.
+- The scroll fade stays at 0.8 even where text shows faintly behind a row's title.
 - The action row of a dialog is a plain `Flex` today. Whether actions and Close move into a
   navigation bar is still open. Don't decide it.

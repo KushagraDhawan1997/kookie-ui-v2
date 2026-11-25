@@ -8,6 +8,18 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-11-25 A Navigator's title sits under its row, and every row title is one size
+
+Three choices closed in one sitting, all Kushagra's, on a scratch page with a Navigator in a dialog, a sheet and a popover.
+
+**The title moved out of the row.** The row held Back, the title and Close, with the title at the leading edge beside Back. Back appears on the first push, so the title moved sideways every time (his finding: "it should be encouraged to be at center, because otherwise the layout shifts when the back button appears"). He then asked for the title under the row on every screen, and in the middle of the row once it has scrolled away: "it should be center, no prop. On default, title under row by default, and on scroll, center." Outside a pane a Navigator is now its own frame: a floating row, its own scroller, the panel's title under the row with the room its type step carries, and the row's mirror of it in a middle column. In a pane nothing changed; the pane's band and `Page` already did this. **Rejected: a prop for where the title goes** (his "no prop"), and **a centred title for every toolbar**: that was tried for app toolbars and reversed on 2026-09-06, and this is the Navigator's row only, where Back comes and goes.
+
+**The title's glide between screens is off** ("Switch off the animation"). It was built on 2026-11-03 for a title that lived in the row. A title in the screen changes with the screen, at once. Back still fades in where it appears.
+
+**Every title in a row is the row's step.** The dialog's title written in the row was 20px (the panel's step) and the title a row shows for a scrolled-away page was 18px (the row's step). He asked why, said they are the same thing and "should be identical everywhere", and chose 18 ("18 is the right choice tho"). I had raised the row's step to 20 first, on a reading of "identical everywhere" that was wrong, and reverted it the same hour. A panel's title under the row keeps the panel's step.
+
+Two defects came out of building it and are fixed with it: a screen pushed from the bottom of a long one opened already scrolled, with its title out of sight (the scroller is shared by every screen; a push now starts at the top); and in a popover the row scrolled away with the content, because the panel's own viewport was the box that moved.
+
 ## 2026-11-25 The scroll-edge fade follows a curve
 
 The fade was an even ramp from see-through to solid. Under a floating row inside a dialog, text passing behind the row stayed readable through most of it and collided with the row's own title. Kushagra chose a curve over a fully hidden strip, then tuned it by eye on a scratch dialog: 0.7, then 0.9 ("Try 0.9", "I think works"), then 0.8 the same day once both sat side by side ("0.8 it is"): at 0.9 a title passing behind the row is nearly gone, at 0.8 it stays a faint ghost. Each ramp now carries a colour hint, the point where the edge is half see-through, placed `--scrollbar-fade-curve` of the way from the edge to solid (config: `scrollbar.fadeCurve`, 0.8; 0.5 is the old even ramp). One value shapes every fade, top and bottom, under a floating row or not, so there is now a single place to make it stronger; before, only the LENGTH had one, and a floating row replaced even that with its own reach.

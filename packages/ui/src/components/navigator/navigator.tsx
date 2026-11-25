@@ -6,12 +6,14 @@ import * as React from "react";
 
 import { CHEVRON_BACK_PATH, DISMISS_PATH, GLYPH_VIEWBOX } from "../../system/glyphs.ts";
 import { glyphStroke } from "../../tokens/config.ts";
-import { setPageCollapsed, useClaimPage, usePageScope } from "../../system/page.tsx";
+import { PageScope, setPageCollapsed, useClaimPage, usePageScope } from "../../system/page.tsx";
+import { BAND_STEP, useSize } from "../../system/size.ts";
+import { ScrollArea } from "../scroll-area/scroll-area.tsx";
 import { ShellPaneHeader, ShellScroll, useInWorkArea } from "../shell/shell.tsx";
 import { Flex } from "../flex/flex.tsx";
 import { HostCloseContext, HostTitleContext } from "../../system/host-title.ts";
 import { Heading } from "../heading/heading.tsx";
-import { Page } from "../page/page.tsx";
+import { Page, useCollapseMarker } from "../page/page.tsx";
 import { Row, type RowProps } from "../row/row.tsx";
 import { Toolbar, ToolbarButton, ToolbarTitle } from "../toolbar/toolbar.tsx";
 
@@ -139,6 +141,7 @@ export function Navigator<T>({
   // In a shell pane with no frame passed, the navigator draws the pane's band and scroller
   // itself, so Back and the title always sit together the way the band wants them.
   const inPane = usePageScope() !== null;
+  const appSize = useSize();
   const [own, setOwn] = React.useState<readonly T[]>(defaultPath ?? []);
   const path = pathProp ?? own;
   // The direction comes from the path itself, so a path the app sets (a controlled `path`)
@@ -246,10 +249,21 @@ export function Navigator<T>({
   const outlet = inPane ? (
     screens
   ) : (
-    <>
-      <NavigatorBar />
-      {screens}
-    </>
+    // ITS OWN FRAME (2026-11-25, Kushagra: "title under row by default, and on scroll, center").
+    // Outside a pane the navigator is its own frame: the row floats over one scroller, each
+    // screen draws its title under the row, and the row shows it again once it has scrolled away.
+    <OwnFrameContext.Provider value={true}>
+      <PageScope>
+        <NavigatorBar />
+        <ScrollArea
+          fade
+          // The row's height, as a class, so the scroller knows how far the row reaches.
+          className={`kui-navigator-scroll kui-navigator-row-${BAND_STEP[appSize]}`}
+        >
+          {screens}
+        </ScrollArea>
+      </PageScope>
+    </OwnFrameContext.Provider>
   );
 
   return (
@@ -282,6 +296,9 @@ function usePathValueWarning(path: readonly unknown[]): void {
 }
 
 const OutletContext = React.createContext<React.ReactNode>(null);
+
+/** True inside a navigator that is its own frame, which is every one outside a shell pane. */
+const OwnFrameContext = React.createContext(false);
 
 /**
  * THE PANE'S FRAME, OWNED (2026-11-02, Kushagra: "Yes" to the Navigator owning it). Every app
@@ -401,7 +418,8 @@ export type NavigatorScreenProps = ComponentRefusals & {
 export function NavigatorScreen({ title, children, className }: NavigatorScreenProps) {
   const state = useNavigatorState();
   const depth = React.use(LevelContext);
-  const inPane = usePageScope() !== null;
+  const ownFrame = React.use(OwnFrameContext);
+  const inPane = !ownFrame && usePageScope() !== null;
   const inWorkArea = useInWorkArea();
   const heading = React.useRef<HTMLDivElement>(null);
 
@@ -411,12 +429,16 @@ export function NavigatorScreen({ title, children, className }: NavigatorScreenP
   }, [state, depth, title]);
 
   // A pushed screen's title takes focus, so a keyboard and a screen reader start at its top.
-  // Outside a pane the title is in the navigator's band, which moves focus itself.
   React.useEffect(() => {
-    if (depth === 0 || state.direction !== "push" || !inPane) return;
+    if (depth === 0 || state.direction !== "push") return;
     // A side pane's title is in the pane's band, outside the screen, so the screen itself takes
     // focus there; the control that opened it has just been hidden with the level below.
-    const target = heading.current?.querySelector<HTMLElement>("h1") ?? heading.current;
+    // A NEW SCREEN OPENS AT THE TOP (2026-11-25): the one scroller is shared by every screen,
+    // so a screen opened from the bottom of a long one arrived already scrolled, its title out
+    // of sight.
+    const scroller = heading.current?.closest<HTMLElement>(".kui-scroll-viewport");
+    if (scroller) scroller.scrollTop = 0;
+    const target = heading.current?.querySelector<HTMLElement>("h1, .kui-navigator-heading > :first-child") ?? heading.current;
     if (target) {
       target.tabIndex = -1;
       target.focus({ preventScroll: true });
@@ -447,7 +469,37 @@ export function NavigatorScreen({ title, children, className }: NavigatorScreenP
 
   return (
     <div ref={heading} className={cls}>
+      <ScreenHeading title={title} />
       {children}
+    </div>
+  );
+}
+
+/**
+ * A screen's title under the row, outside a pane (2026-11-25). It is the panel's own title part,
+ * so it names the panel. A marker at its foot tells the row when it has scrolled behind it, the
+ * way a `Page` tells a pane's row.
+ */
+function ScreenHeading({ title }: { title: string }) {
+  const store = usePageScope();
+  const state = useNavigatorState();
+  // Only the screen on show holds the panel's title part. A screen underneath is still in the
+  // document, and a second title part there would carry the panel's name a second time.
+  const top = React.use(LevelContext) === state.path.length;
+  const HostTitle = React.use(HostTitleContext);
+  useClaimPage(store, title);
+  // The same marker and the same observer a `Page` uses (page.tsx).
+  const marker = useCollapseMarker(store);
+  return (
+    <div className="kui-navigator-heading">
+      {HostTitle ? (
+        <HostTitle decorative={!top}>{title}</HostTitle>
+      ) : (
+        <Heading size="5" render={<h2 />}>
+          {title}
+        </Heading>
+      )}
+      <div ref={marker} className="kui-navigator-marker" aria-hidden="true" />
     </div>
   );
 }
@@ -464,94 +516,37 @@ export function NavigatorScreen({ title, children, className }: NavigatorScreenP
  */
 function NavigatorBar() {
   const state = useNavigatorState();
-  const HostTitle = React.use(HostTitleContext);
   const HostClose = React.use(HostCloseContext);
-  const bar = React.useRef<HTMLDivElement>(null);
   const depth = state.path.length;
-  const title = state.titles.current[depth];
-
-  // What the band shows, and what it showed before, so a change can draw the old one leaving.
-  // Held until the new screen has said its title, which it does before paint.
-  const [shown, setShown] = React.useState({ depth, title, step: 0 });
-  const [left, setLeft] = React.useState<{ depth: number; title: string; step: number } | null>(null);
-  if (title !== undefined && (title !== shown.title || depth !== shown.depth)) {
-    if (shown.title !== undefined && state.direction) setLeft({ depth: shown.depth, title: shown.title, step: state.step });
-    setShown({ depth, title, step: state.step });
-  }
-
-  // A pushed screen's title takes focus, so a keyboard and a screen reader start at its top.
-  React.useEffect(() => {
-    if (shown.step === 0 || state.direction !== "push") return;
-    const target = bar.current?.querySelector<HTMLElement>(":scope > .kui-toolbar > .kui-toolbar-title");
-    if (target) {
-      target.tabIndex = -1;
-      target.focus({ preventScroll: true });
-    }
-    // Only on arrival: a later re-render must not pull focus back to the title.
-  }, [shown.step]);
-
   const previous = depth > 0 ? state.titles.current[depth - 1] : undefined;
-  const back =
-    depth > 0 ? (
-      <ToolbarButton
-        key="back"
-        className="kui-navigator-back"
-        iconOnly
-        aria-label={backLabel(state.labels, previous)}
-        onClick={state.pop}
-      >
-        {backGlyph()}
-      </ToolbarButton>
-    ) : null;
-  // The title IS the panel's own title part, so it keeps the panel's step and names the panel.
-  const words = shown.title ?? "";
-  const heading = HostTitle ? <HostTitle /> : <Heading size="5" render={<h2 />} />;
-  const close = HostClose ? (
-    <HostClose
-      render={
-        <ToolbarButton iconOnly aria-label={state.labels?.close ?? "Close"}>
-          {closeGlyph()}
-        </ToolbarButton>
-      }
-    />
-  ) : null;
-
+  // The row holds Back, Close, and the screen's title in the middle once that title has scrolled
+  // behind it. The title's glide between screens is off (2026-11-25, Kushagra: "Switch off the
+  // animation"); Back still fades in where it appears (navigator.css).
   return (
-    <div
-      ref={bar}
-      className="kui-navigator-bar"
-      data-direction={state.direction ?? undefined}
-    >
+    <div className="kui-navigator-bar" data-float="" data-direction={state.direction ?? undefined}>
       <Toolbar backdrop aria-label={state.labels?.navigation ?? "Navigation"}>
-        {back}
-        <ToolbarTitle key={`title:${shown.step}`} className="kui-navigator-title" render={heading}>
-          {words}
-        </ToolbarTitle>
-        {close}
-      </Toolbar>
-      {left ? (
-        // The title leaving, drawn where it was: the same row with a Back in it or not, so it
-        // starts from its own place before it glides. Back leaving goes with it on the last pop.
-        <div key={left.step} className="kui-navigator-leaving" aria-hidden inert>
-          <Toolbar aria-label="Leaving">
-            {left.depth > 0 ? (
-              <ToolbarButton
-                iconOnly
-                aria-label="Back"
-                className={depth === 0 ? "kui-navigator-back-leaving" : "kui-navigator-back-held"}
-              >
-                {backGlyph()}
+        {depth > 0 ? (
+          <ToolbarButton
+            key="back"
+            className="kui-navigator-back"
+            iconOnly
+            aria-label={backLabel(state.labels, previous)}
+            onClick={state.pop}
+          >
+            {backGlyph()}
+          </ToolbarButton>
+        ) : null}
+        <ToolbarTitle />
+        {HostClose ? (
+          <HostClose
+            render={
+              <ToolbarButton iconOnly aria-label={state.labels?.close ?? "Close"}>
+                {closeGlyph()}
               </ToolbarButton>
-            ) : null}
-            <ToolbarTitle
-              className="kui-navigator-title-leaving"
-              render={HostTitle ? <HostTitle decorative /> : <Heading size="5" render={<h2 />} />}
-            >
-              {left.title}
-            </ToolbarTitle>
-          </Toolbar>
-        </div>
-      ) : null}
+            }
+          />
+        ) : null}
+      </Toolbar>
     </div>
   );
 }

@@ -615,7 +615,7 @@ Navigator is a stack of screens: any screen can open another on top of it, and B
 
 #### NavigatorScreen
 
-One screen, with its `title`. In a pane it is a Page, and elsewhere it shows a row with Back and a small heading
+One screen, with its `title`. In a pane it is a Page. Elsewhere, such as in a dialog, the title sits under a row that holds Back and Close, and the row shows the title in its centre once it scrolls away
 
 | Prop | Type | What it does |
 | --- | --- | --- |
