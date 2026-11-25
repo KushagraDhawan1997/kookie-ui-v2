@@ -4,7 +4,7 @@ import type { ComponentRefusals } from "../../system/refused.ts";
 import * as React from "react";
 
 import { PAGE_DECK_STEP, PAGE_TITLE_STEP } from "../../system/type-steps.ts";
-import { setPageCollapsed, useClaimPage, usePageScope, type PageStore } from "../../system/page.tsx";
+import { SpokenTitleContext, setPageCollapsed, useClaimPage, usePageScope, type PageStore } from "../../system/page.tsx";
 import { usePageScrollMedia } from "../../system/page-scroll.ts";
 import { Heading } from "../heading/heading.tsx";
 import { Text } from "../text/text.tsx";
@@ -35,8 +35,8 @@ export type PageProps = ComponentRefusals & Omit<React.ComponentPropsWithoutRef<
  * same fact: a title under a row of controls, scrolled away, shown again in the row. One
  * observer, in the one file the system allows it in.
  */
-export function useCollapseMarker(store: PageStore | null): React.RefObject<HTMLDivElement | null> {
-  const marker = React.useRef<HTMLDivElement>(null);
+export function useCollapseMarker<T extends HTMLElement = HTMLDivElement>(store: PageStore | null): React.RefObject<T | null> {
+  const marker = React.useRef<T>(null);
   // Re-read when a touch window crosses the phone boundary: the scroller changes from the
   // content's viewport to the page, and an observer built for one never fires for the other.
   const pageScrolls = usePageScrollMedia();
@@ -77,6 +77,25 @@ export function useCollapseMarker(store: PageStore | null): React.RefObject<HTML
     };
   }, [store, pageScrolls]);
   return marker;
+}
+
+/**
+ * A PANEL'S TITLE CONDENSES INTO ITS ROW (2026-11-25, Kushagra, of a dialog whose title scrolled
+ * away under its toolbar: "Why haven't you shipped this"). Rendered inside the title part of a
+ * dialog, a sheet or a popover. When that title is plain words and sits under the row, it claims
+ * the panel's scope and leaves a marker at its own foot, so a `ToolbarTitle` given no words
+ * shows the same words once the title has scrolled behind the row: `Page`'s behaviour, with the
+ * panel's title standing where a page's stands.
+ */
+export function PanelTitleMarker({ title }: { title: React.ReactNode }) {
+  const scope = usePageScope();
+  const spoken = React.use(SpokenTitleContext);
+  const words = typeof title === "string" ? title : null;
+  const store = scope?.kind === "panel" && !spoken && words !== null ? scope : null;
+  useClaimPage(store, words ?? "");
+  const marker = useCollapseMarker<HTMLSpanElement>(store);
+  if (!store) return null;
+  return <span ref={marker} className="kui-title-marker" aria-hidden="true" />;
 }
 
 /**

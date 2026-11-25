@@ -24,6 +24,13 @@ import * as React from "react";
  * neither, so there is nothing to be right about.
  */
 export type PageStore = {
+  /**
+   * Whose scope this is. A `pane` is a shell pane, where a `Page` claims it. A `panel` is a
+   * dialog, a sheet, a popover or a `Navigator` that is its own frame (2026-11-25), where the
+   * panel's title claims it. A `Navigator` asks, because in a pane it leaves the frame to the
+   * pane and anywhere else it draws its own.
+   */
+  kind: "pane" | "panel";
   /** The words of the page in this pane, or null while nothing has claimed it. */
   title: string | null;
   /** Every `ToolbarTitle` mirroring this pane's page. Held as ELEMENTS, not as React state:
@@ -66,10 +73,10 @@ export function setPageCollapsed(store: PageStore, collapsed: boolean): void {
 }
 
 /** Every pane renders one. It draws nothing — the store is the whole of it. */
-export function PageScope({ children }: { children: React.ReactNode }) {
+export function PageScope({ children, kind = "pane" }: { children: React.ReactNode; kind?: PageStore["kind"] }) {
   const store = React.useMemo<PageStore>(
-    () => ({ title: null, mirrors: new Set(), collapsed: false, listeners: new Set(), version: 0 }),
-    [],
+    () => ({ kind, title: null, mirrors: new Set(), collapsed: false, listeners: new Set(), version: 0 }),
+    [kind],
   );
   return <PageScopeContext.Provider value={store}>{children}</PageScopeContext.Provider>;
 }
@@ -80,6 +87,13 @@ export function PageScope({ children }: { children: React.ReactNode }) {
 export function NoPageScope({ children }: { children: React.ReactNode }) {
   return <PageScopeContext.Provider value={null}>{children}</PageScopeContext.Provider>;
 }
+
+/**
+ * True where something else already speaks for a panel's title part: the title is written in
+ * the row (it IS the row's title, so there is nothing to show again), or a `Navigator` screen
+ * holds it and does the claiming itself.
+ */
+export const SpokenTitleContext = React.createContext(false);
 
 export function usePageScope(): PageStore | null {
   return React.use(PageScopeContext);

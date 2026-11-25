@@ -32,6 +32,8 @@ import { ScrollArea } from "../scroll-area/scroll-area.tsx";
 import { OWNED_BODY_STEP, OWNED_TITLE_STEP } from "../../system/type-steps.ts";
 import { GlassScope, useMaterial, type SurfaceMaterial, themeDefaults } from "../../theme/theme.tsx";
 import { Heading } from "../heading/heading.tsx";
+import { PanelTitleMarker } from "../page/page.tsx";
+import { PageScope } from "../../system/page.tsx";
 import { Text } from "../text/text.tsx";
 import { useSize } from "../../system/size.ts";
 
@@ -295,7 +297,9 @@ function PopoverPopup({
         <FloatingBody>
           <HostTitleContext.Provider value={PopoverHostTitle}>
           <HostCloseContext.Provider value={PopoverClose as React.ComponentType<{ render: React.ReactElement }>}>
-            <GlassScope material={material}>{children}</GlassScope>
+            <GlassScope material={material}>
+              <PageScope kind="panel">{children}</PageScope>
+            </GlassScope>
           </HostCloseContext.Provider>
         </HostTitleContext.Provider>
         </FloatingBody>
@@ -331,6 +335,7 @@ export function PopoverTitle({ children, ...props }: PopoverTitleProps) {
       {...props}
     >
       {children}
+      <PanelTitleMarker title={children} />
     </BasePopover.Title>
   );
 }

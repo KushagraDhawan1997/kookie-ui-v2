@@ -55,6 +55,8 @@ import {
 } from "../../system/floating.tsx";
 import { OWNED_BODY_STEP, OWNED_TITLE_STEP } from "../../system/type-steps.ts";
 import { Heading } from "../heading/heading.tsx";
+import { PanelTitleMarker } from "../page/page.tsx";
+import { PageScope } from "../../system/page.tsx";
 import { Text } from "../text/text.tsx";
 import type { Size } from "../../system/axes.ts";
 import { useLensRef } from "../../system/refraction.tsx";
@@ -384,7 +386,9 @@ function SheetPopup({
       <BaseDrawer.Content className="kui-sheet-body kui-dialog-body">
         <HostTitleContext.Provider value={SheetHostTitle}>
           <HostCloseContext.Provider value={SheetClose as React.ComponentType<{ render: React.ReactElement }>}>
-            <GlassScope material={material}>{children}</GlassScope>
+            <GlassScope material={material}>
+              <PageScope kind="panel">{children}</PageScope>
+            </GlassScope>
           </HostCloseContext.Provider>
         </HostTitleContext.Provider>
       </BaseDrawer.Content>
@@ -417,6 +421,7 @@ export function SheetTitle({ children, ...props }: SheetTitleProps) {
       {...props}
     >
       {children}
+      <PanelTitleMarker title={children} />
     </BaseDrawer.Title>
   );
 }

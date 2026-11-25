@@ -735,7 +735,7 @@ It declares no props of its own. What it takes arrives from a shared type or fro
 
 #### ToolbarTitle
 
-The title at the start of the row. Give it words to show a fixed title. With no words, it shows the title of the `Page` in the same pane once that page's large title scrolls out of view, and it renders nothing when there is no title to show
+The title at the start of the row. Give it words to show a fixed title. With no words, it shows the title of the `Page` in the same pane, or of the dialog, sheet or popover it is in, once that title scrolls out of view, and it renders nothing when there is no title to show
 
 | Prop | Type | What it does |
 | --- | --- | --- |

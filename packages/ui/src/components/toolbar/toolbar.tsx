@@ -10,7 +10,7 @@ import { rootsInButton, unwrapLazy, type RenderElement } from "../../system/rend
 import { BackdropContext, GlassScope, useMaterial } from "../../theme/theme.tsx";
 import { BAND_STEP, SizeScopeContext, useSize } from "../../system/size.ts";
 import { BAND_TITLE_STEP } from "../../system/type-steps.ts";
-import { usePageMirror, usePageScope, usePageTitle } from "../../system/page.tsx";
+import { SpokenTitleContext, usePageMirror, usePageScope, usePageTitle } from "../../system/page.tsx";
 import { Button, type ButtonProps } from "../button/button.tsx";
 import { Menu, MenuContent, MenuGroup, MenuItem, MenuTrigger } from "../menu/menu.tsx";
 import { Separator } from "../separator/separator.tsx";
@@ -597,7 +597,9 @@ export function ToolbarTitle({ className, children, style, id, render }: Toolbar
     // A server-rendered call site hands the element over as a lazy reference (render.ts).
     const target = unwrapLazy(render as RenderElement) as typeof render;
     const own = target.props.className;
-    return React.cloneElement(target, {
+    // In the row the part is the row's title already, so it must not mark itself to be shown
+    // here a second time (page.tsx, PanelTitleMarker).
+    const titled = React.cloneElement(target, {
       className: own ? `${cls} ${own}` : cls,
       ...(style === undefined ? {} : { style }),
       ...(id === undefined ? {} : { id }),
@@ -609,6 +611,7 @@ export function ToolbarTitle({ className, children, style, id, render }: Toolbar
       "data-size": BAND_TITLE_STEP[size],
       children: words,
     } as Partial<typeof target.props>);
+    return <SpokenTitleContext.Provider value={true}>{titled}</SpokenTitleContext.Provider>;
   }
   return (
     <Text

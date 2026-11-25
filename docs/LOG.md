@@ -8,6 +8,12 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-11-25 A panel's title condenses into its row, with no Navigator
+
+The behaviour existed twice (a `Page` in a pane, a Navigator in a panel) and a third time as hand wiring on a scratch dialog, which is the one Kushagra had been judging and had asked to have shipped more than once. I answered those asks as questions about where the behaviour lived instead of building it, and he said so ("Why haven't you shipped this, I asked several times already"). It is now what a dialog, a sheet and a popover do when they are written as a Toolbar and then a ScrollArea, with a wordless `ToolbarTitle` in the row.
+
+**Rejected: Dialog taking its children apart** to find the row and wrap the rest in a scroller. The composition already says it, a row and then a scroller, and CSS can read that; a component that re-parents what it was given breaks the first wrapper somebody adds. **Rejected: the row absolutely positioned**, the scratch dialog's own spelling: it needs a positioned ancestor, and a dialog pads its pane where a sheet pads its body, so the same offset landed in two places. A row that keeps its box and gives the room back by margin sits right in both without knowing which it is in.
+
 ## 2026-11-25 A Navigator's title sits under its row, and every row title is one size
 
 Three choices closed in one sitting, all Kushagra's, on a scratch page with a Navigator in a dialog, a sheet and a popover.

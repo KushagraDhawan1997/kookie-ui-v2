@@ -2583,6 +2583,126 @@
   padding: var(--kui-sf-p);
 }
 
+/* A TOOLBAR OVER A SCROLLER FLOATS, AND THE TITLE UNDER IT CONDENSES INTO IT (2026-11-25,
+   Kushagra: "why isnt fade the default? The toolbar floats"; and of the title moving into the
+   row on scroll, "Why haven't you shipped this"). Write a panel as a Toolbar and then a
+   ScrollArea and the row stays where it is while the content passes behind it and fades, the
+   way a pane's floating band does. Until this a call site built it by hand: an absolutely
+   placed row, a typed reach, a typed fade and its own observer.
+
+   The row keeps its own box, so its controls and its title stay centred on one line, and a
+   margin takes back exactly the room that box would claim: it sits wherever the panel's
+   padding puts its first child, and the scroller after it reaches the panel's top edge. The
+   step the panel pulls the row up by is given back in the same sum. */
+:is(.kui-dialog-body, .kui-sheet-body, .kui-popover-popup .kui-floating-body)
+  > .kui-toolbar:first-child:has(+ .kui-scroll-area) {
+  position: relative;
+  z-index: 1;
+  margin-block-end: calc(var(--layout-space-2) - var(--kui-tb-row));
+}
+
+/* How far the row reaches down the scroller: the panel's padding, less that step, plus one
+   control row at the row's own size. The content fades across it and a small step more, and
+   the bar starts under it. */
+:is(.kui-dialog-body, .kui-sheet-body, .kui-popover-popup .kui-floating-body)
+  > .kui-toolbar:first-child
+  + .kui-scroll-area {
+  --kui-band-reach: calc(var(--kui-sf-p) - var(--layout-space-2) + var(--kui-band-row));
+  --kui-band-gap: var(--layout-space-6);
+  --kui-sa-fade-start: calc(var(--kui-band-reach) + var(--layout-space-2));
+  margin-block-start: calc(-1 * var(--kui-sf-p));
+}
+:is(.kui-dialog-body, .kui-sheet-body, .kui-popover-popup .kui-floating-body)
+  > .kui-toolbar[data-size="1"]:first-child
+  + .kui-scroll-area {
+  --kui-band-row: var(--control-height-1);
+}
+:is(.kui-dialog-body, .kui-sheet-body, .kui-popover-popup .kui-floating-body)
+  > .kui-toolbar[data-size="2"]:first-child
+  + .kui-scroll-area {
+  --kui-band-row: var(--control-height-2);
+}
+:is(.kui-dialog-body, .kui-sheet-body, .kui-popover-popup .kui-floating-body)
+  > .kui-toolbar[data-size="3"]:first-child
+  + .kui-scroll-area {
+  --kui-band-row: var(--control-height-3);
+}
+:is(.kui-dialog-body, .kui-sheet-body, .kui-popover-popup .kui-floating-body)
+  > .kui-toolbar[data-size="4"]:first-child
+  + .kui-scroll-area {
+  --kui-band-row: var(--control-height-4);
+}
+
+:is(.kui-dialog-body, .kui-sheet-body, .kui-popover-popup .kui-floating-body)
+  > .kui-toolbar:first-child
+  + .kui-scroll-area
+  > .kui-scrollbar[data-orientation="vertical"] {
+  margin-block-start: var(--kui-band-reach);
+}
+
+/* What follows the row keeps the three distances a row gives it when nothing scrolls: a
+   section, a group before the description, the title's own room before the title. They are
+   measured from the row's bottom edge, as they are there. */
+:is(.kui-dialog-body, .kui-sheet-body, .kui-popover-popup .kui-floating-body)
+  > .kui-toolbar:first-child
+  + .kui-scroll-area:has(
+    > .kui-scroll-viewport > .kui-scroll-content > .kui-dialog-description:first-child,
+    > .kui-scroll-viewport > .kui-scroll-content > :first-child > .kui-dialog-description:first-child
+  ) {
+  --kui-band-gap: var(--layout-space-2);
+}
+:is(.kui-dialog-body, .kui-sheet-body, .kui-popover-popup .kui-floating-body)
+  > .kui-toolbar:first-child
+  + .kui-scroll-area:has(
+    > .kui-scroll-viewport > .kui-scroll-content > .kui-dialog-title:first-child,
+    > .kui-scroll-viewport > .kui-scroll-content > :first-child > .kui-dialog-title:first-child
+  ) {
+  --kui-band-gap: var(--kui-title-space);
+}
+:is(.kui-dialog-body, .kui-sheet-body, .kui-popover-popup .kui-floating-body)
+  > .kui-toolbar:first-child
+  + .kui-scroll-area
+  > .kui-scroll-viewport {
+  padding-block-start: calc(var(--kui-band-reach) + var(--kui-band-gap));
+}
+
+/* A title straight before its description in the scroller, as straight before it in the body. */
+.kui-scroll-content > .kui-dialog-title:has(+ .kui-dialog-description) {
+  margin-block-end: var(--layout-space-2);
+}
+
+/* The marker a panel's title leaves at its foot (page.tsx, PanelTitleMarker), lifted by the
+   row's reach so it crosses the top of the scroller as the title passes behind the row. */
+.kui-dialog-title:has(> .kui-title-marker) {
+  position: relative;
+}
+.kui-title-marker {
+  position: absolute;
+  inset-block-end: var(--kui-band-reach, 0px);
+  inset-inline-start: 0;
+  block-size: var(--border-width);
+  inline-size: 100%;
+  pointer-events: none;
+}
+
+/* A popover's content already sits in the panel's own scroller. With a row over a scroller in
+   it, that scroller is the one that moves: the body takes the room the positioner reports,
+   less the panel's padding, and the scroller reaches the panel's edges as it does in a dialog. */
+.kui-popover-popup .kui-floating-body:has(> .kui-toolbar:first-child + .kui-scroll-area) {
+  display: flex;
+  flex-direction: column;
+  max-block-size: calc(var(--available-height, 100vh) - 2 * var(--border-width) - 2 * var(--kui-sf-p));
+}
+.kui-popover-popup .kui-floating-body > .kui-toolbar:first-child + .kui-scroll-area {
+  flex: 1;
+  margin-inline: calc(-1 * var(--kui-sf-p));
+  margin-block-end: calc(-1 * var(--kui-sf-p));
+}
+.kui-popover-popup .kui-floating-body > .kui-toolbar:first-child + .kui-scroll-area > .kui-scroll-viewport {
+  padding-inline: var(--kui-sf-p);
+  padding-block-end: var(--kui-sf-p);
+}
+
 /* And the content starts a section's distance under it, as it does under a Navigator's band. */
 :is(.kui-dialog-body, .kui-sheet-body, .kui-popover-popup .kui-floating-body) > .kui-toolbar:first-child {
   margin-block-end: var(--layout-space-6);

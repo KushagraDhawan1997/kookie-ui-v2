@@ -6,7 +6,7 @@ import * as React from "react";
 
 import { CHEVRON_BACK_PATH, DISMISS_PATH, GLYPH_VIEWBOX } from "../../system/glyphs.ts";
 import { glyphStroke } from "../../tokens/config.ts";
-import { PageScope, setPageCollapsed, useClaimPage, usePageScope } from "../../system/page.tsx";
+import { PageScope, SpokenTitleContext, setPageCollapsed, useClaimPage, usePageScope } from "../../system/page.tsx";
 import { BAND_STEP, useSize } from "../../system/size.ts";
 import { ScrollArea } from "../scroll-area/scroll-area.tsx";
 import { ShellPaneHeader, ShellScroll, useInWorkArea } from "../shell/shell.tsx";
@@ -140,7 +140,7 @@ export function Navigator<T>({
 }: NavigatorProps<T>) {
   // In a shell pane with no frame passed, the navigator draws the pane's band and scroller
   // itself, so Back and the title always sit together the way the band wants them.
-  const inPane = usePageScope() !== null;
+  const inPane = usePageScope()?.kind === "pane";
   const appSize = useSize();
   const [own, setOwn] = React.useState<readonly T[]>(defaultPath ?? []);
   const path = pathProp ?? own;
@@ -253,7 +253,7 @@ export function Navigator<T>({
     // Outside a pane the navigator is its own frame: the row floats over one scroller, each
     // screen draws its title under the row, and the row shows it again once it has scrolled away.
     <OwnFrameContext.Provider value={true}>
-      <PageScope>
+      <PageScope kind="panel">
         <NavigatorBar />
         <ScrollArea
           fade
@@ -419,7 +419,7 @@ export function NavigatorScreen({ title, children, className }: NavigatorScreenP
   const state = useNavigatorState();
   const depth = React.use(LevelContext);
   const ownFrame = React.use(OwnFrameContext);
-  const inPane = !ownFrame && usePageScope() !== null;
+  const inPane = !ownFrame && usePageScope()?.kind === "pane";
   const inWorkArea = useInWorkArea();
   const heading = React.useRef<HTMLDivElement>(null);
 
@@ -493,7 +493,11 @@ function ScreenHeading({ title }: { title: string }) {
   return (
     <div className="kui-navigator-heading">
       {HostTitle ? (
-        <HostTitle decorative={!top}>{title}</HostTitle>
+        // The screen claims the scope and holds the marker itself, for a title with or without
+        // a panel around it, so the panel's title part must not do it a second time.
+        <SpokenTitleContext.Provider value={true}>
+          <HostTitle decorative={!top}>{title}</HostTitle>
+        </SpokenTitleContext.Provider>
       ) : (
         <Heading size="5" render={<h2 />}>
           {title}

@@ -85,6 +85,10 @@ When Kushagra settles something new, add its line here in the same change.
 - Every title in a row is the row's title size (18px by default), wherever the row is: a
   dialog's title written in the row, and the title a row shows after a page or screen title
   scrolls away. A title under the row keeps its own size.
+- A dialog, sheet or popover written as a `Toolbar` and then a `ScrollArea` gets a floating
+  row: the content scrolls behind it and fades, and a title under the row shows in the row once
+  it scrolls away (put a `ToolbarTitle` with no words in the row). Never wire this by hand with
+  positioning, a typed fade or an observer.
 - A new Navigator screen opens at the top. The title does not slide between screens.
 - The scroll fade stays at 0.8 even where text shows faintly behind a row's title.
 - The action row of a dialog is a plain `Flex` today. Whether actions and Close move into a

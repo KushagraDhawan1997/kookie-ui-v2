@@ -48,6 +48,8 @@ import {
 } from "../../system/floating.tsx";
 import { OWNED_BODY_STEP, OWNED_TITLE_STEP } from "../../system/type-steps.ts";
 import { Heading } from "../heading/heading.tsx";
+import { PanelTitleMarker } from "../page/page.tsx";
+import { PageScope } from "../../system/page.tsx";
 import { Text } from "../text/text.tsx";
 import type { Size } from "../../system/axes.ts";
 import { useLensRef } from "../../system/refraction.tsx";
@@ -329,7 +331,11 @@ function DialogPopup({
       <div className="kui-dialog-body" role="presentation">
         <HostTitleContext.Provider value={DialogHostTitle}>
           <HostCloseContext.Provider value={DialogClose as React.ComponentType<{ render: React.ReactElement }>}>
-            <GlassScope material={material}>{children}</GlassScope>
+            <GlassScope material={material}>
+              {/* The panel's own scope: its title claims it, and a `ToolbarTitle` given no words
+                  shows that title once it has scrolled behind the row. */}
+              <PageScope kind="panel">{children}</PageScope>
+            </GlassScope>
           </HostCloseContext.Provider>
         </HostTitleContext.Provider>
       </div>
@@ -385,6 +391,7 @@ export function DialogTitle({ children, ...props }: DialogTitleProps) {
       {...props}
     >
       {children}
+      <PanelTitleMarker title={children} />
     </BaseDialog.Title>
   );
 }
