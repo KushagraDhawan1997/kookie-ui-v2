@@ -49,7 +49,7 @@ A Notice has `role="status"`, so screen readers read its words when it appears w
 ```tsx
 "use client";
 
-import { Button, Notice, Stack, Text } from "@kushagradhawan/kookie-ui-react";
+import { Button, Notice, Stack } from "@kushagradhawan/kookie-ui-react";
 import type { Size, Tone } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example({
@@ -67,12 +67,12 @@ export default function Example({
         size={size}
         tone={tone}
         backdrop={backdrop}
-        action={<Button size="2">Get more usage</Button>}
+        action={<Button>Get more usage</Button>}
         onDismiss={() => {}}
       >
-        <Text size="2">Approaching weekly usage limit</Text>
+        Approaching weekly usage limit
       </Notice>
-      <Notice size={size} tone="warning" backdrop={backdrop} action={<Button size="2">Renew</Button>}>
+      <Notice size={size} tone="warning" backdrop={backdrop} action={<Button>Renew</Button>}>
         Your certificate expires in six days.
       </Notice>
     </Stack>
