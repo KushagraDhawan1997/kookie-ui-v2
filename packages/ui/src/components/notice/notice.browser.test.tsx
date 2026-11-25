@@ -545,3 +545,56 @@ describe("a button on a notice takes the next solid step of the notice's own col
     expect(fill(dead)).toBe(fill(live.matches("button") ? live : live.querySelector("button")!));
   });
 });
+
+/**
+ * A NOTICE'S OWN CONTROLS ARE GLASS ON A SOLID NOTICE (2026-11-25, Kushagra: "the x should be
+ * glass", "like our x buttons"; "Make the get more usage and renew also glass"; and of a glass
+ * notice, "we dont need to allow glass on glass notice").
+ */
+describe("a notice's buttons express the theme's material on a solid notice, and only there (2026-11-25)", () => {
+  const materialOf = (el: Element) => el.getAttribute("data-material");
+  const notice = (props: { backdrop?: boolean }) => (
+    <Notice {...props} tone="warning" action={<Button>Renew</Button>} onDismiss={() => {}}>
+      Your certificate expires in six days.
+    </Notice>
+  );
+
+  it("solid notice in a glass theme: the action and the dismiss are real glass, with no prop", () => {
+    const root = mounted(notice({}), { theme: { material: "3" }, select: ".kui-notice" });
+    expect(materialOf(root)).toBeNull();
+    const buttons = [...root.querySelectorAll("button")];
+    expect(buttons).toHaveLength(2);
+    for (const button of buttons) {
+      expect(materialOf(button), button.textContent ?? "dismiss").toMatch(/^g\d$/);
+      expect(getComputedStyle(button).backdropFilter).not.toBe("none");
+    }
+  });
+
+  it("glass notice: nothing inside is glass a second time", () => {
+    const root = mounted(notice({ backdrop: true }), { theme: { material: "3" }, select: ".kui-notice" });
+    expect(materialOf(root)).toMatch(/^g\d$/);
+    for (const button of root.querySelectorAll("button")) expect(materialOf(button)).toBe("on-glass");
+  });
+
+  it("solid theme: the buttons are solid, and a button can refuse the glass for itself", () => {
+    const solid = mounted(notice({}), { theme: {}, select: ".kui-notice" });
+    for (const button of solid.querySelectorAll("button")) expect(materialOf(button)).toBeNull();
+    const refused = mounted(
+      <Notice action={<Button backdrop={false}>Renew</Button>}>x</Notice>,
+      { theme: { material: "3" }, select: ".kui-notice" },
+    );
+    expect(materialOf(refused.querySelector("button")!)).toBeNull();
+  });
+
+  it("the confirmation strip's two buttons follow", () => {
+    const root = mounted(
+      <Confirmation onConfirm={() => {}} onCancel={() => {}} confirmLabel="Delete" cancelLabel="Cancel">
+        Delete this project?
+      </Confirmation>,
+      { theme: { material: "3" }, select: ".kui-confirmation" },
+    );
+    const buttons = [...root.querySelectorAll("button")];
+    expect(buttons).toHaveLength(2);
+    for (const button of buttons) expect(materialOf(button)).toMatch(/^g\d$/);
+  });
+});

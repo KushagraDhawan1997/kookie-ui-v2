@@ -6,7 +6,7 @@ import * as React from "react";
 import type { Size, Tone } from "../../system/axes.ts";
 import { useLensRef } from "../../system/refraction.tsx";
 import { OWNED_BODY_STEP } from "../../system/type-steps.ts";
-import { GlassScope, useMaterial } from "../../theme/theme.tsx";
+import { BackdropContext, GlassScope, useMaterial } from "../../theme/theme.tsx";
 import { Button } from "../button/button.tsx";
 import { Text } from "../text/text.tsx";
 import { DISMISS_PATH, GLYPH_VIEWBOX } from "../../system/glyphs.ts";
@@ -222,6 +222,14 @@ export function Notice({
         {children}
       </Text>
       <ToneScopeContext.Provider value={tone}>
+      {/* A NOTICE'S OWN CONTROLS ARE GLASS ON A SOLID NOTICE (2026-11-25, Kushagra: "the x
+          should be glass", "like our x buttons"; "Make the get more usage and renew also
+          glass"). They sit in a backdrop region the notice opens, so the action and the dismiss
+          express the theme's material with no prop, as a toolbar's buttons do, and the glass
+          takes the notice's own tint. A glass notice does NOT host glass (same day: "we dont
+          need to allow glass on glass notice"): its pane mark sends them on-glass, as before.
+          In a solid theme they are the tinted solid step the surface hands down. */}
+      <BackdropContext.Provider value={true}>
       {action ? <span className="kui-notice-action">{action}</span> : null}
       {onDismiss ? (
         <Button
@@ -235,6 +243,7 @@ export function Notice({
           {dismissGlyph()}
         </Button>
       ) : null}
+      </BackdropContext.Provider>
       </ToneScopeContext.Provider>
     </div>
   );
@@ -331,6 +340,8 @@ export function Confirmation({
           {children}
         </Text>
         <ToneScopeContext.Provider value={tone}>
+        {/* The strip's own buttons are glass on a solid strip, as a notice's are. */}
+        <BackdropContext.Provider value={true}>
         <span className="kui-notice-action">
           <Button size={size} emphasis="quiet" disabled={busy} onClick={onCancel}>
             {cancelLabel}
@@ -339,6 +350,7 @@ export function Confirmation({
             {confirmLabel}
           </Button>
         </span>
+        </BackdropContext.Provider>
         </ToneScopeContext.Provider>
       </div>
     </GlassScope>

@@ -8,6 +8,14 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-11-25 A notice's own buttons are glass on a solid notice
+
+Kushagra wanted the dismiss to be "actual glass, like our x buttons", then the action buttons too ("Make the get more usage and renew also glass"). A caller could already pass a glass action (`<Button backdrop>`, solid hosts glass since 2026-08-19); the dismiss is drawn by Notice and nobody could say it. Notice and Confirmation now open a backdrop region around their own controls, so it is the default with no prop, and `backdrop={false}` on a button refuses it.
+
+**Ruled the same hour, and it bounds this:** no real glass inside a GLASS notice ("we dont need to allow glass on glass notice"). Dialogs, sheets and popovers are a different case to him, "because those have a scrim behind, so its not apples to apples"; that allowance is not in this change.
+
+**A consequence he has seen on the demo:** a quiet button on a notice (the dismiss, a confirmation's Cancel) now has a visible glass disc at rest, where it was bare.
+
 ## 2026-11-25 A control on a tinted surface takes the surface's next step
 
 Kushagra, on the Notice example: the grey notice's button "look[s] flat, no bg at all", and on the warning notice "the gray button is totally wrong". Measured, light: the button's `--neutral-soft` and the notice's `--tone-a3-solid` are the same step 3 (dark sits 4 on 3, which is why it only showed in light); and the wash trio is neutral for every family by his own 2026-08-23 rule, so an amber strip carried a grey patch.

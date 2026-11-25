@@ -97,6 +97,9 @@ rule of thumb that it overrules. If one looks wrong for your case, say so and as
   padding step 2. A dialog does not pad one size up.
 - A scroll edge fades on a curve, not evenly: content stays faint for most of the fade and
   comes back near the end. One value sets it for every fade (`--scrollbar-fade-curve`, 0.8).
+- A solid notice's own buttons, the action and the X, are real glass with no prop when the
+  theme uses glass. A glass notice never holds real glass: its buttons keep the on-glass look.
+  Dialogs, sheets and popovers are a different case, because of the scrim behind them.
 - A pane inside a pane has a concentric corner: inner corner = outer corner − outer padding.
  
 - Corners are squircles where the browser can draw them.
