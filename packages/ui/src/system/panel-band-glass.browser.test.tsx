@@ -100,3 +100,56 @@ describe("a toolbar in a glass panel is glass again, and nothing else in the pan
     }
   });
 });
+
+/**
+ * THE BAND AT THE FOOT (2026-11-25; RULES 3, "applies to every band"). A Toolbar written last in
+ * a panel is its action row. The panel placed only the first band, so the action sat a step
+ * further in than Close did above it.
+ */
+describe("a panel places its last toolbar as it places its first (2026-11-25)", () => {
+  const foot = (Title: React.ComponentType<{ children?: React.ReactNode }>, Close: React.ComponentType<{ render: React.ReactElement }>) => (
+    <>
+      <Toolbar>
+        <ToolbarTitle render={<Title />}>Rename project</ToolbarTitle>
+        <Close render={<ToolbarButton iconOnly aria-label="Close" data-top>x</ToolbarButton>} />
+      </Toolbar>
+      <p data-words style={{ margin: 0 }}>Everyone with access will see the new name.</p>
+      <Toolbar aria-label="Actions">
+        <span style={{ marginInlineStart: "auto" }}>
+          <ToolbarButton emphasis="loud" data-foot>Rename</ToolbarButton>
+        </span>
+      </Toolbar>
+    </>
+  );
+  const panels: [string, React.ReactElement, string][] = [
+    ["dialog", <Dialog defaultOpen><DialogContent>{foot(DialogTitle, DialogClose as never)}</DialogContent></Dialog>, ".kui-dialog-popup"],
+    [
+      "popover",
+      <Popover defaultOpen>
+        <PopoverTrigger render={<button type="button">Open</button>} />
+        <PopoverContent>{foot(PopoverTitle, PopoverClose as never)}</PopoverContent>
+      </Popover>,
+      ".kui-popover-popup",
+    ],
+  ];
+
+  it.each(panels)("%s: the action is as far from the foot and the side as Close is from the top and the side", async (_name, ui, selector) => {
+    mounted(ui, { theme: {} });
+    expect(await until(() => document.querySelector(`${selector} [data-foot]`) !== null)).toBe(true);
+    const panel = document.querySelector<HTMLElement>(selector)!.getBoundingClientRect();
+    const top = document.querySelector(`${selector} [data-top]`)!.getBoundingClientRect();
+    const action = document.querySelector(`${selector} [data-foot]`)!.getBoundingClientRect();
+    const words = document.querySelector(`${selector} [data-words]`)!.getBoundingClientRect();
+    expect(panel.right - action.right).toBeCloseTo(panel.right - top.right, 0);
+    expect(panel.bottom - action.bottom).toBeCloseTo(top.top - panel.top, 0);
+    // One step closer to the edge than the content, which is what makes it a band.
+    expect(panel.right - action.right).toBeLessThan(panel.right - words.right);
+    // And a section under the content.
+    const probe = document.createElement("div");
+    probe.style.inlineSize = "var(--layout-space-6)";
+    document.querySelector(selector)!.append(probe);
+    const section = probe.getBoundingClientRect().width;
+    probe.remove();
+    expect(action.top - words.bottom).toBeCloseTo(section, 0);
+  });
+});

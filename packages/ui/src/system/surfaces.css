@@ -2583,6 +2583,20 @@
   flex: none;
 }
 
+/* AND THE BAND AT THE FOOT (2026-11-25; RULES 3, "applies to every band"). A Toolbar written
+   last in a panel is its action row, and until this the panel placed only the first one: the
+   action sat a step further in than Close did above it. It takes the same step out on the three
+   edges it meets, and stands a section under the content, which is the distance the top band
+   keeps above it. Not the same element as the first band: a panel holding one toolbar and
+   nothing else has a top band, not a foot. */
+:is(.kui-dialog-body, .kui-sheet-body, .kui-popover-popup .kui-floating-body)
+  > .kui-toolbar:last-child:not(:first-child) {
+  margin-block-start: var(--layout-space-6);
+  margin-block-end: calc(-1 * var(--layout-space-2));
+  margin-inline: calc(-1 * var(--layout-space-2));
+  flex: none;
+}
+
 /* A NAVIGATOR'S ROW FLOATS (2026-11-25): it takes no room, so the step the panel pulls it up by
    is given back below it and the scroller after it starts where the content would. */
 :is(.kui-dialog-body, .kui-sheet-body, .kui-popover-popup .kui-floating-body) > .kui-navigator-bar:first-child {

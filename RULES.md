@@ -52,7 +52,8 @@ the disagreement is a bug to report.
 3. **A band sits one step inside the content edge.** The toolbar's inset is one step closer to
    the panel's edge than the content's padding, measured from the panel's own padding, so it
    moves with the panel's size. Applies to every band: dialogs, sheets, popovers, and Shell
-   pane headers and footers, pinned or floating. Enforced by: default (Navigator; pane bands:
+   pane headers and footers, pinned or floating. A panel places its first toolbar and its last
+   one, the action row, the same way. Enforced by: default (panels, Navigator; pane bands:
    coming), check (screen `band-inset`).
 4. **Toolbar buttons are glass.** Controls in a band use the band's material, not an opaque
    fill. In a glass dialog, sheet or popover they are real glass, not the flatter on-glass
