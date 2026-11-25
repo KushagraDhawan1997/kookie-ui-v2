@@ -27,6 +27,7 @@ import {
 // form element wraps the fields and the actions, so Enter submits it.
 export default function Example() {
   const [open, setOpen] = React.useState(false);
+  const formId = React.useId();
   const [name, setName] = React.useState("Marketing site");
 
   return (
@@ -47,6 +48,7 @@ export default function Example() {
           gap="6"
           render={
             <form
+              id={formId}
               onSubmit={(event) => {
                 event.preventDefault();
                 setOpen(false);
@@ -66,13 +68,16 @@ export default function Example() {
               <FieldDescription>Point a CNAME record at our servers first.</FieldDescription>
             </Field>
           </Stack>
-          <Flex gap="3" justify="flex-end">
-            <DialogClose render={<Button emphasis="quiet" bordered>Cancel</Button>} />
-            <Button type="submit" emphasis="loud">
-              Save changes
-            </Button>
-          </Flex>
         </Stack>
+        {/* The action is outside the form element, in the dialog's bottom toolbar, so it names
+            the form it submits. */}
+        <Toolbar aria-label="Actions">
+          <Flex flexGrow="1" justify="flex-end" gap="3">
+            <ToolbarButton type="submit" form={formId} emphasis="loud">
+              Save changes
+            </ToolbarButton>
+          </Flex>
+        </Toolbar>
       </DialogContent>
     </Dialog>
   );

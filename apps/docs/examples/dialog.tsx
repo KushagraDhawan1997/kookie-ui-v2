@@ -34,11 +34,12 @@ export default function Example({ size = "2" }: { size?: Size }) {
         </Toolbar>
         <Stack gap="6">
           <DialogDescription>Everyone with access will see the new name.</DialogDescription>
-          <Flex gap="3" justify="flex-end">
-            <DialogClose render={<Button emphasis="quiet" bordered>Cancel</Button>} />
-            <DialogClose render={<Button emphasis="loud">Save</Button>} />
-          </Flex>
         </Stack>
+        <Toolbar aria-label="Actions">
+          <Flex flexGrow="1" justify="flex-end" gap="3">
+            <DialogClose render={<ToolbarButton emphasis="loud">Save</ToolbarButton>} />
+          </Flex>
+        </Toolbar>
       </DialogContent>
     </Dialog>
   );

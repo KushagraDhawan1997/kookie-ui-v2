@@ -58,11 +58,12 @@ export default function Example() {
               <FieldLabel>Project name</FieldLabel>
               <TextField defaultValue="Marketing site" />
             </Field>
-            <Flex gap="3" justify="flex-end">
-              <DialogClose render={<Button emphasis="quiet" bordered>Cancel</Button>} />
-              <DialogClose render={<Button emphasis="loud">Rename</Button>} />
-            </Flex>
           </Stack>
+          <Toolbar aria-label="Actions">
+            <Flex flexGrow="1" justify="flex-end" gap="3">
+              <DialogClose render={<ToolbarButton emphasis="loud">Rename</ToolbarButton>} />
+            </Flex>
+          </Toolbar>
         </DialogContent>
       </Dialog>
     </Flex>

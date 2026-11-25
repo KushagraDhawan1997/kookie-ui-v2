@@ -39,11 +39,13 @@ export default function Example() {
             <Text size="2" weight="medium">Branch</Text>
             <TextField placeholder="main" aria-label="Branch" />
           </Stack>
-          <Flex gap="3" justify="flex-end">
-            <SheetClose render={<Button emphasis="quiet" bordered>Reset</Button>} />
-            <SheetClose render={<Button emphasis="loud">Apply</Button>} />
-          </Flex>
         </Stack>
+        <Toolbar aria-label="Actions">
+          <Flex flexGrow="1" justify="flex-end" gap="3">
+            <SheetClose render={<ToolbarButton emphasis="quiet" bordered>Reset</ToolbarButton>} />
+            <SheetClose render={<ToolbarButton emphasis="loud">Apply</ToolbarButton>} />
+          </Flex>
+        </Toolbar>
       </SheetContent>
     </Sheet>
   );

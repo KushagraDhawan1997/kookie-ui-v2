@@ -85,11 +85,13 @@ export default function Example() {
             <Text size="2" weight="medium">Branch</Text>
             <TextField placeholder="main" aria-label="Branch" />
           </Stack>
-          <Flex gap="3" justify="flex-end">
-            <SheetClose render={<Button emphasis="quiet" bordered>Reset</Button>} />
-            <SheetClose render={<Button emphasis="loud">Apply</Button>} />
-          </Flex>
         </Stack>
+        <Toolbar aria-label="Actions">
+          <Flex flexGrow="1" justify="flex-end" gap="3">
+            <SheetClose render={<ToolbarButton emphasis="quiet" bordered>Reset</ToolbarButton>} />
+            <SheetClose render={<ToolbarButton emphasis="loud">Apply</ToolbarButton>} />
+          </Flex>
+        </Toolbar>
       </SheetContent>
     </Sheet>
   );
@@ -138,11 +140,12 @@ export default function Example() {
         </Toolbar>
         <Stack gap="6">
           <SheetDescription>Anyone with the link can view this project.</SheetDescription>
-          <Flex gap="3" justify="flex-end">
-            <SheetClose render={<Button emphasis="quiet" bordered>Cancel</Button>} />
-            <SheetClose render={<Button emphasis="loud">Copy link</Button>} />
-          </Flex>
         </Stack>
+        <Toolbar aria-label="Actions">
+          <Flex flexGrow="1" justify="flex-end" gap="3">
+            <SheetClose render={<ToolbarButton emphasis="loud">Copy link</ToolbarButton>} />
+          </Flex>
+        </Toolbar>
       </SheetContent>
     </Sheet>
   );
@@ -267,15 +270,14 @@ export default function Example() {
           </Toolbar>
           <Stack gap="6">
             <SheetDescription>Team adds shared projects and an audit log.</SheetDescription>
-            <Flex gap="3" justify="flex-end">
-              <Button emphasis="quiet" bordered onClick={() => setOpen(false)}>
-                Not now
-              </Button>
-              <Button emphasis="loud" onClick={() => setOpen(false)}>
-                Upgrade to Team
-              </Button>
-            </Flex>
           </Stack>
+          <Toolbar aria-label="Actions">
+            <Flex flexGrow="1" justify="flex-end" gap="3">
+              <ToolbarButton emphasis="loud" onClick={() => setOpen(false)}>
+                Upgrade to Team
+              </ToolbarButton>
+            </Flex>
+          </Toolbar>
         </SheetContent>
       </Sheet>
     </Stack>
@@ -369,7 +371,7 @@ import {
   SheetDescription,
   SheetTitle,
   SheetTrigger,
-  Stack,
+  Flex,
   Toolbar,
   ToolbarButton,
   ToolbarTitle,
@@ -394,10 +396,12 @@ export default function Example() {
               }
             />
           </Toolbar>
-          <Stack gap="6">
-            <SheetDescription>Paid on 1 September by card.</SheetDescription>
-            <SheetClose render={<Button emphasis="loud">Done</Button>} />
-          </Stack>
+          <SheetDescription>Paid on 1 September by card.</SheetDescription>
+          <Toolbar aria-label="Actions">
+            <Flex flexGrow="1" justify="flex-end" gap="3">
+              <SheetClose render={<ToolbarButton emphasis="loud">Done</ToolbarButton>} />
+            </Flex>
+          </Toolbar>
         </SheetContent>
       </Sheet>
     </Box>

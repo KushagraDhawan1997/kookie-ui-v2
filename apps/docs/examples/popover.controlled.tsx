@@ -24,6 +24,7 @@ import {
 
 export default function Example() {
   const [open, setOpen] = React.useState(false);
+  const formId = React.useId();
   const [label, setLabel] = React.useState("Quarterly report");
   const [draft, setDraft] = React.useState(label);
 
@@ -50,24 +51,25 @@ export default function Example() {
             />
           </Toolbar>
           <form
+            id={formId}
             onSubmit={(event) => {
               event.preventDefault();
               setLabel(draft);
               setOpen(false);
             }}
           >
-            <Stack gap="4">
-              <Field>
-                <FieldLabel>Label</FieldLabel>
-                <TextField value={draft} onChange={(event) => setDraft(event.target.value)} />
-              </Field>
-              <Flex justify="flex-end">
-                <Button type="submit" emphasis="loud">
-                  Save
-                </Button>
-              </Flex>
-            </Stack>
+            <Field>
+              <FieldLabel>Label</FieldLabel>
+              <TextField value={draft} onChange={(event) => setDraft(event.target.value)} />
+            </Field>
           </form>
+          <Toolbar aria-label="Actions">
+            <Flex flexGrow="1" justify="flex-end" gap="3">
+              <ToolbarButton type="submit" form={formId} emphasis="loud">
+                Save
+              </ToolbarButton>
+            </Flex>
+          </Toolbar>
         </PopoverContent>
       </Popover>
     </Stack>

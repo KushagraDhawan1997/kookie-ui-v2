@@ -9,7 +9,7 @@ import {
   SheetDescription,
   SheetTitle,
   SheetTrigger,
-  Stack,
+  Flex,
   Toolbar,
   ToolbarButton,
   ToolbarTitle,
@@ -34,10 +34,12 @@ export default function Example() {
               }
             />
           </Toolbar>
-          <Stack gap="6">
-            <SheetDescription>Paid on 1 September by card.</SheetDescription>
-            <SheetClose render={<Button emphasis="loud">Done</Button>} />
-          </Stack>
+          <SheetDescription>Paid on 1 September by card.</SheetDescription>
+          <Toolbar aria-label="Actions">
+            <Flex flexGrow="1" justify="flex-end" gap="3">
+              <SheetClose render={<ToolbarButton emphasis="loud">Done</ToolbarButton>} />
+            </Flex>
+          </Toolbar>
         </SheetContent>
       </Sheet>
     </Box>

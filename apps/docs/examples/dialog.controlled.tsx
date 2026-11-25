@@ -48,11 +48,12 @@ export default function Example() {
             <DialogDescription>
               Your data is ready as a 4.2 MB ZIP file. The link works for 24 hours.
             </DialogDescription>
-            <Flex gap="3" justify="flex-end">
-              <DialogClose render={<Button emphasis="quiet" bordered>Later</Button>} />
-              <DialogClose render={<Button emphasis="loud">Download</Button>} />
-            </Flex>
           </Stack>
+          <Toolbar aria-label="Actions">
+            <Flex flexGrow="1" justify="flex-end" gap="3">
+              <DialogClose render={<ToolbarButton emphasis="loud">Download</ToolbarButton>} />
+            </Flex>
+          </Toolbar>
         </DialogContent>
       </Dialog>
     </Stack>

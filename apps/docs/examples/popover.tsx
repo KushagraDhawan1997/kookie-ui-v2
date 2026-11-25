@@ -41,11 +41,12 @@ export default function Example({ size = "2" }: { size?: Size }) {
             <FieldLabel>Name</FieldLabel>
             <TextField defaultValue="api-gateway" />
           </Field>
-          <Flex gap="3" justify="flex-end">
-            <PopoverClose render={<Button emphasis="quiet">Cancel</Button>} />
-            <PopoverClose render={<Button tone="accent" emphasis="loud">Save</Button>} />
-          </Flex>
         </Stack>
+        <Toolbar aria-label="Actions">
+          <Flex flexGrow="1" justify="flex-end" gap="3">
+            <PopoverClose render={<ToolbarButton tone="accent" emphasis="loud">Save</ToolbarButton>} />
+          </Flex>
+        </Toolbar>
       </PopoverContent>
     </Popover>
   );

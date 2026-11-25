@@ -61,9 +61,11 @@ export default function Example() {
             ))}
           </Stack>
         </ScrollArea>
-        <Flex justify="flex-end">
-          <DialogClose render={<Button emphasis="loud">Got it</Button>} />
-        </Flex>
+        <Toolbar aria-label="Actions">
+          <Flex flexGrow="1" justify="flex-end" gap="3">
+            <DialogClose render={<ToolbarButton emphasis="loud">Got it</ToolbarButton>} />
+          </Flex>
+        </Toolbar>
       </DialogContent>
     </Dialog>
   );

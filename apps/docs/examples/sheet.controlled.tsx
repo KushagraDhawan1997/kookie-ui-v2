@@ -45,15 +45,14 @@ export default function Example() {
           </Toolbar>
           <Stack gap="6">
             <SheetDescription>Team adds shared projects and an audit log.</SheetDescription>
-            <Flex gap="3" justify="flex-end">
-              <Button emphasis="quiet" bordered onClick={() => setOpen(false)}>
-                Not now
-              </Button>
-              <Button emphasis="loud" onClick={() => setOpen(false)}>
-                Upgrade to Team
-              </Button>
-            </Flex>
           </Stack>
+          <Toolbar aria-label="Actions">
+            <Flex flexGrow="1" justify="flex-end" gap="3">
+              <ToolbarButton emphasis="loud" onClick={() => setOpen(false)}>
+                Upgrade to Team
+              </ToolbarButton>
+            </Flex>
+          </Toolbar>
         </SheetContent>
       </Sheet>
     </Stack>

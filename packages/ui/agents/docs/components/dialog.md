@@ -89,11 +89,12 @@ export default function Example({ size = "2" }: { size?: Size }) {
         </Toolbar>
         <Stack gap="6">
           <DialogDescription>Everyone with access will see the new name.</DialogDescription>
-          <Flex gap="3" justify="flex-end">
-            <DialogClose render={<Button emphasis="quiet" bordered>Cancel</Button>} />
-            <DialogClose render={<Button emphasis="loud">Save</Button>} />
-          </Flex>
         </Stack>
+        <Toolbar aria-label="Actions">
+          <Flex flexGrow="1" justify="flex-end" gap="3">
+            <DialogClose render={<ToolbarButton emphasis="loud">Save</ToolbarButton>} />
+          </Flex>
+        </Toolbar>
       </DialogContent>
     </Dialog>
   );
@@ -134,6 +135,7 @@ import {
 // form element wraps the fields and the actions, so Enter submits it.
 export default function Example() {
   const [open, setOpen] = React.useState(false);
+  const formId = React.useId();
   const [name, setName] = React.useState("Marketing site");
 
   return (
@@ -154,6 +156,7 @@ export default function Example() {
           gap="6"
           render={
             <form
+              id={formId}
               onSubmit={(event) => {
                 event.preventDefault();
                 setOpen(false);
@@ -173,13 +176,16 @@ export default function Example() {
               <FieldDescription>Point a CNAME record at our servers first.</FieldDescription>
             </Field>
           </Stack>
-          <Flex gap="3" justify="flex-end">
-            <DialogClose render={<Button emphasis="quiet" bordered>Cancel</Button>} />
-            <Button type="submit" emphasis="loud">
-              Save changes
-            </Button>
-          </Flex>
         </Stack>
+        {/* The action is outside the form element, in the dialog's bottom toolbar, so it names
+            the form it submits. */}
+        <Toolbar aria-label="Actions">
+          <Flex flexGrow="1" justify="flex-end" gap="3">
+            <ToolbarButton type="submit" form={formId} emphasis="loud">
+              Save changes
+            </ToolbarButton>
+          </Flex>
+        </Toolbar>
       </DialogContent>
     </Dialog>
   );
@@ -241,11 +247,12 @@ export default function Example() {
             <DialogDescription>
               Your data is ready as a 4.2 MB ZIP file. The link works for 24 hours.
             </DialogDescription>
-            <Flex gap="3" justify="flex-end">
-              <DialogClose render={<Button emphasis="quiet" bordered>Later</Button>} />
-              <DialogClose render={<Button emphasis="loud">Download</Button>} />
-            </Flex>
           </Stack>
+          <Toolbar aria-label="Actions">
+            <Flex flexGrow="1" justify="flex-end" gap="3">
+              <DialogClose render={<ToolbarButton emphasis="loud">Download</ToolbarButton>} />
+            </Flex>
+          </Toolbar>
         </DialogContent>
       </Dialog>
     </Stack>
@@ -321,9 +328,11 @@ export default function Example() {
             ))}
           </Stack>
         </ScrollArea>
-        <Flex justify="flex-end">
-          <DialogClose render={<Button emphasis="loud">Got it</Button>} />
-        </Flex>
+        <Toolbar aria-label="Actions">
+          <Flex flexGrow="1" justify="flex-end" gap="3">
+            <DialogClose render={<ToolbarButton emphasis="loud">Got it</ToolbarButton>} />
+          </Flex>
+        </Toolbar>
       </DialogContent>
     </Dialog>
   );
@@ -392,23 +401,25 @@ export default function Example() {
             <TextArea rows={4} value={draft} onChange={(event) => setDraft(event.target.value)} />
             <FieldDescription>Shruti Bhatia on the product team reads every message.</FieldDescription>
           </Field>
-          <Flex gap="3" justify="flex-end">
+        </Stack>
+        <Toolbar aria-label="Actions">
+          <Flex flexGrow="1" justify="flex-end" gap="3">
             <DialogClose
               render={
-                <Button emphasis="quiet" bordered onClick={() => setDraft("")}>
+                <ToolbarButton emphasis="quiet" bordered onClick={() => setDraft("")}>
                   Discard
-                </Button>
+                </ToolbarButton>
               }
             />
             <DialogClose
               render={
-                <Button emphasis="loud" onClick={() => setDraft("")}>
+                <ToolbarButton emphasis="loud" onClick={() => setDraft("")}>
                   Send
-                </Button>
+                </ToolbarButton>
               }
             />
           </Flex>
-        </Stack>
+        </Toolbar>
       </DialogContent>
     </Dialog>
   );
@@ -480,11 +491,12 @@ export default function Example() {
               <FieldLabel>Project name</FieldLabel>
               <TextField defaultValue="Marketing site" />
             </Field>
-            <Flex gap="3" justify="flex-end">
-              <DialogClose render={<Button emphasis="quiet" bordered>Cancel</Button>} />
-              <DialogClose render={<Button emphasis="loud">Rename</Button>} />
-            </Flex>
           </Stack>
+          <Toolbar aria-label="Actions">
+            <Flex flexGrow="1" justify="flex-end" gap="3">
+              <DialogClose render={<ToolbarButton emphasis="loud">Rename</ToolbarButton>} />
+            </Flex>
+          </Toolbar>
         </DialogContent>
       </Dialog>
     </Flex>

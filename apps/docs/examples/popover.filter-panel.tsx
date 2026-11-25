@@ -58,11 +58,13 @@ export default function Example() {
               ))}
             </Stack>
           </Field>
-          <Flex gap="3" justify="flex-end">
-            <PopoverClose render={<Button emphasis="quiet">Reset</Button>} />
-            <PopoverClose render={<Button emphasis="loud">Apply</Button>} />
-          </Flex>
         </Stack>
+        <Toolbar aria-label="Actions">
+          <Flex flexGrow="1" justify="flex-end" gap="3">
+            <PopoverClose render={<ToolbarButton emphasis="quiet">Reset</ToolbarButton>} />
+            <PopoverClose render={<ToolbarButton emphasis="loud">Apply</ToolbarButton>} />
+          </Flex>
+        </Toolbar>
       </PopoverContent>
     </Popover>
   );

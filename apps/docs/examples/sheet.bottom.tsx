@@ -35,11 +35,12 @@ export default function Example() {
         </Toolbar>
         <Stack gap="6">
           <SheetDescription>Anyone with the link can view this project.</SheetDescription>
-          <Flex gap="3" justify="flex-end">
-            <SheetClose render={<Button emphasis="quiet" bordered>Cancel</Button>} />
-            <SheetClose render={<Button emphasis="loud">Copy link</Button>} />
-          </Flex>
         </Stack>
+        <Toolbar aria-label="Actions">
+          <Flex flexGrow="1" justify="flex-end" gap="3">
+            <SheetClose render={<ToolbarButton emphasis="loud">Copy link</ToolbarButton>} />
+          </Flex>
+        </Toolbar>
       </SheetContent>
     </Sheet>
   );

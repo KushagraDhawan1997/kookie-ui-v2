@@ -55,23 +55,25 @@ export default function Example() {
             <TextArea rows={4} value={draft} onChange={(event) => setDraft(event.target.value)} />
             <FieldDescription>Shruti Bhatia on the product team reads every message.</FieldDescription>
           </Field>
-          <Flex gap="3" justify="flex-end">
+        </Stack>
+        <Toolbar aria-label="Actions">
+          <Flex flexGrow="1" justify="flex-end" gap="3">
             <DialogClose
               render={
-                <Button emphasis="quiet" bordered onClick={() => setDraft("")}>
+                <ToolbarButton emphasis="quiet" bordered onClick={() => setDraft("")}>
                   Discard
-                </Button>
+                </ToolbarButton>
               }
             />
             <DialogClose
               render={
-                <Button emphasis="loud" onClick={() => setDraft("")}>
+                <ToolbarButton emphasis="loud" onClick={() => setDraft("")}>
                   Send
-                </Button>
+                </ToolbarButton>
               }
             />
           </Flex>
-        </Stack>
+        </Toolbar>
       </DialogContent>
     </Dialog>
   );

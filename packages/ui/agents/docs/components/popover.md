@@ -88,11 +88,12 @@ export default function Example({ size = "2" }: { size?: Size }) {
             <FieldLabel>Name</FieldLabel>
             <TextField defaultValue="api-gateway" />
           </Field>
-          <Flex gap="3" justify="flex-end">
-            <PopoverClose render={<Button emphasis="quiet">Cancel</Button>} />
-            <PopoverClose render={<Button tone="accent" emphasis="loud">Save</Button>} />
-          </Flex>
         </Stack>
+        <Toolbar aria-label="Actions">
+          <Flex flexGrow="1" justify="flex-end" gap="3">
+            <PopoverClose render={<ToolbarButton tone="accent" emphasis="loud">Save</ToolbarButton>} />
+          </Flex>
+        </Toolbar>
       </PopoverContent>
     </Popover>
   );
@@ -264,11 +265,13 @@ export default function Example() {
               ))}
             </Stack>
           </Field>
-          <Flex gap="3" justify="flex-end">
-            <PopoverClose render={<Button emphasis="quiet">Reset</Button>} />
-            <PopoverClose render={<Button emphasis="loud">Apply</Button>} />
-          </Flex>
         </Stack>
+        <Toolbar aria-label="Actions">
+          <Flex flexGrow="1" justify="flex-end" gap="3">
+            <PopoverClose render={<ToolbarButton emphasis="quiet">Reset</ToolbarButton>} />
+            <PopoverClose render={<ToolbarButton emphasis="loud">Apply</ToolbarButton>} />
+          </Flex>
+        </Toolbar>
       </PopoverContent>
     </Popover>
   );
@@ -306,6 +309,7 @@ import {
 
 export default function Example() {
   const [open, setOpen] = React.useState(false);
+  const formId = React.useId();
   const [label, setLabel] = React.useState("Quarterly report");
   const [draft, setDraft] = React.useState(label);
 
@@ -332,24 +336,25 @@ export default function Example() {
             />
           </Toolbar>
           <form
+            id={formId}
             onSubmit={(event) => {
               event.preventDefault();
               setLabel(draft);
               setOpen(false);
             }}
           >
-            <Stack gap="4">
-              <Field>
-                <FieldLabel>Label</FieldLabel>
-                <TextField value={draft} onChange={(event) => setDraft(event.target.value)} />
-              </Field>
-              <Flex justify="flex-end">
-                <Button type="submit" emphasis="loud">
-                  Save
-                </Button>
-              </Flex>
-            </Stack>
+            <Field>
+              <FieldLabel>Label</FieldLabel>
+              <TextField value={draft} onChange={(event) => setDraft(event.target.value)} />
+            </Field>
           </form>
+          <Toolbar aria-label="Actions">
+            <Flex flexGrow="1" justify="flex-end" gap="3">
+              <ToolbarButton type="submit" form={formId} emphasis="loud">
+                Save
+              </ToolbarButton>
+            </Flex>
+          </Toolbar>
         </PopoverContent>
       </Popover>
     </Stack>
