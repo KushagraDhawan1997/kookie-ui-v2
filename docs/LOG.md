@@ -8,6 +8,14 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-11-25 A title's size sets the room above it
+
+Follows the entry below by a few hours and withdraws its number. With a Back button in the band, a title 4px under it read as attached to the button (Kushagra: "it needs more room"), and the wider problem was already on the table: a Page's title sat 48px under its row by Page's own sum and a dialog's sat 4px under its row by the panel's rule, two answers to one question (Kushagra: they "cannot use different fundamentals"). A flat panel-padding gap was tried on a scratch page and rejected by him because a bigger title needs more room than a smaller one; he then named the mechanism: the hook that sizes the title should guide the spacing.
+
+So each title step carries the room above it (`--title-space-4..9`: 12, 16, 24, 32, 40, 48px), a fourth designed value of the step, moved by the type bands with the size. A panel's band gives the title under it the room for its step; Page reads step 9's. A default pane's Page is unchanged at 48px. Changed: a Page in a size 1, 3 or 4 pane (the gap was the pane's padding plus 24, now 48 at every pane size), a Page on a narrow window (40, with its 44px title), and a dialog title under a band (4 becomes 12, 16, 24 or 32 by dialog size).
+
+**Rejected: a ratio of the title's size.** Proposed by the agent as "three quarters", read off Page's 48 over 64. It retro-fitted a meaning onto a number nobody set as a ratio, and it produced 15px and 33px, which are not steps on the scale (RULES.md 14). **Rejected: one panel padding for every title.** It follows the panel, not the title. **Not done here:** the narrow band still keys on the window, so a Page inside a dialog on a wide window keeps its 64px title and 48px room. Keying the band on the container is section 17's recorded open question and is the next step.
+
 ## 2026-11-25 A dialog's title may sit under its band, a group away
 
 A dialog's title has lived IN the band, beside Close (RULES.md 2). Trialled on a scratch page across eight dialogs, Kushagra preferred the iOS sheet's shape for a dialog whose content is read: the band holds only Close and tools, and the title is the next row. Written that way with today's parts, the band gave the title a section's distance, as it does any content. The band now gives a title beneath it a group's distance (`--layout-space-2`), and a description straight after that title the same distance, so band, title and description read as one block. Both spellings are answered: the title as the band's sibling, or as the first child of the layout that follows.

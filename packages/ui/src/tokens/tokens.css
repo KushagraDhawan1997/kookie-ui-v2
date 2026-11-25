@@ -70,6 +70,12 @@
   --letter-spacing-7: -0.015em;
   --letter-spacing-8: -0.02em;
   --letter-spacing-9: -0.025em;
+  --title-space-4: calc(12px * var(--scale));
+  --title-space-5: calc(16px * var(--scale));
+  --title-space-6: calc(24px * var(--scale));
+  --title-space-7: calc(32px * var(--scale));
+  --title-space-8: calc(40px * var(--scale));
+  --title-space-9: calc(48px * var(--scale));
   --font-weight-regular: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
@@ -5470,6 +5476,7 @@
   --letter-spacing-2: 0em;
   --letter-spacing-3: 0em;
   --letter-spacing-4: -0.005em;
+  --title-space-4: calc(12px * var(--scale));
   --mark-1: calc(16px * var(--scale));
   --mark-2: calc(20px * var(--scale));
   --mark-3: calc(24px * var(--scale));
@@ -5893,6 +5900,7 @@
   --letter-spacing-2: 0em;
   --letter-spacing-3: -0.005em;
   --letter-spacing-4: -0.0075em;
+  --title-space-4: calc(16px * var(--scale));
   --mark-1: calc(20px * var(--scale));
   --mark-2: calc(24px * var(--scale));
   --mark-3: calc(26px * var(--scale));
@@ -6317,6 +6325,7 @@
     --letter-spacing-2: 0em;
     --letter-spacing-3: -0.005em;
     --letter-spacing-4: -0.0075em;
+    --title-space-4: calc(16px * var(--scale));
     --mark-1: calc(20px * var(--scale));
     --mark-2: calc(24px * var(--scale));
     --mark-3: calc(26px * var(--scale));
@@ -6991,5 +7000,7 @@
     --line-height-9: calc(52px * var(--scale));
     --letter-spacing-8: -0.015em;
     --letter-spacing-9: -0.02em;
+    --title-space-8: calc(32px * var(--scale));
+    --title-space-9: calc(40px * var(--scale));
   }
 }

@@ -939,27 +939,34 @@
 
    The padding was stepped ONE SIZE UP here from 2026-08-16 (the alert) and 2026-08-17 (the
    whole overlay family) until 2026-11-25; see the note below. */
+/* `--kui-title-space` is the room above this panel's title: the room its type step carries
+   (tokens: titleSpace). The step per size is OWNED_TITLE_STEP's (system/type-steps.ts: 4, 5, 6,
+   7), restated here because a stylesheet cannot read a TS table; a law holds the two together. */
 /* UNIFORM SINCE 2026-11-25 (Kushagra: "it has to be uniform"): an overlay pads at its OWN
    size, the same step a Card or Surface of that size wears. This reverses the one-size-up
    above (2026-08-17); the corner still comes from the overlay band. */
 .kui-surface.kui-overlay[data-size="1"] {
   --kui-sf-radius: var(--radius-overlay-1);
   --kui-overlay-w: var(--overlay-w-1);
+  --kui-title-space: var(--title-space-4);
   --kui-sf-p: var(--surface-p-1);
 }
 .kui-surface.kui-overlay[data-size="2"] {
   --kui-sf-radius: var(--radius-overlay-2);
   --kui-overlay-w: var(--overlay-w-2);
+  --kui-title-space: var(--title-space-5);
   --kui-sf-p: var(--surface-p-2);
 }
 .kui-surface.kui-overlay[data-size="3"] {
   --kui-sf-radius: var(--radius-overlay-3);
   --kui-overlay-w: var(--overlay-w-3);
+  --kui-title-space: var(--title-space-6);
   --kui-sf-p: var(--surface-p-3);
 }
 .kui-surface.kui-overlay[data-size="4"] {
   --kui-sf-radius: var(--radius-overlay-4);
   --kui-overlay-w: var(--overlay-w-4);
+  --kui-title-space: var(--title-space-7);
   --kui-sf-p: var(--surface-p-4);
 }
 
@@ -2547,19 +2554,25 @@
   margin-block-end: var(--layout-space-6);
 }
 
-/* Unless the content opens with the description or the title. The description belongs to the
-   title, so it sits a group's distance under the band, not a section's (2026-11-23, Kushagra:
-   the title and its description must be close). The same pairing AlertDialog gives its title
-   and text. A title written UNDER the band, where the band holds only Close and tools, belongs
-   to that band the same way (2026-11-25, Kushagra: "ship the space 2 spacing as part of
-   dialog"). */
+/* Unless the content opens with the description. The description belongs to the title, so it
+   sits a group's distance under the band, not a section's (2026-11-23, Kushagra: the title and
+   its description must be close). The same pairing AlertDialog gives its title and text. */
 :is(.kui-dialog-body, .kui-sheet-body) > .kui-toolbar:first-child:has(
     + .kui-dialog-description,
-    + * > .kui-dialog-description:first-child,
+    + * > .kui-dialog-description:first-child
+  ) {
+  margin-block-end: var(--layout-space-2);
+}
+
+/* Or with the TITLE, where the band holds only Close and tools. The title then gets the room
+   its own type step carries, which is what a Page's title gets under its row: one rule for a
+   title under a row, wherever it is. This stood at a group's 4px for a few hours on 2026-11-25;
+   with Back above the title it read as attached to it (Kushagra: "it needs more room"). */
+:is(.kui-dialog-body, .kui-sheet-body) > .kui-toolbar:first-child:has(
     + .kui-dialog-title,
     + * > .kui-dialog-title:first-child
   ) {
-  margin-block-end: var(--layout-space-2);
+  margin-block-end: var(--kui-title-space);
 }
 
 /* And a description written straight after that title sits the same distance under it. Direct

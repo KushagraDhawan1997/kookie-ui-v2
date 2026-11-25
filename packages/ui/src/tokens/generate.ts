@@ -44,6 +44,7 @@ import {
   iconSize,
   layoutSpace,
   letterSpacing,
+  titleSpace,
   lineHeight,
   markRadius,
   radiusAtom,
@@ -137,6 +138,11 @@ export function generateTokens(): string {
   fontSize.forEach((px, i) => put(`font-size-${i + 1}`, zoom(px)));
   lineHeight.forEach((px, i) => put(`line-height-${i + 1}`, zoom(px)));
   letterSpacing.forEach((em, i) => put(`letter-spacing-${i + 1}`, `${em}em`));
+  // The room above a title (config: titleSpace). A pick from the spacing palette, emitted as
+  // the palette's own designed value rather than as a reference to it, the way a font size is:
+  // it is a TYPE value, so scale and the type bands reach it and density does not, and a band
+  // that re-prices a step never has to name a spacing token to do it.
+  for (const [step, pick] of Object.entries(titleSpace)) put(`title-space-${step}`, zoom(space[pick! - 1]!));
   for (const [name, weight] of Object.entries(fontWeight)) put(`font-weight-${name}`, String(weight));
   put("font-body", fontFamily.body);
   put("font-heading", fontFamily.heading);
@@ -1787,6 +1793,10 @@ function bandTypePalette(picks: readonly number[], indices: readonly number[]): 
     ...indices.map((i) => decl(`font-size-${i + 1}`, zoom(fontSize[at(i)]!))),
     ...indices.map((i) => decl(`line-height-${i + 1}`, zoom(lineHeight[at(i)]!))),
     ...indices.map((i) => decl(`letter-spacing-${i + 1}`, `${letterSpacing[at(i)]!}em`)),
+    // And the step's room above, where both the step and the step it now reads have one.
+    ...indices
+      .filter((i) => titleSpace[i + 1] !== undefined && titleSpace[at(i) + 1] !== undefined)
+      .map((i) => decl(`title-space-${i + 1}`, zoom(space[titleSpace[at(i) + 1]! - 1]!))),
   ];
 }
 

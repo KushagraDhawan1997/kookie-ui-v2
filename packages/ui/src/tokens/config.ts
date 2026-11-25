@@ -316,6 +316,23 @@ export const fontSize = [12, 14, 16, 18, 20, 24, 32, 44, 64] as const;
 export const lineHeight = [16, 20, 24, 26, 28, 32, 40, 52, 70] as const;
 /** Paired, in em so it tracks the size for free. ~0 through reading sizes, slightly negative at display. */
 export const letterSpacing = [0, 0, 0, -0.005, -0.0075, -0.01, -0.015, -0.02, -0.025] as const;
+/**
+ * The room ABOVE a title, per type step, as a pick from the spacing scale (2026-11-25, Kushagra:
+ * a dialog's title and a Page's title "cannot use different fundamentals", and "that same hook",
+ * the one that sizes the title, "should be used to guide the spacing").
+ *
+ * A title under a row of controls needs room that grows with the title: a 64px page title wants
+ * more air above it than a 20px dialog title. Until this, two components each stated their own
+ * distance (Dialog a group's 4px, Page the pane's padding plus a section), so the same idea had
+ * two unrelated answers. It is the fourth designed value of a step, beside size, line height and
+ * letter spacing, and it moves with them: a type band that re-prices a step re-prices its room.
+ *
+ * Only steps a title can take are given one: 4 to 7 are the panel titles (Dialog, Sheet, Popover,
+ * by panel size) and 8 to 9 are display. Step 9 is 48px, which is what Page already rendered in a
+ * default pane, so that screen does not move. The rest are judged values on the scale. Density
+ * does not reach it, as it does not reach the size: this is a type value.
+ */
+export const titleSpace: Partial<Record<number, number>> = { 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 9 };
 
 /**
  * §17 — the two TYPE BANDS, and the reason there are two of them (split 2026-08-05).

@@ -18,6 +18,7 @@ import {
   disabledSteps,
   handheldMedia,
   fontSize,
+  titleSpace,
   iconSize,
   narrowMedia,
   typeBands,
@@ -1042,6 +1043,33 @@ describe("the two type bands, and only type (§15, §17, split 2026-08-05)", () 
         expect(block(scope), `${scope}/${stem}`).not.toMatch(new RegExp(`--${stem}-\\d+:`));
       }
     }
+  });
+
+  it("a title step carries the room above it, and a band moves the room with the size (2026-11-25)", () => {
+    // The fourth designed value of a step (config: titleSpace). Each is a pick from the spacing
+    // palette, emitted as that palette's own value, and a bigger title never gets less room.
+    const steps = Object.keys(titleSpace).map(Number).sort((a, b) => a - b);
+    expect(steps.length).toBeGreaterThan(0);
+    const root = block(":root");
+    let last = 0;
+    for (const step of steps) {
+      const pick = titleSpace[step]!;
+      expect(pick, `step ${step} picks a spacing step`).toBeGreaterThanOrEqual(1);
+      expect(pick).toBeLessThanOrEqual(space.length);
+      expect(root, `step ${step}`).toContain(`--title-space-${step}: calc(${space[pick - 1]}px * var(--scale));`);
+      expect(space[pick - 1]!, `step ${step} is no smaller than the step below`).toBeGreaterThanOrEqual(last);
+      last = space[pick - 1]!;
+    }
+    // THE BAND MOVES BOTH OR NEITHER. Narrow re-prices steps 8 and 9 onto the steps below them,
+    // and the room has to follow or a 44px title keeps the air of a 64px one.
+    typeBands.narrow.forEach((pick, i) => {
+      const step = i + 1;
+      if (pick === step || titleSpace[step] === undefined) return;
+      expect(narrowBand(), `narrow re-prices step ${step}'s size`).toContain(`--font-size-${step}:`);
+      expect(narrowBand(), `narrow re-prices step ${step}'s room`).toContain(
+        `--title-space-${step}: calc(${space[titleSpace[pick]! - 1]}px * var(--scale));`,
+      );
+    });
   });
 
   it("both bands stay inside the palette and never re-order a step", () => {

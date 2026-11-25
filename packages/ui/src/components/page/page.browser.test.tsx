@@ -160,7 +160,10 @@ describe("a page clears the band floating over it (§27, §46)", () => {
       const title = root.querySelector("h1")!.getBoundingClientRect();
       const pane = root.querySelector(".kui-shell-content")!;
       const air = parseFloat(tokenOn(root, "--layout-space-7"));
-      const step = parseFloat(tokenOn(root, "--layout-space-6"));
+      // THE TITLE'S OWN ROOM (2026-11-25): the air under the row is what the title's type step
+      // carries, read from the token, so this law and the dialog's are one sentence. Until then
+      // it was the pane's padding plus a section, which grew with the pane and not the title.
+      const room = parseFloat(tokenOn(root, "--title-space-9"));
       const inset = parseFloat(tokenOn(pane, "--kui-sf-p"));
       expect(band.height).toBeGreaterThan(0);
       /* A PAGE BEGINS AN INTERVAL BELOW THE BAND (2026-09-06). This asserted `>= band.bottom`
@@ -170,16 +173,18 @@ describe("a page clears the band floating over it (§27, §46)", () => {
          a page title sharing the band's own bottom padding as their only air. Read as an
          interval it fails on both: on the double count by a pane inset, and on the flush
          spelling by the interval itself. */
-      expect(title.top - band.bottom).toBeCloseTo(step, 0);
+      // Measured from the ROW's bottom edge: the band's box ends one pane inset below its row.
+      expect(title.top - (band.bottom - inset)).toBeCloseTo(room, 0);
       // AND THE SAME NUMBER, READ WHERE THE RULE IS WRITTEN. The reach is a distance from the
       // pane's inner edge and this padding is spent one inset below it, so the declaration is
-      // the reach LESS that inset PLUS the interval — the positional assertion above and this
+      // the reach LESS that inset, LESS the band's own bottom padding, PLUS the title's room —
+      // the positional assertion above and this
       // one fail together on a re-added double count and separately on everything else.
       const page = root.querySelector(".kui-page")!;
       const reach = parseFloat(tokenOn(pane, "--kui-pane-inset-block-start"));
       expect(reach).toBeGreaterThan(inset);
       expect(parseFloat(computed(page, "padding-block-start"))).toBeCloseTo(
-        Math.max(reach - inset + step, air),
+        Math.max(reach - inset - inset + room, air),
         1,
       );
     });

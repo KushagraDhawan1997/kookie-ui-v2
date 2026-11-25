@@ -64,8 +64,15 @@
      inset` counted nothing twice and left no interval at all (72, "too less"). What is added
      here is an interval, not a second copy of the band. Measured at size 2 with a size-3
      toolbar: band 0–72, its row 16–56, the title at 96 — 40px of air under the row. */
+  /* THE INTERVAL IS THE TITLE'S OWN (2026-11-25, Kushagra: a Page and a dialog "cannot use
+     different fundamentals"). The air under the row is the room the title's type step carries
+     (`--title-space-9`, tokens: titleSpace), measured from the row's bottom edge, so the band's
+     bottom padding is taken off and the step's room put in its place. In a default pane that is
+     the 48px this rule rendered before, by a different sum (the pane's padding plus a section);
+     what changes is that the number now follows the TITLE: it falls with the title on a short
+     line, and no longer grows with the pane's size. */
   padding-block-start: max(
-    var(--kui-pane-inset-block-start) - var(--kui-sf-p, 0px) + var(--layout-space-6),
+    var(--kui-pane-inset-block-start) - var(--kui-sf-p, 0px) - var(--kui-sf-p, 0px) + var(--title-space-9),
     var(--layout-space-7)
   );
   /* CLEARANCE ONLY at the other end, and the asymmetry is the argument rather than an

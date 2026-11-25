@@ -51,6 +51,7 @@ import {
   until,
 } from "../../test/browser.tsx";
 import type { Size } from "../../system/axes.ts";
+import { OWNED_TITLE_STEP } from "../../system/type-steps.ts";
 import type { Material } from "../../system/axes.ts";
 
 /** Every axis off its default — a dropped attribute is visible (the §20 constant, Select's
@@ -852,15 +853,16 @@ describe("what the call site can say to a dialog", () => {
     expect(computed(other, "margin-bottom")).toBe(tokenOn(other, "--layout-space-6"));
   });
 
-  it("a title written under the band sits a GROUP under it, and its description a group under that (2026-11-25)", () => {
-    // The band holds only Close; the title is the next row. It belongs to that band, so the band
-    // gives a group's distance, in both spellings: the title as the band's sibling, and as the
-    // first child of the layout that follows. A description straight after the title, as a
-    // direct child of the body, sits the same distance under it.
-    const mount = (body: React.ReactNode) => {
+  it("a title written under the band gets the room its type step carries, at every size (2026-11-25)", () => {
+    // The band holds only Close; the title is the next row. The room between them is the TITLE's:
+    // `--title-space-N` for the step the panel's size gives its title (OWNED_TITLE_STEP), the same
+    // token a Page's title reads under its row. Both spellings: the title as the band's sibling,
+    // and as the first child of the layout that follows. A description straight after the title,
+    // as a direct child of the body, still sits a group under it.
+    const mount = (size: Size, body: React.ReactNode) => {
       render(
         <Theme>
-          <Dialog defaultOpen>
+          <Dialog defaultOpen size={size}>
             <DialogContent>
               <Toolbar>
                 <DialogClose render={<ToolbarButton iconOnly aria-label="Close">x</ToolbarButton>} />
@@ -877,32 +879,47 @@ describe("what the call site can say to a dialog", () => {
       return { popup, bar };
     };
 
-    const sibling = mount(
-      <>
-        <DialogTitle>Updated terms</DialogTitle>
-        <DialogDescription>What changed on 1 December.</DialogDescription>
-      </>,
-    );
-    const group = tokenOn(sibling.bar, "--layout-space-2");
-    expect(computed(sibling.bar, "margin-bottom")).toBe(group);
-    const title = sibling.popup.querySelector<HTMLElement>(".kui-dialog-title");
-    const description = sibling.popup.querySelector<HTMLElement>(".kui-dialog-description");
-    if (!title || !description) throw new Error("the title or the description never mounted");
-    expect(computed(title, "margin-bottom")).toBe(group);
-    // And the eye agrees with the stylesheet: the three boxes really are that far apart.
-    const px = parseFloat(group);
-    expect(title.getBoundingClientRect().top - sibling.bar.getBoundingClientRect().bottom).toBeCloseTo(px, 0);
-    expect(description.getBoundingClientRect().top - title.getBoundingClientRect().bottom).toBeCloseTo(px, 0);
+    const rooms = new Set<string>();
+    for (const size of SIZES) {
+      const sibling = mount(
+        size,
+        <>
+          <DialogTitle>Updated terms</DialogTitle>
+          <DialogDescription>What changed on 1 December.</DialogDescription>
+        </>,
+      );
+      // The CSS join restates the TS table; this is what holds the two together.
+      const room = tokenOn(sibling.bar, `--title-space-${OWNED_TITLE_STEP[size]}`);
+      rooms.add(room);
+      expect(computed(sibling.bar, "margin-bottom"), `size ${size}`).toBe(room);
+      const title = sibling.popup.querySelector<HTMLElement>(".kui-dialog-title");
+      const description = sibling.popup.querySelector<HTMLElement>(".kui-dialog-description");
+      if (!title || !description) throw new Error("the title or the description never mounted");
+      const group = tokenOn(sibling.bar, "--layout-space-2");
+      expect(computed(title, "margin-bottom"), `size ${size}`).toBe(group);
+      // And the eye agrees with the stylesheet: the boxes really are that far apart.
+      expect(
+        title.getBoundingClientRect().top - sibling.bar.getBoundingClientRect().bottom,
+        `size ${size}`,
+      ).toBeCloseTo(parseFloat(room), 0);
+      expect(
+        description.getBoundingClientRect().top - title.getBoundingClientRect().bottom,
+        `size ${size}`,
+      ).toBeCloseTo(parseFloat(group), 0);
 
-    const nested = mount(
-      <Box>
-        <DialogTitle>Updated terms</DialogTitle>
-      </Box>,
-    );
-    expect(computed(nested.bar, "margin-bottom")).toBe(group);
+      const nested = mount(
+        size,
+        <Box>
+          <DialogTitle>Updated terms</DialogTitle>
+        </Box>,
+      );
+      expect(computed(nested.bar, "margin-bottom"), `size ${size}, nested`).toBe(room);
+    }
+    // A bigger title gets more room: four sizes, four different rooms.
+    expect(rooms.size).toBe(SIZES.length);
 
     // A title with no description after it adds nothing under itself.
-    const alone = mount(<DialogTitle>Updated terms</DialogTitle>);
+    const alone = mount("2", <DialogTitle>Updated terms</DialogTitle>);
     const lone = alone.popup.querySelector<HTMLElement>(".kui-dialog-title");
     if (!lone) throw new Error("the title never mounted");
     expect(parseFloat(computed(lone, "margin-bottom"))).toBe(0);
