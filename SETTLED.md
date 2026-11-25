@@ -48,6 +48,8 @@ When Kushagra settles something new, add its line here in the same change.
 - A solid notice's own buttons, the action and the X, are real glass with no prop when the
   theme uses glass. A glass notice never holds real glass: its buttons keep the on-glass look.
   Dialogs, sheets and popovers are a different case, because of the scrim behind them.
+- A popover's corner is smaller than a dialog's, on purpose: it takes the card's corner, a
+  dialog takes the overlay's. The padding and the layout inside are the same. Don't unify them.
 - A pane inside a pane has a concentric corner: inner corner = outer corner − outer padding.
   (§6)
 - Corners are squircles where the browser can draw them. (§6)
@@ -104,9 +106,8 @@ When Kushagra settles something new, add its line here in the same change.
 - A Notice has two distances, never one gap for everything: its icon and words are one group,
   its action and X are another. Inside a group the gap is small (8px by default); between the
   groups it is two steps bigger (16px). Both follow the notice's size.
-- NOT SETTLED, a current leaning (Kushagra, 2026-11-25: "this isn't fixed, i might change my
-  mind"). Follow it in new work, don't cite it as a rule, and ask before changing existing
-  screens to match:
+- Settled for now (Kushagra, 2026-11-25: "this isn't fixed, i might change my mind", then
+  "settled for now"). Follow both; if one looks wrong in practice, say so:
   - A dialog needs no Cancel button, because Close already does that, and its one main action
     sits alone in a toolbar at the bottom, at the trailing edge.
   - In a dialog, sheet or popover the region decides glass, not the kind of control: anything
