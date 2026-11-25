@@ -303,7 +303,7 @@ function States() {
       {/* INVALID is a field-family state from the shared layer, shown inside the unit that
           announces it. Only the boundary moves; the chevron and the value do not. */}
       <Demo label="Invalid, inside the unit that announces it — only the boundary moves">
-        <Flex gap="5" align="flex-start" wrap="wrap">
+        <Flex gap="9" align="flex-start" wrap="wrap">
           <Box width="16rem">
             <Field>
               <FieldLabel>Region</FieldLabel>
@@ -450,7 +450,7 @@ function Nesting() {
     <Stack gap="6">
       {/* Inside a Field, the ordinary case: the field supplies the label, description and SIZE. */}
       <Demo label="Inside a field — one index prices the label, the description and the control">
-        <Flex gap="5" align="flex-start" wrap="wrap">
+        <Flex gap="9" align="flex-start" wrap="wrap">
           {SIZES.map((size) => (
             <Box key={size} width="15rem">
               <Field size={size as Size}>
@@ -515,7 +515,7 @@ function Nesting() {
       {/* Self-nesting is not expressible: the panel is a listbox, which holds only options and
           groups. Two dependent choices are two controls side by side. */}
       <Demo label="A combobox inside a combobox — refused; two dependent choices are two controls">
-        <Flex gap="3" align="flex-end" wrap="wrap">
+        <Flex gap="8" align="flex-end" wrap="wrap">
           <Box width="14rem">
             <Field>
               <FieldLabel>Continent</FieldLabel>

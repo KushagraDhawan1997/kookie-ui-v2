@@ -229,17 +229,18 @@ export default function Example() {
 
 ### In a form
 
-Short fields that belong together in two columns, with the address spanning both. In a narrow container the form changes to one column.
+A grid stacks the rows of a form. Short fields that belong together sit side by side in a `FieldRow`, which sets the space between them, and the address takes a row of its own. On a narrow window each row changes to one column.
 
 ```tsx
-import { Box, Button, Field, FieldLabel, Flex, Grid, Stack, TextField } from "@kushagradhawan/kookie-ui-react";
+import { Button, Field, FieldLabel, FieldRow, Flex, Grid, TextField } from "@kushagradhawan/kookie-ui-react";
 
-// Two columns for short fields that belong together. The address spans both,
-// and the grid drops to one column when the container is narrow.
+// Short fields that belong together sit side by side in a FieldRow, which sets
+// the space between them and drops to one column on a narrow window. The grid
+// stacks the rows, and the address takes a row of its own.
 export default function Example() {
   return (
-    <Stack gap="5" style={{ maxWidth: "32rem" }}>
-      <Grid gap="4" columns={{ initial: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))" }}>
+    <Grid gap="5" columns="minmax(0, 1fr)" style={{ maxWidth: "32rem" }}>
+      <FieldRow>
         <Field>
           <FieldLabel>First name</FieldLabel>
           <TextField defaultValue="Shruti" />
@@ -248,12 +249,12 @@ export default function Example() {
           <FieldLabel>Last name</FieldLabel>
           <TextField defaultValue="Bhatia" />
         </Field>
-        <Box gridArea={{ initial: "auto", sm: "auto / span 2" }}>
-          <Field>
-            <FieldLabel>Billing address</FieldLabel>
-            <TextField placeholder="Street and number" />
-          </Field>
-        </Box>
+      </FieldRow>
+      <Field>
+        <FieldLabel>Billing address</FieldLabel>
+        <TextField placeholder="Street and number" />
+      </Field>
+      <FieldRow>
         <Field>
           <FieldLabel>City</FieldLabel>
           <TextField />
@@ -262,11 +263,11 @@ export default function Example() {
           <FieldLabel>Postal code</FieldLabel>
           <TextField />
         </Field>
-      </Grid>
+      </FieldRow>
       <Flex justify="flex-end">
         <Button emphasis="loud">Save address</Button>
       </Flex>
-    </Stack>
+    </Grid>
   );
 }
 ```

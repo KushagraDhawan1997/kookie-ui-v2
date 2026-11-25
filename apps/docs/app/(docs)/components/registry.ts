@@ -938,6 +938,7 @@ const DECLARED: Entry[] = [
       { title: "Naming one control", symbols: ["Field", "FieldLabel"] },
       { title: "Adding a description and an error", symbols: ["FieldDescription", "FieldError"] },
       { title: "Naming one option in a group", symbols: ["FieldItem"] },
+      { title: "Putting fields side by side", symbols: ["FieldRow"] },
     ],
     refusals: [
       {
@@ -963,6 +964,7 @@ const DECLARED: Entry[] = [
     ],
     parts: [
       { part: "FieldItem", blurb: "One option in a group of checkboxes or radios. It holds the control, its own label and its own description, and it puts the words beside the control" },
+      { part: "FieldRow", blurb: "Two or more fields side by side, in equal columns. It sets the space between them, so don't lay fields out in a grid of your own" },
       { part: "FieldLabel", blurb: "The name of the field, in medium weight. It renders a real `<label>`, so clicking it moves focus to the control" },
       { part: "FieldDescription", blurb: "Text that says what to enter, in the muted text colour. A screen reader announces it together with the control" },
       { part: "FieldError", blurb: "Text that says what went wrong, in the destructive colour. It shows only while the field is invalid, and a screen reader announces it when it appears" },
@@ -1003,7 +1005,7 @@ const DECLARED: Entry[] = [
       {"name":"areas","title":"Named areas","why":"Regions named once with `areas`, and each child placed with `gridArea`. Use this for a page layout with a header, a navigation column and a main area."},
       {"name":"spanning","title":"Spanning columns","why":"Children with `gridArea=\"auto / span 2\"`, which makes them two columns wide. A bare `span 2` sets the number of rows, not columns."},
       {"name":"gap-axes","title":"Row and column gaps","why":"`gapX` and `gapY` set the column gap and the row gap separately. The wider column gap keeps each term and its value reading as one line."},
-      {"name":"in-a-form","title":"In a form","why":"Short fields that belong together in two columns, with the address spanning both. In a narrow container the form changes to one column."},
+      {"name":"in-a-form","title":"In a form","why":"A grid stacks the rows of a form. Short fields that belong together sit side by side in a `FieldRow`, which sets the space between them, and the address takes a row of its own. On a narrow window each row changes to one column."},
       {"name":"container","title":"In a container","why":"A grid inside a narrow `Box` marked `container`. Breakpoints follow that box rather than the window, so the grid stays at one column even in a wide window."},
     ],
     abstract: "Grid lines its children up in rows and columns at the same time.",

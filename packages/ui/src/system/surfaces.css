@@ -2597,6 +2597,55 @@
   flex: none;
 }
 
+/* THE BAND AT THE FOOT FLOATS OVER A SCROLLER AS THE ONE AT THE TOP DOES (2026-11-26, Kushagra,
+   of a long form fading above an empty strip over its action: "Fade looks weird in the bottom
+   side", then to float the bottom bar too). A Toolbar written last, straight after a
+   ScrollArea, keeps its box and takes back its room by margin, so the scroller reaches the
+   panel's bottom edge, the content passes behind the action and fades across its reach, and
+   the content's end stands a section above it. The mirror of the top band's rules. */
+:is(.kui-dialog-body, .kui-sheet-body, .kui-popover-popup .kui-floating-body)
+  > .kui-scroll-area
+  + .kui-toolbar:last-child {
+  position: relative;
+  z-index: 1;
+  margin-block-start: calc(var(--layout-space-2) - var(--kui-tb-row));
+}
+
+:is(.kui-dialog-body, .kui-sheet-body, .kui-popover-popup .kui-floating-body)
+  > .kui-scroll-area:has(+ .kui-toolbar:last-child) {
+  --kui-band-reach-end: calc(var(--kui-sf-p) - var(--layout-space-2) + var(--kui-band-row-end));
+  --kui-sa-fade-end: calc(var(--kui-band-reach-end) + var(--layout-space-2));
+  margin-block-end: calc(-1 * var(--kui-sf-p));
+}
+:is(.kui-dialog-body, .kui-sheet-body, .kui-popover-popup .kui-floating-body)
+  > .kui-scroll-area:has(+ .kui-toolbar[data-size="1"]:last-child) {
+  --kui-band-row-end: var(--control-height-1);
+}
+:is(.kui-dialog-body, .kui-sheet-body, .kui-popover-popup .kui-floating-body)
+  > .kui-scroll-area:has(+ .kui-toolbar[data-size="2"]:last-child) {
+  --kui-band-row-end: var(--control-height-2);
+}
+:is(.kui-dialog-body, .kui-sheet-body, .kui-popover-popup .kui-floating-body)
+  > .kui-scroll-area:has(+ .kui-toolbar[data-size="3"]:last-child) {
+  --kui-band-row-end: var(--control-height-3);
+}
+:is(.kui-dialog-body, .kui-sheet-body, .kui-popover-popup .kui-floating-body)
+  > .kui-scroll-area:has(+ .kui-toolbar[data-size="4"]:last-child) {
+  --kui-band-row-end: var(--control-height-4);
+}
+
+:is(.kui-dialog-body, .kui-sheet-body, .kui-popover-popup .kui-floating-body)
+  > .kui-scroll-area:has(+ .kui-toolbar:last-child)
+  > .kui-scroll-viewport {
+  padding-block-end: calc(var(--kui-band-reach-end) + var(--layout-space-6));
+}
+
+:is(.kui-dialog-body, .kui-sheet-body, .kui-popover-popup .kui-floating-body)
+  > .kui-scroll-area:has(+ .kui-toolbar:last-child)
+  > .kui-scrollbar[data-orientation="vertical"] {
+  margin-block-end: var(--kui-band-reach-end);
+}
+
 /* A NAVIGATOR'S ROW FLOATS (2026-11-25): it takes no room, so the step the panel pulls it up by
    is given back below it and the scroller after it starts where the content would. */
 :is(.kui-dialog-body, .kui-sheet-body, .kui-popover-popup .kui-floating-body) > .kui-navigator-bar:first-child {

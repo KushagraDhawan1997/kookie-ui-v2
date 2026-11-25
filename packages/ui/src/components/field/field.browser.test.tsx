@@ -12,7 +12,7 @@ import { Box } from "../box/box.tsx";
 import { Card } from "../card/card.tsx";
 import { TextField } from "../text-field/text-field.tsx";
 import { Radio, RadioGroup } from "../radio/radio.tsx";
-import { Field, FieldDescription, FieldError, FieldItem, FieldLabel } from "./field.tsx";
+import { Field, FieldDescription, FieldError, FieldItem, FieldLabel, FieldRow } from "./field.tsx";
 
 /** The whole unit, in the order §28 argues for. */
 const unit = (
@@ -346,14 +346,63 @@ describe("the parts read as type, and the roles are the ones §15 already design
 });
 
 describe("the column is the whole stylesheet (§28)", () => {
-  it("the control spans the field and the label does not — the one rule field.css owns", () => {
+  it("the control overflows the field by its own text inset and the label does not stretch", () => {
+    /* ONE LEFT EDGE FOR THE WORDS (2026-11-26, Kushagra: "Because the field is circular, the
+       label and the FieldDescription etc align weirdly with the item inside text field"). The
+       control spanned the field exactly, so its value started its own padding further in than
+       the label above it. It now reaches outside the field by that padding on both sides. */
     const root = mounted(unit, { theme: {} });
     const group = root.getBoundingClientRect();
     const control = within(root, ".kui-field").getBoundingClientRect();
-    const label = within(root, "label").getBoundingClientRect();
-    expect(control.width).toBeCloseTo(group.width, 1);
+    const input = within(root, "input");
+    const value = input.getBoundingClientRect().left + parseFloat(getComputedStyle(input).paddingLeft);
+    const inset = value - control.left;
+    expect(inset).toBeGreaterThan(0);
+    expect(control.left).toBeCloseTo(group.left - inset, 1);
+    expect(control.right).toBeCloseTo(group.right + inset, 1);
+    // What the overflow is FOR: the value, the label and the description start on one line.
+    const start = (el: Element) => {
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      return range.getBoundingClientRect().left;
+    };
+    expect(start(within(root, "label"))).toBeCloseTo(value, 1);
+    expect(start(within(root, "p"))).toBeCloseTo(value, 1);
     // A stretched label would make a hit target of the empty room beside the words.
-    expect(label.width).toBeLessThan(group.width);
+    expect(within(root, "label").getBoundingClientRect().width).toBeLessThan(group.width);
+  });
+
+  it("a control that states its own size overflows by ITS padding, so the value still meets the label", () => {
+    /* Review 2026-11-26: the first cut used the field's size, and a size 1 control in a size 4
+       field sat 8px left of its label. */
+    const root = mounted(
+      <Field size="4">
+        <FieldLabel>Workspace name</FieldLabel>
+        <TextField size="1" defaultValue="Kookie" />
+      </Field>,
+      { theme: {} },
+    );
+    const input = within(root, "input");
+    const range = document.createRange();
+    range.selectNodeContents(within(root, "label"));
+    expect(within(root, ".kui-field").getAttribute("data-size")).toBe("1");
+    expect(input.getBoundingClientRect().left + parseFloat(getComputedStyle(input).paddingLeft)).toBeCloseTo(
+      range.getBoundingClientRect().left,
+      1,
+    );
+  });
+
+  it("a group of marks does not overflow: a mark has no padding to line up", () => {
+    const root = mounted(
+      <Field>
+        <FieldItem>
+          <Checkbox />
+          <FieldLabel>Keep it private for now</FieldLabel>
+        </FieldItem>
+      </Field>,
+      { theme: {} },
+    );
+    expect(within(root, ".kui-field-item").getBoundingClientRect().left).toBeCloseTo(root.getBoundingClientRect().left, 1);
   });
 
   it("outer spacing is nobody's but the caller's (the non-negotiable)", () => {
@@ -559,5 +608,56 @@ describe("the item's grid: the explanation belongs to the WORDS (§28)", () => {
     // so that comparison passes with the rule deleted. Its sabotage pass caught it.
     expect(label.right).toBeLessThan(description.right);
     expect(description.width).toBeGreaterThan(label.width);
+  });
+});
+
+/**
+ * A ROW OF FIELDS (2026-11-26, Kushagra, of two overflowing fields colliding in a grid: "I think
+ * larger gap", then "Works, do it"). Each field's box reaches outside its text column, so a
+ * typed gap lets two of them overlap. `FieldRow` owns the gap: both overflows, plus the distance
+ * a form keeps between two fields, which is then what shows between the boxes.
+ */
+describe("FieldRow lays fields side by side and owns the space between them (2026-11-26)", () => {
+  it.each(["1", "2", "3", "4"] as const)("size %s", (size) => {
+    const root = mounted(
+      <Box style={{ inlineSize: "40rem" }}>
+        <FieldRow size={size}>
+          <Field>
+            <FieldLabel>First name</FieldLabel>
+            <TextField defaultValue="Mira" />
+          </Field>
+          <Field>
+            <FieldLabel>Surname</FieldLabel>
+            <TextField defaultValue="Patel" />
+            <FieldDescription>As it is on the invoice.</FieldDescription>
+          </Field>
+        </FieldRow>
+      </Box>,
+      { theme: {} },
+    );
+    const [first, second] = [...root.querySelectorAll<HTMLElement>(".kui-field-group")];
+    const box = (field: HTMLElement) => field.querySelector(".kui-field")!.getBoundingClientRect();
+    const probe = document.createElement("div");
+    probe.style.inlineSize = "var(--layout-space-5)";
+    root.append(probe);
+    const between = probe.getBoundingClientRect().width;
+    probe.remove();
+    // The space SEEN between the two boxes is the step, with both overflows already paid for.
+    expect(between).toBeGreaterThan(0);
+    expect(box(second!).left - box(first!).right).toBeCloseTo(between, 1);
+    // Equal columns, tops level, and the row's size reached both fields.
+    expect(box(first!).width).toBeCloseTo(box(second!).width, 1);
+    expect(first!.getBoundingClientRect().top).toBeCloseTo(second!.getBoundingClientRect().top, 1);
+    for (const field of [first!, second!]) {
+      expect(field.querySelector(".kui-field")!.getAttribute("data-size")).toBe(size);
+      // Each value still starts under its own label.
+      const input = field.querySelector("input")!;
+      const range = document.createRange();
+      range.selectNodeContents(field.querySelector("label")!);
+      expect(input.getBoundingClientRect().left + parseFloat(getComputedStyle(input).paddingLeft)).toBeCloseTo(
+        range.getBoundingClientRect().left,
+        1,
+      );
+    }
   });
 });

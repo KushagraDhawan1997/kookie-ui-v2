@@ -285,6 +285,23 @@ export const CATALOG: Record<string, CatalogEntry> = {
         ],
       }),
   },
+  FieldRow: {
+    family: "Control",
+    blurb: "Fields side by side, in equal columns. The row sets the space between them, because each field's box reaches outside its text column and a typed gap would let two of them collide.",
+    props: { size: size() },
+    children: { only: ["Field"] },
+    make: () =>
+      node("FieldRow", {}, {
+        children: [
+          node("Field", {}, {
+            children: [node("FieldLabel", {}, { text: "First name" }), node("TextField", { "aria-label": "First name" })],
+          }),
+          node("Field", {}, {
+            children: [node("FieldLabel", {}, { text: "Surname" }), node("TextField", { "aria-label": "Surname" })],
+          }),
+        ],
+      }),
+  },
   FieldItem: {
     family: "Control",
     blurb: "One option in a group: a mark, its own name, its own line. The label inside names the mark beside it, not the group.",

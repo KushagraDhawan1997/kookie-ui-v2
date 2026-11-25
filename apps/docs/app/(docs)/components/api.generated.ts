@@ -2443,6 +2443,41 @@ export const API: Record<string, ApiEntry> = {
       }
     ]
   },
+  "FieldRow": {
+    "element": null,
+    "props": [
+      {
+        "name": "children",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "The fields to lay side by side, each a `Field`. They share the row's width equally."
+      },
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": "A class name for the row. For space around it, wrap it in a `Box` with `m`."
+      },
+      {
+        "name": "columns",
+        "type": "GridProps[\"columns\"]",
+        "optional": true,
+        "doc": "The columns, when equal ones are not what you want, as `Grid` takes them. By default the fields stack in one column on a narrow window and share one row from `sm` up."
+      },
+      {
+        "name": "size",
+        "type": "Size",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
+        "optional": true,
+        "doc": "The size step for every field in the row. A `size` set on a field itself wins."
+      }
+    ]
+  },
   "Flex": {
     "element": "div",
     "props": [

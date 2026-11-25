@@ -285,10 +285,10 @@
   --layout-space-12: var(--space-12);
 
   /* surface padding (§10) — picks into layout space, so density reaches cards through one lever */
-  --surface-p-1: var(--layout-space-5);
-  --surface-p-2: var(--layout-space-6);
-  --surface-p-3: var(--layout-space-7);
-  --surface-p-4: var(--layout-space-8);
+  --surface-p-1: var(--layout-space-6);
+  --surface-p-2: var(--layout-space-7);
+  --surface-p-3: var(--layout-space-8);
+  --surface-p-4: var(--layout-space-9);
 
   /* the menu popup (§22) — padding is a layout-space pick (re-declared per density scope,
      the surface-padding trap), the width floor rides --scale alone so it lives here only. */
@@ -4767,10 +4767,10 @@
   --layout-space-10: var(--space-10);
   --layout-space-11: var(--space-11);
   --layout-space-12: var(--space-12);
-  --surface-p-1: var(--layout-space-5);
-  --surface-p-2: var(--layout-space-6);
-  --surface-p-3: var(--layout-space-7);
-  --surface-p-4: var(--layout-space-8);
+  --surface-p-1: var(--layout-space-6);
+  --surface-p-2: var(--layout-space-7);
+  --surface-p-3: var(--layout-space-8);
+  --surface-p-4: var(--layout-space-9);
   --panel-p-1: var(--layout-space-3);
   --panel-p-2: var(--layout-space-4);
   --panel-p-3: var(--layout-space-5);
@@ -4822,10 +4822,10 @@
   --layout-space-10: var(--space-10);
   --layout-space-11: var(--space-11);
   --layout-space-12: var(--space-12);
-  --surface-p-1: var(--layout-space-5);
-  --surface-p-2: var(--layout-space-6);
-  --surface-p-3: var(--layout-space-7);
-  --surface-p-4: var(--layout-space-8);
+  --surface-p-1: var(--layout-space-6);
+  --surface-p-2: var(--layout-space-7);
+  --surface-p-3: var(--layout-space-8);
+  --surface-p-4: var(--layout-space-9);
   --panel-p-1: var(--layout-space-3);
   --panel-p-2: var(--layout-space-4);
   --panel-p-3: var(--layout-space-5);
@@ -4877,10 +4877,10 @@
   --layout-space-10: var(--space-10);
   --layout-space-11: var(--space-11);
   --layout-space-12: var(--space-12);
-  --surface-p-1: var(--layout-space-5);
-  --surface-p-2: var(--layout-space-6);
-  --surface-p-3: var(--layout-space-7);
-  --surface-p-4: var(--layout-space-8);
+  --surface-p-1: var(--layout-space-6);
+  --surface-p-2: var(--layout-space-7);
+  --surface-p-3: var(--layout-space-8);
+  --surface-p-4: var(--layout-space-9);
   --panel-p-1: var(--layout-space-3);
   --panel-p-2: var(--layout-space-4);
   --panel-p-3: var(--layout-space-5);

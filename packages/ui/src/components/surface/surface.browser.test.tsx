@@ -353,20 +353,34 @@ describe("a ground, not an object (§10, 2026-08-20)", () => {
     }
 
     it("never rounds the inner pane PAST its own corner", () => {
-      /* Compact pads less, so a size-4 ground's derived corner outgrows a size-1 card's own —
-         the one cell family where the `min()` binds. The guard asserts the fixture really is
-         that cell, since at default density no pairing reaches it. */
-      const theme = { density: "compact" } as const;
-      const root = mounted(
-        <Surface size="4">
-          <Card size="1" data-testid="held">Body</Card>
-        </Surface>,
-        { theme, select: ".kui-ground" },
-      );
-      const held = within(root, "[data-testid='held']");
-      const twin = mounted(<Card size="1">Body</Card>, { theme, select: ".kui-surface" });
-      expect(corner(root) - pad(root)).toBeGreaterThan(corner(twin));
-      expect(corner(held)).toBeCloseTo(corner(twin), 1);
+      /* The `min()` is asserted over EVERY pairing since 2026-11-26. It used to be pinned to one
+         cell, a compact size-4 ground holding a size-1 card, the only one where the derived
+         corner outgrew the card's own. Surface padding moved up one step that day, every derived
+         corner shrank by the same step, and no pairing binds the `min()` at these values. A law
+         with a single fixture that has stopped being special is a law that passes on a deleted
+         guard, so it now states the rule itself: the inner corner is the derived one or the
+         pane's own, whichever is smaller, and never below zero. */
+      const seen: number[] = [];
+      for (const density of ["compact", "default"] as const) {
+        for (const outer of ["1", "2", "3", "4"] as const) {
+          for (const inner of ["1", "2", "3", "4"] as const) {
+            const theme = density === "default" ? {} : ({ density } as const);
+            const root = mounted(
+              <Surface size={outer}>
+                <Card size={inner} data-testid="held">Body</Card>
+              </Surface>,
+              { theme, select: ".kui-ground" },
+            );
+            const held = within(root, "[data-testid='held']");
+            const twin = mounted(<Card size={inner}>Body</Card>, { theme, select: ".kui-surface" });
+            const derived = Math.max(corner(root) - pad(root), 0);
+            seen.push(derived);
+            expect(corner(held), `${density} ${outer} holding ${inner}`).toBeCloseTo(Math.min(derived, corner(twin)), 1);
+          }
+        }
+      }
+      // The grid is not degenerate: the derived corner really differs from cell to cell.
+      expect(new Set(seen.map((v) => v.toFixed(1))).size).toBeGreaterThan(2);
     });
 
     it("only a pane held by a Card or Surface derives — inside any other pane it keeps its own", () => {

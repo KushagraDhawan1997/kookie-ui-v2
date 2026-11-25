@@ -353,7 +353,7 @@ function Nesting() {
       {/* Where it lands: inside a Field, which states the index for the label, the description
           and the box at once. An explicit size on the control still wins — the last cell. */}
       <Demo label="Inside a Field — one index for the label, the description and the box">
-        <Grid columns="repeat(auto-fill, minmax(15rem, 1fr))" gapX="5" gapY="5" align="flex-start">
+        <Grid columns="repeat(auto-fill, minmax(15rem, 1fr))" gapX="9" gapY="5" align="flex-start">
           {SIZES.map((size) => (
             <Field key={size} size={size}>
               <FieldLabel>Seats</FieldLabel>

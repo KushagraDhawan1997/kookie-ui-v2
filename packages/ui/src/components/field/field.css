@@ -72,3 +72,51 @@
 .kui-field-item > label {
   justify-self: start;
 }
+
+/* ONE LEFT EDGE FOR THE WORDS (2026-11-26, Kushagra: "Because the field is circular, the label
+   and the FieldDescription etc align weirdly with the item inside text field"; and of iOS's
+   grouped lists, "the items with padding overflow outside natural alignment"). A text control pads
+   its value in from its own edge, more at a pill radius, so the label and the description sat
+   at the box's edge while the value started 15px in. The Field pulls its text control outward
+   by that same inset, on both sides, so the value starts on the label's line and the box
+   overflows the text column. The control itself owns no margin; the wrapper places it. */
+
+/* The same inset at the FIELD's size, for the one reader that is not the control: a row of
+   fields, which has to leave room for two of them (FieldRow, below). */
+.kui-field-size-1 {
+  --kui-field-inset: calc(var(--control-px-pill-1) + var(--border-width));
+}
+.kui-field-size-2 {
+  --kui-field-inset: calc(var(--control-px-pill-2) + var(--border-width));
+}
+.kui-field-size-3 {
+  --kui-field-inset: calc(var(--control-px-pill-3) + var(--border-width));
+}
+.kui-field-size-4 {
+  --kui-field-inset: calc(var(--control-px-pill-4) + var(--border-width));
+}
+
+/* Only a box that holds text at its leading edge: a text field, a select's trigger, a text
+   area. A segmented control, a slider or a switch is a control too, but it pads no text in from
+   its edge, and a number field centres its value between its two steppers, so for those there
+   is nothing to line up and they stay on the field's own edge.
+
+   THE INSET IS THE CONTROL'S OWN (`--kui-ct-px-pill`, declared on the control by its size), not
+   the field's. A control may state a size of its own inside a field of another, and the box
+   has to overflow by the padding IT has, or the value misses the label by the difference
+   (review 2026-11-26: a size 1 control in a size 4 field sat 8px left of its label). */
+.kui-field-group > .kui-field:not(.kui-number-field),
+.kui-field-group > .kui-textarea {
+  margin-inline: calc(-1 * (var(--kui-ct-px-pill) + var(--border-width)));
+}
+
+/* A ROW OF FIELDS (FieldRow). A Grid sets the columns; this sets the two distances. Between
+   columns, a gap that holds both overflows and then the distance one field keeps from the next
+   (`--layout-space-5`, the step a form puts between two fields), so that distance is what shows
+   between the boxes. Between rows, when the fields stack on a narrow window, that same step.
+   Tops align: one field may carry a description and its neighbour none. */
+.kui-field-row {
+  align-items: start;
+  column-gap: calc(2 * var(--kui-field-inset) + var(--layout-space-5));
+  row-gap: var(--layout-space-5);
+}

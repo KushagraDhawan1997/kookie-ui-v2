@@ -55,6 +55,7 @@ import {
   FieldDescription,
   FieldError,
   FieldItem,
+  FieldRow,
   FieldLabel,
   Flex,
   Attachment,
@@ -1833,6 +1834,18 @@ function FieldSection() {
                 gap around it. It read as one flat column at 4 — visible the moment a field
                 started ending in muted text rather than in a box. */}
             <Stack gap="5">
+              {/* Two fields side by side are a `FieldRow`: it owns the gap, because each field's
+                  box reaches outside the text column and a typed gap would let them collide. */}
+              <FieldRow>
+                <Field>
+                  <FieldLabel>First name</FieldLabel>
+                  <TextField />
+                </Field>
+                <Field>
+                  <FieldLabel>Surname</FieldLabel>
+                  <TextField />
+                </Field>
+              </FieldRow>
               <Field>
                 <FieldLabel>Email</FieldLabel>
                 <TextField type="email" placeholder="shruti@kookie.dev" />
@@ -1884,7 +1897,7 @@ function FieldSection() {
           it. The label's step is the control's own, by derivation rather than by a table. */}
       <Stack gap="4">
         <Text size="2" emphasis="medium">One index, the whole unit</Text>
-        <Flex gap="5" wrap="wrap" align="start">
+        <Flex gap="9" wrap="wrap" align="start">
           {(["1", "2", "3", "4"] as const).map((size) => (
             <Box key={size} width="14rem">
               <Field size={size}>

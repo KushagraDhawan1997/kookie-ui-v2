@@ -39,7 +39,8 @@ When Kushagra settles something new, add its line here in the same change.
   (§10)
 - Glass has one anatomy, locked. The app decides where glass goes; the default is solid. (§10)
 - Every surface pads at its own size: a card, a shell pane and a dialog of size 2 all use
-  padding step 2. A dialog does not pad one size up.
+  padding step 2. A dialog does not pad one size up. The steps are 24, 32, 40 and 48px for
+  sizes 1 to 4 (they were 16, 24, 32, 40 until 2026-11-26).
 - A scroll edge fades on a curve, not evenly: content stays faint for most of the fade and
   comes back near the end. One value sets it for every fade (`--scrollbar-fade-curve`, 0.8).
 - A toolbar inside a glass dialog, sheet or popover has real glass buttons, with no prop: Close,
@@ -103,6 +104,13 @@ When Kushagra settles something new, add its line here in the same change.
   positioning, a typed fade or an observer.
 - A new Navigator screen opens at the top. The title does not slide between screens.
 - The scroll fade stays at 0.8 even where text shows faintly behind a row's title.
+- In a Field, the label, the value inside the text field, the description and the error share
+  one left edge. The text field's box sticks out past that edge on both sides, by its own
+  inner padding. Don't inset the label instead, and don't add padding to line things up.
+- Two or more fields side by side go in a `FieldRow`. It sets the space between them. Never lay
+  fields out in a `Grid` or `Flex` with a gap of your own: their boxes will collide.
+- A dialog, sheet or popover whose content scrolls can end with a toolbar for its action. That
+  toolbar floats over the content like the top one. Give the scroll area `fade`.
 - A Notice has two distances, never one gap for everything: its icon and words are one group,
   its action and X are another. Inside a group the gap is small (8px by default); between the
   groups it is two steps bigger (16px). Both follow the notice's size.

@@ -321,7 +321,7 @@ export default function Example() {
         <Box mb="4">
           <DialogDescription>Twelve changes shipped this month.</DialogDescription>
         </Box>
-        <ScrollArea>
+        <ScrollArea fade>
           <Stack gap="3">
             {CHANGES.map((change) => (
               <Text key={change}>{change}</Text>

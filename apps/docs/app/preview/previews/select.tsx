@@ -292,7 +292,7 @@ function States() {
           it. Read the trigger's boundary against the live one beside it, and check that the
           chevron and the value do not change with it: an invalid select is still a select. */}
       <Demo label="Invalid, inside the unit that announces it — only the boundary moves">
-        <Flex gap="5" align="flex-start" wrap="wrap">
+        <Flex gap="9" align="flex-start" wrap="wrap">
           <Box width="16rem">
             <Field>
               <FieldLabel>Region</FieldLabel>
@@ -524,7 +524,7 @@ function Nesting() {
           context (§28), so nothing states it twice. Read the label's step against the trigger's
           value: they are the same step by derivation, not by a table. */}
       <Demo label="Inside a field — one index prices the label, the description and the control">
-        <Flex gap="5" align="flex-start" wrap="wrap">
+        <Flex gap="9" align="flex-start" wrap="wrap">
           {SIZES.map((size) => (
             <Box key={size} width="15rem">
               <Field size={size as Size}>
@@ -623,7 +623,7 @@ function Nesting() {
               </Text>
             </Stack>
           </Card>
-          <Flex gap="3" align="flex-end" wrap="wrap">
+          <Flex gap="8" align="flex-end" wrap="wrap">
             <Box width="14rem">
               <Field>
                 <FieldLabel>Continent</FieldLabel>

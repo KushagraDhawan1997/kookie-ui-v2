@@ -359,3 +359,16 @@ One option in a group of checkboxes or radios. It holds the control, its own lab
 | Prop | Type | What it does |
 | --- | --- | --- |
 | `className?` | `string` | Your classes, appended to the ones this component resolves rather than replacing them. |
+
+### Putting fields side by side
+
+#### FieldRow
+
+Two or more fields side by side, in equal columns. It sets the space between them, so don't lay fields out in a grid of your own
+
+| Prop | Type | What it does |
+| --- | --- | --- |
+| `children?` | `React.ReactNode` | The fields to lay side by side, each a `Field`. |
+| `className?` | `string` | Your classes, appended to the ones this component resolves rather than replacing them. |
+| `columns?` | `GridProps["columns"]` | The columns, when equal ones are not what you want, as `Grid` takes them. |
+| `size?` | `"1" \| "2" \| "3" \| "4"` | The size step for every field in the row. |

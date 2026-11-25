@@ -549,7 +549,7 @@ function Nesting() {
           box. An explicit `size` on the control still wins, which is what makes a size context
           safe to have at all; the last cell is that rail. */}
       <Demo label="Inside a Field — one index for the label, the description and the box">
-        <Grid columns="repeat(4, minmax(0, 1fr))" gapX="5" gapY="5" align="flex-start">
+        <Grid columns="repeat(4, minmax(0, 1fr))" gapX="9" gapY="5" align="flex-start">
           {SIZES.map((size) => (
             <Field key={size} size={size}>
               <FieldLabel>Workspace name</FieldLabel>

@@ -15,6 +15,7 @@ import { Card } from "../components/card/card.tsx";
 import { Dialog, DialogClose, DialogContent, DialogTitle } from "../components/dialog/dialog.tsx";
 import { Popover, PopoverClose, PopoverContent, PopoverTitle, PopoverTrigger } from "../components/popover/popover.tsx";
 import { SegmentedControl, SegmentedItem } from "../components/segmented-control/segmented-control.tsx";
+import { ScrollArea } from "../components/scroll-area/scroll-area.tsx";
 import { Sheet, SheetClose, SheetContent, SheetTitle } from "../components/sheet/sheet.tsx";
 import { Toolbar, ToolbarButton, ToolbarGroup, ToolbarTitle } from "../components/toolbar/toolbar.tsx";
 
@@ -151,5 +152,58 @@ describe("a panel places its last toolbar as it places its first (2026-11-25)", 
     const section = probe.getBoundingClientRect().width;
     probe.remove();
     expect(action.top - words.bottom).toBeCloseTo(section, 0);
+  });
+});
+
+/**
+ * THE BAND AT THE FOOT FLOATS OVER A SCROLLER (2026-11-26, Kushagra, of a long form fading above
+ * an empty strip over its action: "Fade looks weird in the bottom side"). The mirror of the top
+ * band: a Toolbar written last, straight after a ScrollArea, takes no room, so the content passes
+ * behind the action and ends a section above it.
+ */
+describe("a toolbar written last after a scroller floats over it (2026-11-26)", () => {
+  it("the scroller reaches the panel's foot, the action stays put, and the content ends a section above it", async () => {
+    mounted(
+      <Dialog defaultOpen>
+        <DialogContent style={{ maxBlockSize: "400px" }}>
+          <Toolbar>
+            <ToolbarTitle render={<DialogTitle />}>Edit profile</ToolbarTitle>
+            <DialogClose render={<ToolbarButton iconOnly aria-label="Close">x</ToolbarButton>} />
+          </Toolbar>
+          <ScrollArea fade>
+            <div style={{ blockSize: "900px" }} />
+            <p data-last style={{ margin: 0 }}>The last line.</p>
+          </ScrollArea>
+          <Toolbar aria-label="Actions">
+            <span style={{ marginInlineStart: "auto" }}>
+              <ToolbarButton emphasis="loud" data-foot>Save</ToolbarButton>
+            </span>
+          </Toolbar>
+        </DialogContent>
+      </Dialog>,
+      { theme: {} },
+    );
+    expect(await until(() => document.querySelector(".kui-dialog-popup [data-foot]") !== null)).toBe(true);
+    const panel = document.querySelector<HTMLElement>(".kui-dialog-popup")!;
+    const scroller = panel.querySelector<HTMLElement>(".kui-scroll-area[data-fade] > .kui-scroll-viewport")!;
+    const action = () => panel.querySelector("[data-foot]")!.getBoundingClientRect();
+    const box = () => panel.getBoundingClientRect();
+    // The scroller runs under the action to the panel's foot, less the panel's own edge.
+    expect(box().bottom - scroller.getBoundingClientRect().bottom).toBeLessThan(2);
+    expect(scroller.getBoundingClientRect().bottom).toBeGreaterThan(action().bottom);
+    // The action is where a foot band always is.
+    const close = panel.querySelector('[aria-label="Close"]')!.getBoundingClientRect();
+    expect(box().bottom - action().bottom).toBeCloseTo(close.top - box().top, 0);
+    const before = action().top - box().top;
+    scroller.scrollTop = scroller.scrollHeight;
+    expect(await until(() => scroller.scrollTop > 0)).toBe(true);
+    expect(action().top - box().top).toBeCloseTo(before, 0);
+    // Scrolled to the end, the last line stands a section above the action, not behind it.
+    const probe = document.createElement("div");
+    probe.style.inlineSize = "var(--layout-space-6)";
+    panel.append(probe);
+    const section = probe.getBoundingClientRect().width;
+    probe.remove();
+    expect(action().top - panel.querySelector("[data-last]")!.getBoundingClientRect().bottom).toBeCloseTo(section, 0);
   });
 });

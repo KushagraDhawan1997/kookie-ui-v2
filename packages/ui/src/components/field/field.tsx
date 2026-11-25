@@ -3,6 +3,7 @@
 import type { ComponentRefusals } from "../../system/refused.ts";
 import { Field as BaseField } from "@base-ui/react/field";
 import * as React from "react";
+import { Grid, type GridProps } from "../grid/grid.tsx";
 
 import type { Size } from "../../system/axes.ts";
 import { SizeScopeContext, useSize } from "../../system/size.ts";
@@ -110,7 +111,9 @@ export function Field({ size: sizeProp, className, children, ...props }: FieldPr
       <FieldTypeContext.Provider value={size}>
         <BaseField.Root
           {...props}
-          className={className ? `kui-field-group ${className}` : "kui-field-group"}
+          // The size as a class, so the control can overflow by the inset it gives its own text
+          // at this size (field.css). A class and not `data-size`: the field is not a control.
+          className={`kui-field-group kui-field-size-${size}${className ? ` ${className}` : ""}`}
         >
           {children}
         </BaseField.Root>
@@ -118,6 +121,51 @@ export function Field({ size: sizeProp, className, children, ...props }: FieldPr
     </SizeScopeContext.Provider>
   );
 }
+
+/** The props of a `FieldRow`: the fields it lays side by side, and an optional size for them. */
+export type FieldRowProps = ComponentRefusals & {
+  /** The fields to lay side by side, each a `Field`. They share the row's width equally. */
+  children?: React.ReactNode;
+  /** The size step for every field in the row. A `size` set on a field itself wins. */
+  size?: Size;
+  /**
+   * The columns, when equal ones are not what you want, as `Grid` takes them. By default the
+   * fields stack in one column on a narrow window and share one row from `sm` up.
+   */
+  columns?: GridProps["columns"];
+  /** A class name for the row. For space around it, wrap it in a `Box` with `m`. */
+  className?: string;
+};
+
+/**
+ * Fields side by side (2026-11-26, Kushagra, of two overflowing fields colliding in a grid: "I
+ * think larger gap", then "Works, do it").
+ *
+ * A Field's text control overflows the text column by the inset it gives its own text, so the
+ * value starts on the label's line (field.css). Two such fields in a caller's grid collide: a
+ * 16px gap cannot hold two 15px overflows. The row owns the gap instead, the two overflows
+ * plus the distance fields keep from each other, so the space SEEN between two boxes is always
+ * that one step and nobody types a number.
+ *
+ * It is a `Grid` underneath, so the columns answer the window the way any grid's do: one column
+ * on a narrow window, where a pair of fields would each be too short to type in, and one row
+ * from `sm` up. Stacked, the fields keep the distance a form puts between two fields.
+ */
+export function FieldRow({ size: sizeProp, columns, className, children }: FieldRowProps) {
+  const size = useSize(sizeProp);
+  const count = React.Children.count(children);
+  return (
+    <SizeScopeContext.Provider value={size}>
+      <Grid
+        className={`kui-field-row kui-field-size-${size}${className ? ` ${className}` : ""}`}
+        columns={columns ?? { initial: "minmax(0, 1fr)", sm: `repeat(${count}, minmax(0, 1fr))` }}
+      >
+        {children}
+      </Grid>
+    </SizeScopeContext.Provider>
+  );
+}
+
 
 /**
  * One option inside a group (§28) — a mark, its own name, and its own line of explanation.

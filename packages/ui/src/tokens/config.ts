@@ -1302,7 +1302,8 @@ export const layoutSpace = {
  * §10, §12 — surface padding as picks into LAYOUT SPACE (semantic reference, never a raw
  * px). Density reaches a card exclusively through the layout-space layer — this family
  * carries no per-level sets of its own (the 2026-08-04 morning mechanism, superseded the
- * same day when the layer arrived: one lever, not two). At default: 16 / 24 / 32 / 40.
+ * same day when the layer arrived: one lever, not two). At default: 24 / 32 / 40 / 48 (16 / 24 /
+ * 32 / 40 until 2026-11-26; see the note on the value below).
  *
  * SHIFTED UP ONE PICK 2026-09-07 (Kushagra: "I like what Surface subscribes to"), the same day
  * the ground's +1 join was deleted. Those two moves are one decision: a ground used to read
@@ -1314,7 +1315,13 @@ export const layoutSpace = {
  * The top rung is a real 40 rather than the 32 the old arrangement produced: the ground
  * saturated at 4 only because a +1 ran off the end of the ladder, which is an artifact and not
  * a design. */
-export const surfacePadding = [5, 6, 7, 8] as const;
+/* ONE STEP UP SINCE 2026-11-26 (Kushagra, of a field that overflows its text column by the
+   inset it gives its own text: "It works but only when padding is one scale up", then yes to
+   every surface, so they still match). Was 5, 6, 7, 8 (16, 24, 32, 40px). A pill field reaches
+   15px outside the text column at the default size, and 24px of padding left it 10px from the
+   pane's edge. Every surface still pads at its OWN size (2026-11-25); the steps themselves
+   moved, so a card, a pane and a dialog of one size agree as before. */
+export const surfacePadding = [6, 7, 8, 9] as const;
 
 /**
  * §10, §22, §23 — the PANEL band: the interior padding of a surface SMALLER than a card, as
