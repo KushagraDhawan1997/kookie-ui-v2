@@ -2547,13 +2547,24 @@
   margin-block-end: var(--layout-space-6);
 }
 
-/* Unless the content opens with the description. The description belongs to the title, so it
-   sits a group's distance under the band, not a section's (2026-11-23, Kushagra: the title and
-   its description must be close). The same pairing AlertDialog gives its title and text. */
+/* Unless the content opens with the description or the title. The description belongs to the
+   title, so it sits a group's distance under the band, not a section's (2026-11-23, Kushagra:
+   the title and its description must be close). The same pairing AlertDialog gives its title
+   and text. A title written UNDER the band, where the band holds only Close and tools, belongs
+   to that band the same way (2026-11-25, Kushagra: "ship the space 2 spacing as part of
+   dialog"). */
 :is(.kui-dialog-body, .kui-sheet-body) > .kui-toolbar:first-child:has(
     + .kui-dialog-description,
-    + * > .kui-dialog-description:first-child
+    + * > .kui-dialog-description:first-child,
+    + .kui-dialog-title,
+    + * > .kui-dialog-title:first-child
   ) {
+  margin-block-end: var(--layout-space-2);
+}
+
+/* And a description written straight after that title sits the same distance under it. Direct
+   children of the body only: inside a Stack the Stack's own gap already says it. */
+.kui-dialog-body > .kui-dialog-title:has(+ .kui-dialog-description) {
   margin-block-end: var(--layout-space-2);
 }
 

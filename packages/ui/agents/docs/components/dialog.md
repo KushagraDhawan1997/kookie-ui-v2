@@ -25,6 +25,8 @@ The panel looks like a `Card` with a slightly rounder corner, and the page behin
 
 Write the layout inside the panel yourself with `Stack` and `Flex`. `size` sets the panel's maximum width, padding and corner, and the text size of `DialogTitle` and `DialogDescription`. Any other text you add keeps its own size. There is no close button in the corner, so put a `DialogClose` button where your layout needs one.
 
+Put the title in the panel's `Toolbar` beside Close, or write the `DialogTitle` as the next row under a `Toolbar` that holds only Close. Under the toolbar, the dialog places the title one small step below it and a `DialogDescription` one small step below the title, so you add no space between them.
+
 The panel grows with its content. To limit its height, set `maxHeight` in the `style` of `DialogContent` and put a `ScrollArea` inside, so the long content scrolls while the title and the buttons stay in view.
 
 Open a dialog with `DialogTrigger`, or control it with `open` and `onOpenChange`. `onOpenChange` receives the reason for closing, such as `escape-key` or `outside-press`, and you can call `cancel()` to keep the dialog open, for example while a person has unsaved text.

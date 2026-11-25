@@ -115,6 +115,9 @@ rule of thumb that it overrules. If one looks wrong for your case, say so and as
   first.
 - A dialog's description sits right under the title band, close enough to read as the title's
   line.
+- A dialog's title may be written under its toolbar, where the toolbar holds only Close and
+  tools. The dialog then puts the title one small step under the toolbar and a description one
+  small step under the title. There is no prop for either gap; don't add space by hand.
 - A large title under a row of navigation and tools follows `Page`: the row stays in place,
   the title sits below it, and when the title scrolls up behind the row a `ToolbarTitle` in the
   row shows the same words. Check `Page` before asking how a title and its row behave.

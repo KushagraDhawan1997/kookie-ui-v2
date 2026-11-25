@@ -378,7 +378,12 @@ export type DialogTitleProps = ComponentRefusals & Omit<
 export function DialogTitle({ children, ...props }: DialogTitleProps) {
   const size = React.use(DialogSizeContext);
   return (
-    <BaseDialog.Title render={<Heading size={OWNED_TITLE_STEP[size]} />} {...props}>
+    // The class is what the panel's spacing reads (surfaces.css): a title under the band, and a
+    // description under a title, each sit a group's distance apart.
+    <BaseDialog.Title
+      render={<Heading className="kui-dialog-title" size={OWNED_TITLE_STEP[size]} />}
+      {...props}
+    >
       {children}
     </BaseDialog.Title>
   );

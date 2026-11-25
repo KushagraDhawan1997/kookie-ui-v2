@@ -8,6 +8,14 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-11-25 A dialog's title may sit under its band, a group away
+
+A dialog's title has lived IN the band, beside Close (RULES.md 2). Trialled on a scratch page across eight dialogs, Kushagra preferred the iOS sheet's shape for a dialog whose content is read: the band holds only Close and tools, and the title is the next row. Written that way with today's parts, the band gave the title a section's distance, as it does any content. The band now gives a title beneath it a group's distance (`--layout-space-2`), and a description straight after that title the same distance, so band, title and description read as one block. Both spellings are answered: the title as the band's sibling, or as the first child of the layout that follows.
+
+This adds a second legal place for the title; it does not move the first. A title in the band is unchanged, and RULES.md 2 still describes it. Whether the title moves out of the band for every dialog, whether a scrolled title collapses into the band as `Page`'s does, and whether band controls inside a glass panel are themselves glass, are open and were not decided here.
+
+**Rejected: a gap prop.** The panel places its own parts (2026-11-03); a number at the call site is the free index the rule exists to prevent.
+
 ## 2026-11-25 Overlays pad at their own size
 
 A dialog, alert dialog and sheet padded one size up from 2026-08-17 (Kushagra then: "dialog seems to have less padding than it should"), on the argument that an overlay wears a bigger corner and a bigger curve wants a bigger inset. Kushagra asked what controls the dialog's padding, saw that a size 2 dialog wore step 3 while a size 2 card and a size 2 shell pane wore step 2, and reversed it: "it has to be uniform". Measured on the docs site, both shell panes were already at their own step, so the overlay family was the only one out of line. One rule changed (the overlay size join in `surfaces.css`); the corner still comes from the overlay band. Three laws pinned one size up and were rewritten to the new rule.

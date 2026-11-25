@@ -852,6 +852,62 @@ describe("what the call site can say to a dialog", () => {
     expect(computed(other, "margin-bottom")).toBe(tokenOn(other, "--layout-space-6"));
   });
 
+  it("a title written under the band sits a GROUP under it, and its description a group under that (2026-11-25)", () => {
+    // The band holds only Close; the title is the next row. It belongs to that band, so the band
+    // gives a group's distance, in both spellings: the title as the band's sibling, and as the
+    // first child of the layout that follows. A description straight after the title, as a
+    // direct child of the body, sits the same distance under it.
+    const mount = (body: React.ReactNode) => {
+      render(
+        <Theme>
+          <Dialog defaultOpen>
+            <DialogContent>
+              <Toolbar>
+                <DialogClose render={<ToolbarButton iconOnly aria-label="Close">x</ToolbarButton>} />
+              </Toolbar>
+              {body}
+            </DialogContent>
+          </Dialog>
+        </Theme>,
+      );
+      const popups = document.querySelectorAll<HTMLElement>(".kui-dialog-popup");
+      const popup = popups[popups.length - 1];
+      const bar = popup?.querySelector<HTMLElement>(".kui-toolbar");
+      if (!popup || !bar) throw new Error("the band never mounted");
+      return { popup, bar };
+    };
+
+    const sibling = mount(
+      <>
+        <DialogTitle>Updated terms</DialogTitle>
+        <DialogDescription>What changed on 1 December.</DialogDescription>
+      </>,
+    );
+    const group = tokenOn(sibling.bar, "--layout-space-2");
+    expect(computed(sibling.bar, "margin-bottom")).toBe(group);
+    const title = sibling.popup.querySelector<HTMLElement>(".kui-dialog-title");
+    const description = sibling.popup.querySelector<HTMLElement>(".kui-dialog-description");
+    if (!title || !description) throw new Error("the title or the description never mounted");
+    expect(computed(title, "margin-bottom")).toBe(group);
+    // And the eye agrees with the stylesheet: the three boxes really are that far apart.
+    const px = parseFloat(group);
+    expect(title.getBoundingClientRect().top - sibling.bar.getBoundingClientRect().bottom).toBeCloseTo(px, 0);
+    expect(description.getBoundingClientRect().top - title.getBoundingClientRect().bottom).toBeCloseTo(px, 0);
+
+    const nested = mount(
+      <Box>
+        <DialogTitle>Updated terms</DialogTitle>
+      </Box>,
+    );
+    expect(computed(nested.bar, "margin-bottom")).toBe(group);
+
+    // A title with no description after it adds nothing under itself.
+    const alone = mount(<DialogTitle>Updated terms</DialogTitle>);
+    const lone = alone.popup.querySelector<HTMLElement>(".kui-dialog-title");
+    if (!lone) throw new Error("the title never mounted");
+    expect(parseFloat(computed(lone, "margin-bottom"))).toBe(0);
+  });
+
   it("says WHY it is closing, and a dialog may refuse", async () => {
     // Without this a dialog is told that it closed and never why, so the guard every form
     // dialog owes — "you have unsaved changes" — could not be written (measured 2026-08-21).
