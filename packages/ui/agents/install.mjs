@@ -13,7 +13,14 @@
  * an instruction file is the most consequential file in a repo to modify without being asked,
  * because everything the author's agent does afterwards is downstream of it. So the default
  * run PRINTS the plan and changes nothing, and `--write` executes exactly the plan that was
- * printed. There is no third behaviour and no flag that widens the plan.
+ * printed.
+ *
+ * THE LINTER AND THE HOOK (Kushagra, 2026-11-26; SETTLED "The linter"). The same run also
+ * plans two more things, under the same consent. It adds the linter to an ESLint flat config
+ * the repo already has, and where it cannot edit that file safely it prints the two lines and
+ * edits nothing. And it offers a Claude Code hook that runs the linter each time the agent
+ * tries to finish. The hook is never part of the plan unless `--hook` asks for it, because a
+ * hook changes how the author's agent behaves on every task, not only on Kookie code.
  *
  * WHY A DELIMITED BLOCK RATHER THAN A FILE. A consumer's `CLAUDE.md` is theirs and already has
  * words in it. The block carries markers, so a second run REPLACES what the first run wrote
@@ -23,7 +30,7 @@
  * No dependencies, and Node builtins only: this runs through `npx` in a repo that has not
  * installed anything yet.
  */
-import { existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -118,6 +125,174 @@ export const consumerRules = () => rulesText().replace(/^<!--[\s\S]*?-->\s*/, ""
 const MDC_FRONTMATTER =
   "---\ndescription: Kookie UI API rules — axes, refusals and where spacing lives.\nalwaysApply: true\n---\n\n";
 
+
+/** The specifier the linter is imported from, and the two lines a flat config needs. */
+export const LINT_SPECIFIER = "@kushagradhawan/kookie-ui-react/eslint-plugin";
+export const LINT_IMPORT = `import kookie from "${LINT_SPECIFIER}";`;
+export const LINT_ENTRY = "...kookie.configs.recommended";
+
+/** The flat config files this command can edit. A `.cjs` config has no `import`, so it is only told. */
+export const ESLINT_CONFIGS = ["eslint.config.js", "eslint.config.mjs", "eslint.config.ts", "eslint.config.mts"];
+
+/**
+ * The index of the bracket that closes the one at `open`, or -1.
+ *
+ * It steps over strings, template literals and comments, because a `]` inside a glob such as
+ * `"app/[id]/page.tsx"` closes nothing. A template literal with a `${}` in it is not followed:
+ * this returns -1 and the caller prints the lines instead of guessing.
+ */
+export function closingBracket(source, open) {
+  const pairs = { "[": "]", "(": ")", "{": "}" };
+  const stack = [];
+  for (let i = open; i < source.length; i += 1) {
+    const char = source[i];
+    const next = source[i + 1];
+    if (char === "/" && next === "/") {
+      i = source.indexOf("\n", i);
+      if (i === -1) return -1;
+      continue;
+    }
+    if (char === "/" && next === "*") {
+      i = source.indexOf("*/", i + 2);
+      if (i === -1) return -1;
+      i += 1;
+      continue;
+    }
+    if (char === '"' || char === "'" || char === "`") {
+      let j = i + 1;
+      for (; j < source.length && source[j] !== char; j += 1) {
+        if (source[j] === "\\") j += 1;
+        else if (char === "`" && source[j] === "$" && source[j + 1] === "{") return -1;
+      }
+      i = j;
+      continue;
+    }
+    if (pairs[char]) stack.push(pairs[char]);
+    else if (char === "]" || char === ")" || char === "}") {
+      if (stack.pop() !== char) return -1;
+      if (stack.length === 0) return i;
+    }
+  }
+  return -1;
+}
+
+/**
+ * A flat config with the linter added, or null when this cannot be done safely.
+ *
+ * SAFE means one shape only: `export default` followed by an array or by one call
+ * (`defineConfig(…)`, `tseslint.config(…)`), with brackets this can match. The entry goes LAST,
+ * after the repo's own parser entry, which is where the plugin has to sit because it brings no
+ * parser. Anything else — a config built in a variable, a `module.exports`, a name `kookie`
+ * already in use — returns null, and the command prints the two lines for a person to place.
+ * A config that already imports the linter comes back unchanged.
+ */
+export function addLinter(source) {
+  if (source.includes(LINT_SPECIFIER)) return source;
+  if (/\bkookie\b/.test(source)) return null;
+  const head = /export\s+default\s+(?:[A-Za-z_$][\w$.]*\s*)?([[(])/.exec(source);
+  if (!head) return null;
+  const open = head.index + head[0].length - 1;
+  const close = closingBracket(source, open);
+  if (close === -1) return null;
+
+  const inner = source.slice(open + 1, close);
+  const body = inner.replace(/\s+$/, "");
+  const comma = body.trim() === "" || body.endsWith(",") ? "" : ",";
+  const entry = inner.includes("\n")
+    ? `${body}${comma}\n  ${LINT_ENTRY},\n`
+    : `${body}${comma}${body.trim() === "" ? "" : " "}${LINT_ENTRY}`;
+  const withEntry = `${source.slice(0, open + 1)}${entry}${source.slice(close)}`;
+
+  // After the last import, so the file keeps its imports together.
+  const imports = [...withEntry.matchAll(/^import\b[\s\S]*?from\s+["'][^"']+["'];?[ \t]*$/gm)];
+  const last = imports.at(-1);
+  if (!last) return `${LINT_IMPORT}\n\n${withEntry}`;
+  const at = last.index + last[0].length;
+  return `${withEntry.slice(0, at)}\n${LINT_IMPORT}${withEntry.slice(at)}`;
+}
+
+/** Where the hook lives in the consumer's repo. */
+export const HOOK_FILE = ".claude/hooks/kookie-lint.mjs";
+export const SETTINGS_FILE = ".claude/settings.json";
+export const HOOK_COMMAND = `node "$CLAUDE_PROJECT_DIR/${HOOK_FILE}"`;
+
+/**
+ * The hook itself: a script Claude Code runs each time the agent tries to finish.
+ *
+ * It lints the files the agent changed, with the repo's own linter and config. Exit code 2
+ * is Claude Code's "do not stop, and read this": the reports go back to the agent, which
+ * fixes them. Warnings count, because an agent treats a warning as optional — this is the
+ * strict set's reason, applied without a second config. `stop_hook_active` is the loop
+ * guard: when the agent is already continuing because of this hook, the hook lets it stop,
+ * so a report the agent cannot fix never holds it forever.
+ */
+export const HOOK_SCRIPT = `#!/usr/bin/env node
+// Written by \`npx @kushagradhawan/kookie-ui-react init --hook\`. Runs the linter when Claude Code
+// tries to finish, and sends the reports back to it. Delete this file and its entry in
+// .claude/settings.json to remove the hook.
+import { spawnSync } from "node:child_process";
+import { existsSync, readFileSync } from "node:fs";
+import path from "node:path";
+
+let input = {};
+try {
+  input = JSON.parse(readFileSync(0, "utf8") || "{}");
+} catch {}
+// The agent is already continuing because of this hook. Let it stop.
+if (input.stop_hook_active) process.exit(0);
+
+const root = process.env.CLAUDE_PROJECT_DIR || process.cwd();
+const git = (...args) => spawnSync("git", args, { cwd: root, encoding: "utf8" }).stdout || "";
+const changed = [
+  ...git("diff", "--name-only", "HEAD").split("\\n"),
+  ...git("ls-files", "--others", "--exclude-standard").split("\\n"),
+].filter((file) => /\\.[cm]?[jt]sx?$/.test(file) && existsSync(path.join(root, file)));
+if (changed.length === 0) process.exit(0);
+
+const bin = (name) => path.join(root, "node_modules", ".bin", name);
+const linter = existsSync(bin("eslint"))
+  ? [bin("eslint"), "--max-warnings", "0", "--no-warn-ignored"]
+  : existsSync(bin("oxlint"))
+    ? [bin("oxlint"), "--deny-warnings"]
+    : null;
+if (!linter) process.exit(0);
+
+const run = spawnSync(linter[0], [...linter.slice(1), ...new Set(changed)], { cwd: root, encoding: "utf8" });
+if (run.status === 0 || run.status === null) process.exit(0);
+process.stderr.write(
+  "The linter reports problems in the files you changed. Fix them before you finish. " +
+    "Each Kookie UI report says what to use instead and links the page.\\n\\n" +
+    (run.stdout || "") + (run.stderr || ""),
+);
+process.exit(2);
+`;
+
+/**
+ * The settings file with the hook's entry added, or null when the file is not JSON this can
+ * read. Everything else in the file is kept, and a second run adds nothing.
+ */
+export function addHook(existing) {
+  let settings = {};
+  if (existing.trim()) {
+    try {
+      settings = JSON.parse(existing);
+    } catch {
+      return null;
+    }
+    if (settings === null || typeof settings !== "object" || Array.isArray(settings)) return null;
+  }
+  const hooks = settings.hooks ?? {};
+  if (typeof hooks !== "object" || Array.isArray(hooks)) return null;
+  const stop = hooks.Stop ?? [];
+  if (!Array.isArray(stop)) return null;
+  if (JSON.stringify(stop).includes(HOOK_FILE)) return existing;
+  const next = {
+    ...settings,
+    hooks: { ...hooks, Stop: [...stop, { hooks: [{ type: "command", command: HOOK_COMMAND }] }] },
+  };
+  return `${JSON.stringify(next, null, 2)}\n`;
+}
+
 function run(argv, cwd, out) {
   const write = argv.includes("--write");
   const dirFlag = argv.indexOf("--dir");
@@ -154,6 +329,51 @@ function run(argv, cwd, out) {
     writeFileSync(target, after);
     out(`  ${step.action === "create" ? "created" : "updated"}   ${step.file}`);
   }
+  // The linter. An ESLint flat config the repo already has gets the entry; nothing is created,
+  // because a repo with no ESLint config has not chosen ESLint.
+  const config = ESLINT_CONFIGS.find((file) => existsSync(path.join(root, file)));
+  const lines = [`    ${LINT_IMPORT}`, `    ${LINT_ENTRY},   // last in the exported array`];
+  if (!config) {
+    out("  the linter: no ESLint flat config here. When you add one, it needs these two lines:");
+    for (const line of lines) out(line);
+  } else {
+    const before = readFileSync(path.join(root, config), "utf8");
+    const after = addLinter(before);
+    if (after === before) out(`  unchanged  ${config} (the linter is already there)`);
+    else if (after === null) {
+      out(`  the linter: ${config} has a shape this command will not edit. Add these two lines:`);
+      for (const line of lines) out(line);
+    } else if (!write) out(`  would add the Kookie UI linter to ${config}`);
+    else {
+      writeFileSync(path.join(root, config), after);
+      out(`  updated   ${config} (added the Kookie UI linter)`);
+    }
+  }
+
+  // The hook, only when asked for by name.
+  if (!argv.includes("--hook")) {
+    out("  the Claude Code hook: not added. Pass --hook to run the linter each time Claude Code finishes.");
+  } else {
+    const settingsPath = path.join(root, SETTINGS_FILE);
+    const before = existsSync(settingsPath) ? readFileSync(settingsPath, "utf8") : "";
+    const after = addHook(before);
+    if (after === null) {
+      out(`  the Claude Code hook: ${SETTINGS_FILE} is not JSON this command can read. Nothing was changed.`);
+    } else if (!write) {
+      out(`  would write ${HOOK_FILE}`);
+      if (after !== before) out(`  would add a Stop hook to ${SETTINGS_FILE}`);
+    } else {
+      mkdirSync(path.dirname(path.join(root, HOOK_FILE)), { recursive: true });
+      writeFileSync(path.join(root, HOOK_FILE), HOOK_SCRIPT);
+      chmodSync(path.join(root, HOOK_FILE), 0o755);
+      out(`  wrote     ${HOOK_FILE}`);
+      if (after !== before) {
+        writeFileSync(settingsPath, after);
+        out(`  updated   ${SETTINGS_FILE} (added a Stop hook)`);
+      } else out(`  unchanged  ${SETTINGS_FILE}`);
+    }
+  }
+
   if (!write) {
     out("");
     out("Nothing was written. Run the same command with --write to apply exactly this plan.");
@@ -181,7 +401,7 @@ const invokedDirectly =
 if (invokedDirectly) {
   const argv = process.argv.slice(2);
   if (argv[0] !== "init") {
-    console.error("Usage: npx @kushagradhawan/kookie-ui-react init [--write] [--dir <path>]");
+    console.error("Usage: npx @kushagradhawan/kookie-ui-react init [--write] [--hook] [--dir <path>]");
     process.exit(1);
   }
   run(argv, process.cwd(), (line) => console.log(line));

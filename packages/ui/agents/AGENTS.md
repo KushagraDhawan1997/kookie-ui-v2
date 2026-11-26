@@ -29,6 +29,13 @@ Open the page for your task by its path before you write code. File search skips
 Every other page is in the same folder. A link to `/patterns/forms` inside a page is the
 file `patterns/forms.md`.
 
+## Before you say you are done
+
+Run the project's linter on the files you changed, and fix every Kookie UI report
+(`kookie/…`). Each report says what to use instead and links the page. Don't turn a rule
+off to get past it. If a report is wrong for your case, keep the code, add
+`// eslint-disable-next-line <rule> -- <the reason>` above it, and say so in your answer.
+
 ## Settled decisions
 
 Treat each line as decided. Don't argue against it, add a caveat to it, or apply a general
