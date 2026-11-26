@@ -14,6 +14,7 @@ import { Linter, RuleTester } from "eslint";
 import tseslint from "typescript-eslint";
 import { describe, expect, it } from "vitest";
 
+import { noEscapeAbuse } from "./no-escape-abuse.ts";
 import { noDialogCancel, preferFieldRow, preferToolbar, preferToolbarTitle } from "./composition.ts";
 import { DOCS_ORIGIN, DOCS_PAGES } from "./docs.ts";
 import plugin, { NAMESPACE, recommended, rules, strict } from "./index.ts";
@@ -300,6 +301,73 @@ describe("prefer-toolbar-title — a title in a row is the row's own (RULES 2)",
         {
           code: file("Heading, NavigatorScreen, Stack", `<NavigatorScreen title="Billing"><Stack><Heading>Billing</Heading><Text>Pro</Text></Stack></NavigatorScreen>`),
           errors: [{ messageId: "repeated", suggestions: 1 }],
+        },
+      ],
+    });
+  });
+});
+
+describe("no-escape-abuse — the repair, and the styles the theme owns (SETTLED \"The linter\")", () => {
+  const box = (jsx: string) => file("Box, Button, Card, Text", jsx);
+  it("runs", () => {
+    tester.run("no-escape-abuse", noEscapeAbuse, {
+      valid: [
+        // A token reached through `style` is the documented escape.
+        box(`<Card style={{ boxShadow: "var(--my-shadow)" }} />`),
+        box(`<Card style={{ boxShadow: "none" }} />`),
+        box(`<Text style={{ fontSize: "var(--font-size-3)", fontWeight: "var(--weight-medium)" }} />`),
+        // A consumer's own element is their business.
+        `const x = <p style={{ fontSize: 13, fontWeight: 600, boxShadow: "0 1px 2px #000" }} />;`,
+      ],
+      invalid: [
+        {
+          // Between two steps is a judgement, so the rule offers both and picks neither.
+          code: box(`<Box style={{ padding: "13px" }} />`),
+          errors: [
+            {
+              messageId: "ownedLength",
+              suggestions: [
+                { messageId: "suggestStep", data: { prop: "p", step: "4", px: "12" }, output: box(`<Box p="4" />`) },
+                { messageId: "suggestStep", data: { prop: "p", step: "5", px: "16" }, output: box(`<Box p="5" />`) },
+              ],
+            },
+          ],
+        },
+        {
+          // The last property of several: the comma before it goes with it.
+          code: box(`<Box style={{ width: "20rem", gap: 16 }} />`),
+          errors: [{ messageId: "ownedLength" }],
+          output: box(`<Box gap="5" style={{ width: "20rem" }} />`),
+        },
+        {
+          // The prop is already set. Two answers would disagree, so the reader chooses.
+          code: box(`<Box p="2" style={{ padding: "16px" }} />`),
+          errors: [{ messageId: "ownedLength", suggestions: [] }],
+          output: null,
+        },
+        {
+          // A unit that is not pixels is not a step the file states.
+          code: box(`<Box style={{ padding: "1rem" }} />`),
+          errors: [{ messageId: "ownedLength", suggestions: [] }],
+          output: null,
+        },
+        {
+          // Not a layout: there is no prop to move it to.
+          code: box(`<Button style={{ margin: "8px" }} />`),
+          errors: [{ messageId: "ownedLengthRefused", suggestions: [] }],
+          output: null,
+        },
+        {
+          code: box(`<Card style={{ boxShadow: "0 1px 2px rgba(0, 0, 0, 0.2)" }} />`),
+          errors: [{ messageId: "rawShadow", data: { value: "0 1px 2px rgba(0, 0, 0, 0.2)", element: "Card" } }],
+        },
+        {
+          code: box(`<Text style={{ fontSize: "13px", fontWeight: 600 }} />`),
+          errors: [{ messageId: "rawFontSize" }, { messageId: "rawFontWeight" }],
+        },
+        {
+          code: box(`<Text style={{ fontWeight: "bold" }} />`),
+          errors: [{ messageId: "rawFontWeight" }],
         },
       ],
     });

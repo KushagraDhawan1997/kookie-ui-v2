@@ -110,3 +110,9 @@ export function propFor(property: string): BoxPropName | null {
 /** Is this style key one whose value the space scale answers? */
 export const isOwnedProperty = (styleKey: string): boolean =>
   OWNED_PROPERTIES.has(normalizeProperty(kebab(styleKey)));
+
+/** Does this prop set exactly the sides the written property sets? Only then can a fix swap them. */
+export function isExactProp(property: string, prop: BoxPropName): boolean {
+  const def = boxProps[prop] as PropDef;
+  return sameSet(reach(property), def.css);
+}
