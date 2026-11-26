@@ -22,12 +22,9 @@
 
 import type { Rule } from "eslint";
 
-import { space } from "../tokens/config.ts";
-import { docs } from "./docs.ts";
-
 import { LAYOUT_SYMBOLS, typeRefusalsFor } from "../system/refusal-sets.ts";
 
-import { isExactProp, isOwnedProperty, kebab, normalizeProperty, propFor } from "./owned-properties.ts";
+import { isOwnedProperty, kebab, normalizeProperty, propFor } from "./owned-properties.ts";
 import { isRawColor, isRawLength } from "./raw-values.ts";
 import { createTracker, isKookieElement, recordImport, type SymbolTracker } from "./kookie-symbols.ts";
 import { matchUtility } from "./utility-classes.ts";
@@ -57,13 +54,11 @@ function classNamesOf(value: Node | undefined): { names: string[]; node: Node } 
 }
 
 /** The `{ key: literal }` pairs in a `style`. A spread or a computed key is unreadable. */
-function styleEntries(
-  value: Node | undefined,
-): Array<{ key: string; literal: Node; property: Node; object: Node }> {
+function styleEntries(value: Node | undefined): Array<{ key: string; literal: Node }> {
   if (value?.type !== "JSXExpressionContainer") return [];
   const object = value.expression as Node | undefined;
   if (object?.type !== "ObjectExpression") return [];
-  const out: Array<{ key: string; literal: Node; property: Node; object: Node }> = [];
+  const out: Array<{ key: string; literal: Node }> = [];
   for (const property of (object.properties ?? []) as Node[]) {
     if (property.type !== "Property" || property.computed === true) continue;
     const key = property.key as Node;
@@ -76,34 +71,14 @@ function styleEntries(
     if (name === null) continue;
     const literal = property.value as Node;
     if (literal.type !== "Literal") continue;
-    out.push({ key: name, literal, property, object });
+    out.push({ key: name, literal });
   }
   return out;
-}
-
-
-/** A length in CSS pixels, when the file states one: `16`, `"16px"`. Any other unit is not read. */
-function pixels(value: string | number): number | null {
-  if (typeof value === "number") return value;
-  const match = /^(\d+(?:\.\d+)?)px$/i.exec(value.trim());
-  return match ? Number(match[1]) : null;
-}
-
-/** The steps around a length: the one it equals, or the nearest below and above. */
-function stepsFor(px: number): { exact: number | null; near: number[] } {
-  const exact = space.indexOf(px as (typeof space)[number]);
-  if (exact !== -1) return { exact: exact + 1, near: [] };
-  const above = space.findIndex((step) => step > px);
-  // The palette rises, so the step below is the one before the first step above.
-  const below = above === -1 ? space.length - 1 : above - 1;
-  return { exact: null, near: [below, above].filter((index) => index !== -1).map((index) => index + 1) };
 }
 
 export const noEscapeAbuse: Rule.RuleModule = {
   meta: {
     type: "suggestion",
-    fixable: "code",
-    hasSuggestions: true,
     docs: {
       description:
         "An escape reaches the CSS this system does not own. A utility class, or a raw value the system already has a name for, reaches past one that it does.",
@@ -113,35 +88,20 @@ export const noEscapeAbuse: Rule.RuleModule = {
       // Every message names the replacement. A warning that only says "do not" leaves the call
       // site to invent something, and what it invents is usually a wrapper div with a class.
       utility:
-        "`{{className}}` on `<{{element}}>` is a utility class, and Kookie UI ships none. Use this instead: {{sentence}}. Docs: " +
-        docs("layout"),
+        "`{{className}}` is a utility class on `<{{element}}>` — {{sentence}}. Utility classes are not shipped, and one arriving through `className` is a second spacing system.",
       rawColor:
-        "`{{property}}: {{value}}` on `<{{element}}>` is a colour written by hand. Use the `tone` and `emphasis` props, or a colour token in `style`, such as `var(--color-text)`. Docs: " +
-        docs("color"),
+        "`{{property}}: {{value}}` writes a colour out on `<{{element}}>`. Appearance is resolved output: choose it with the `tone` and `emphasis` props, or reach a token through `style` as `var(--color-…)`.",
       ownedLength:
-        "`{{property}}: {{value}}` on `<{{element}}>` is a length written by hand. Use the `{{prop}}` prop with a step from the space scale. Docs: " +
-        docs("layout"),
+        "`{{property}}: {{value}}` is a raw length on `<{{element}}>` for a property the `{{prop}}` prop owns. Pass `{{prop}}` with a space index; `style` is for the CSS this system has no prop for.",
       // The SAME defect the message above would otherwise commit, one element over: `propFor`
       // reads the Box prop table, and only the four layouts take those props — so telling a
       // Button to "pass `m`" named a prop `refused.ts` refuses on it, which is a report whose
       // repair does not compile (2026-09-07, the audit). The escape is the refusal's own
       // sentence, taken from the one home that states it.
       ownedLengthRefused:
-        "`{{property}}: {{value}}` on `<{{element}}>` is spacing written by hand, and `<{{element}}>` takes no `{{prop}}` prop. {{why}} Docs: " +
-        docs("layout"),
-      suggestStep: "Use `{{prop}}=\"{{step}}\"`, which is {{px}}px at the default density.",
-      rawShadow:
-        "`box-shadow: {{value}}` on `<{{element}}>` is a shadow written by hand. Kookie UI has no shadow prop: the theme's `depth` sets every shadow in the app. Remove it, or set `depth` on `<Theme>`. Docs: " +
-        docs("depth"),
-      rawFontSize:
-        "`font-size: {{value}}` on `<{{element}}>` is a text size written by hand. Use the `size` prop of `<Text>` or `<Heading>`. Docs: " +
-        docs("typography"),
-      rawFontWeight:
-        "`font-weight: {{value}}` on `<{{element}}>` is a text weight written by hand. Use the `weight` prop of `<Text>` or `<Heading>`. Docs: " +
-        docs("typography"),
+        "`{{property}}: {{value}}` is a raw length on `<{{element}}>`, and `{{prop}}` is not a prop it takes. {{why}}",
       ownedLengthInner:
-        "`{{property}}: {{value}}` on `<{{element}}>` is spacing written by hand. The space inside a component follows its `size`, so `<{{element}}>` takes no `{{prop}}` prop. To choose the distance yourself, wrap the content in `<Box {{prop}}=\"…\">`. Docs: " +
-        docs("layout"),
+        "`{{property}}: {{value}}` is a raw length on `<{{element}}>`. Inner spacing is the system's: it is priced per `size` and re-picked per `density`, so a component takes no `{{prop}}`. Wrap the content in a `<Box {{prop}}=\"…\">` if the distance is yours to choose.",
     },
   },
   create(context) {
@@ -184,8 +144,7 @@ export const noEscapeAbuse: Rule.RuleModule = {
           }
 
           if (name.name !== "style") continue;
-          const entries = styleEntries(attribute.value as Node | undefined);
-          for (const { key, literal, property: propertyNode, object } of entries) {
+          for (const { key, literal } of styleEntries(attribute.value as Node | undefined)) {
             const value = literal.value as string | number;
             if (typeof value !== "string" && typeof value !== "number") continue;
             const property = normalizeProperty(kebab(key));
@@ -194,22 +153,6 @@ export const noEscapeAbuse: Rule.RuleModule = {
                 node: literal as never,
                 messageId: "rawColor",
                 data: { property: kebab(key), value: String(value), element: elementName },
-              });
-              continue;
-            }
-            const handWritten =
-              property === "box-shadow" && typeof value === "string" && value !== "none" && !value.includes("var(")
-                ? "rawShadow"
-                : property === "font-size" && isRawLength(value)
-                  ? "rawFontSize"
-                  : property === "font-weight" && /^(?:\d+|bold|bolder|lighter)$/.test(String(value))
-                    ? "rawFontWeight"
-                    : null;
-            if (handWritten) {
-              context.report({
-                node: literal as never,
-                messageId: handWritten,
-                data: { value: String(value), element: elementName },
               });
               continue;
             }
@@ -226,41 +169,6 @@ export const noEscapeAbuse: Rule.RuleModule = {
               : refused
                 ? "ownedLengthRefused"
                 : "ownedLengthInner";
-
-            // THE REPAIR (SETTLED "The linter"): moved to the prop by the rule itself when the
-            // length IS a step, offered as a choice when it falls between two, and left to the
-            // reader everywhere else. Only on a layout, which takes the prop; only when the
-            // prop is not already set, where the two would disagree; and only when the prop
-            // sets exactly the sides the property did.
-            const attributes = (element.attributes ?? []) as Node[];
-            const free = !attributes.some(
-              (other) =>
-                other.type === "JSXSpreadAttribute" ||
-                (other.type === "JSXAttribute" && (other.name as Node).name === prop),
-            );
-            const px = pixels(value);
-            const steps =
-              messageId === "ownedLength" && free && px !== null && px > 0 && isExactProp(property, prop)
-                ? stepsFor(px)
-                : { exact: null, near: [] };
-            const move = (step: number) =>
-              function* (fixer: Rule.RuleFixer): Generator<Rule.Fix> {
-                const source = context.sourceCode;
-                if (entries.length === 1 && (object.properties as Node[]).length === 1) {
-                  // The style held nothing else, so the prop replaces the whole attribute.
-                  yield fixer.replaceText(attribute as never, `${prop}="${step}"`);
-                  return;
-                }
-                const after = source.getTokenAfter(propertyNode as never);
-                const before = source.getTokenBefore(propertyNode as never);
-                if (after?.value === ",") {
-                  const next = source.getTokenAfter(after);
-                  yield fixer.removeRange([(propertyNode.range as [number, number])[0], next ? next.range[0] : after.range[1]]);
-                } else if (before?.value === ",") {
-                  yield fixer.removeRange([before.range[0], (propertyNode.range as [number, number])[1]]);
-                } else return;
-                yield fixer.insertTextBefore(attribute as never, `${prop}="${step}" `);
-              };
             context.report({
               node: literal as never,
               messageId,
@@ -271,12 +179,6 @@ export const noEscapeAbuse: Rule.RuleModule = {
                 prop,
                 why: refused?.why ?? "",
               },
-              ...(steps.exact !== null ? { fix: move(steps.exact) } : {}),
-              suggest: steps.near.map((step) => ({
-                messageId: "suggestStep",
-                data: { prop, step: String(step), px: String(space[step - 1]) },
-                fix: move(step),
-              })),
             });
           }
         }

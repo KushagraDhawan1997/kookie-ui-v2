@@ -45,19 +45,18 @@ export default function Invite() {
         <Stack gap="6">
           <DialogDescription>They get an email with a link to join.</DialogDescription>
           {/* the fields go here */}
-        </Stack>
-        <Toolbar aria-label="Actions">
-          <Flex flexGrow="1" justify="flex-end" gap="3">
-            <ToolbarButton emphasis="loud">Send invite</ToolbarButton>
+          <Flex gap="3" justify="flex-end">
+            <DialogClose render={<Button emphasis="quiet">Cancel</Button>} />
+            <Button emphasis="loud">Send invite</Button>
           </Flex>
-        </Toolbar>
+        </Stack>
       </DialogContent>
     </Dialog>
   );
 }
 ```
-The dialog has one loud button, because it has one main action. It has no Cancel button,
-because Close already does that. The outer `Stack` sets every distance.
+The dialog has one loud button, because it has one main action. Cancel is quiet, and the outer
+`Stack` sets every distance.
 
 ## Ask for the email
 
@@ -195,12 +194,11 @@ export default function Invite() {
             </RadioGroup>
           </Field>
 
-        </Stack>
-        <Toolbar aria-label="Actions">
-          <Flex flexGrow="1" justify="flex-end" gap="3">
-            <ToolbarButton emphasis="loud">Send invite</ToolbarButton>
+          <Flex gap="3" justify="flex-end">
+            <DialogClose render={<Button emphasis="quiet">Cancel</Button>} />
+            <Button emphasis="loud">Send invite</Button>
           </Flex>
-        </Toolbar>
+        </Stack>
       </DialogContent>
     </Dialog>
   );

@@ -43,7 +43,7 @@ The site in `apps/docs` is the documentation. It has four parts.
 
 | route | what it holds |
 |---|---|
-| `/` | 27 guideline chapters: getting started, patterns and foundations |
+| `/` | 26 guideline chapters: getting started, patterns and foundations |
 | `/components` | the reference for 64 components, with generated props tables and the refusals |
 | `/builder` | a composition editor that exports React code and reviews the result |
 | `/preview` and `/matrix` | the judging surfaces: real screens, and the axis grid |
@@ -67,11 +67,10 @@ The library is built so that a coding agent learns it from the package rather th
 - A refused prop is a compile error that names the prop and says what to write instead —
   `variant` points at `tone` and `emphasis`, a margin prop points at `Box`.
 - Every exported component carries its description in the shipped `.d.ts`.
-- `@kushagradhawan/kookie-ui-react/eslint-plugin` is the linter. It catches what the compiler
-  cannot see, and it checks composition, hand-written style and missing pieces against the
-  settled rules. Every message says what to use instead and links the page. It has two sets,
-  `recommended` and `strict`. It brings no parser, so a TypeScript project puts it after its own
-  parser entry.
+- `@kushagradhawan/kookie-ui-react/eslint-plugin` catches the three mistakes the compiler cannot see: a `data-`
+  axis attribute, utility classes or raw values in `className` and `style`, and a refused prop
+  inside a spread. It brings no parser, so a TypeScript project puts it after its own parser
+  entry.
 - `npx @kushagradhawan/kookie-ui-react init` writes the library's rules into your `AGENTS.md`, `CLAUDE.md` or
   `.cursor/rules`. It prints its plan first and changes nothing without `--write`.
 - `@kookie-ui/mcp` is an MCP server with four tools, including `check_usage`, which reports

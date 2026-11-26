@@ -73,7 +73,7 @@ describe("no-refused-attribute — the hole TSX leaves open (§9, §12)", () => 
       invalid: [
         {
           code: withImport(`<Card data-tone="destructive" />`),
-          errors: [{ messageId: "refused", data: { attribute: "data-tone", axis: "tone", element: "Card" } }],
+          errors: [{ messageId: "refused", data: { attribute: "data-tone", axis: "tone" } }],
         },
         {
           // The pair that actually re-grew the deleted `variant` axis from a call site.
@@ -152,8 +152,6 @@ describe("no-escape-abuse — an escape used to leave the system (ENGINEERING §
               data: { property: "padding", value: "8px", element: "Box", prop: "p" },
             },
           ],
-          // 8px IS step 3, so the rule moves it to the prop itself (SETTLED "The linter").
-          output: withImport(`<Box p="3" />`),
         },
         {
           // Not a layout: inner spacing is priced by `size`, and the component has no `p`.
@@ -188,8 +186,6 @@ describe("no-escape-abuse — an escape used to leave the system (ENGINEERING §
               data: { property: "gap", value: "4px", element: "Box", prop: "gap" },
             },
           ],
-          // One pass moves one length; the next pass moves the other.
-          output: withImport(`<Box pt="4" style={{ gap: "4px" }} />`),
         },
         {
           code: withImport(`<Card style={{ background: "#0b0b0b", color: "white" }} />`),

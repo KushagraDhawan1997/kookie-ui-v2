@@ -21,7 +21,6 @@ import Installation from "../../content/build/installation.mdx";
 import Theming from "../../content/foundations/appearance.mdx";
 import Quickstart from "../../content/build/quickstart.mdx";
 import Agents from "../../content/build/agents.mdx";
-import LinterChapter from "../../content/build/linter.mdx";
 import Principles from "../../content/start/principles.mdx";
 import Composition from "../../content/start/composition.mdx";
 import Forms from "../../content/patterns/forms.mdx";
@@ -203,16 +202,6 @@ export const CHAPTERS: readonly Chapter[] = [
     spec: ["§47", "§48"],
     source: "build/agents.mdx",
     Content: Agents,
-  },
-  {
-    slug: "build/linter",
-    title: "Linter",
-    section: "build",
-    blurb:
-      "The linter reads your code and reports where it breaks a Kookie rule, in your editor and for your AI agent. Each report says what to use instead.",
-    spec: ["§58"],
-    source: "build/linter.mdx",
-    Content: LinterChapter,
   },
 
   {

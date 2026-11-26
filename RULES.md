@@ -9,9 +9,7 @@ Each rule says what to do, how to test it, and what enforces it today:
 - **default**: the component does it for you. Don't rebuild it by hand.
 - **check**: a check reports it. `screen` is the screen check, which reads any rendered page
   (`node scripts/review-ui/run.mjs <url>`). `builder` is the builder reviewer
-  (`apps/docs/app/builder/review.ts`), which reads builder documents only. `lint` is the linter
-  that ships in the package (`packages/ui/src/lint`), which reads code in any project, in the
-  editor and for an agent. It reports only what one file shows.
+  (`apps/docs/app/builder/review.ts`), which reads builder documents only.
 - **review**: only an eye catches it. You must look at the screenshot.
 
 The composition skill (`.claude/skills/composition`) is the longer version with reasons. The
@@ -39,7 +37,7 @@ the disagreement is a bug to report.
    panel's band, a glass toolbar button. Other ways out (Cancel, Escape, a press outside) don't
    replace it. Test: every Dialog, Sheet and titled Popover shows an X in its top band.
    Enforced by: default (Navigator screens; panels themselves: coming), check (screen
-   `panel-close`; lint `require-dialog-title` for a dialog or sheet with no title).
+   `panel-close`).
 2. **A panel's band is a real `Toolbar`.** Back at the leading edge, the title, Close at the
    trailing edge, all on one row. A title in the band is the band's own title size, the same in
    every band; under the band it is the panel's title size. In a `Navigator` the title is not
@@ -50,7 +48,7 @@ the disagreement is a bug to report.
    button in the panel's top row is placed by hand, and any title in the band is a
    `ToolbarTitle`, which brings the title's air. Grouping band items in a `Flex` cluster is
    fine; that's how a band is written. Enforced by: default (Navigator), check (screen
-   `hand-built-band`, `band-wrapper`; lint `prefer-toolbar`, `prefer-toolbar-title`).
+   `hand-built-band`, `band-wrapper`).
 3. **A band sits one step inside the content edge.** The toolbar's inset is one step closer to
    the panel's edge than the content's padding, measured from the panel's own padding, so it
    moves with the panel's size. Applies to every band: dialogs, sheets, popovers, and Shell
@@ -97,8 +95,7 @@ the disagreement is a bug to report.
     around the same group. No card inside a card. (Lines and hover on one list: rule 28.) Enforced by: check (builder
     `nested-card`), review.
 14. **Every gap is a step on the scale.** No invented lengths (`13px`, `1.35rem`). Enforced by:
-    check (`checkUsage`; lint `no-escape-abuse`, which moves a length that equals a step to its
-    prop).
+    check (`checkUsage`, ESLint plugin).
 
 ## Alignment
 
@@ -133,7 +130,7 @@ the disagreement is a bug to report.
     `long-action`).
 24. **Real words.** No placeholder copy. A placeholder is not a label and holds no
     instructions. Errors say how to fix it. Enforced by: check (builder `placeholder-as-label`,
-    `instructions-in-placeholder`, `generic-error`; lint `require-field-label`).
+    `instructions-in-placeholder`, `generic-error`).
 
 
 ## Choices
@@ -161,5 +158,4 @@ the disagreement is a bug to report.
     hover, and a list that lights its rows draws no lines between them. Enforced by: check
     (screen `hover-with-separators`).
 29. **Every control has a name.** An icon-only button carries an `aria-label`, so a screen
-    reader says what it does. Enforced by: check (screen `accessible-name`; lint
-    `require-accessible-name`).
+    reader says what it does. Enforced by: check (screen `accessible-name`).

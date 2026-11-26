@@ -22,8 +22,6 @@
 
 import type { Rule } from "eslint";
 
-import { docs } from "./docs.ts";
-
 import { componentAxes } from "../system/axes.ts";
 import { themeAxes } from "../theme/theme.tsx";
 import { createTracker, isKookieElement, recordImport, type SymbolTracker } from "./kookie-symbols.ts";
@@ -47,8 +45,7 @@ export const noRefusedAttribute: Rule.RuleModule = {
       // The message names the prop because a report that only says "no" leaves the call site
       // to guess, and the guess is usually a wrapper div with a class on it.
       refused:
-        "`{{attribute}}` on `<{{element}}>` sets `{{axis}}` past the type checker. Use the `{{axis}}` prop instead. If `<{{element}}>` has no `{{axis}}` prop, that is by design, so don't add it back with an attribute. Docs: " +
-        docs("linter"),
+        "`{{attribute}}` writes the `{{axis}}` axis onto the DOM past the type — TSX does not check hyphenated attributes. Pass the `{{axis}}` prop instead; if this component does not take `{{axis}}`, that refusal is the design and the attribute re-grows what was removed.",
     },
   },
   create(context) {
@@ -60,11 +57,6 @@ export const noRefusedAttribute: Rule.RuleModule = {
       JSXOpeningElement(node: unknown) {
         const element = node as Node;
         if (!isKookieElement(tracker, element.name as Node | undefined)) return;
-        const nameNode = element.name as Node;
-        const elementName =
-          nameNode.type === "JSXIdentifier"
-            ? String(nameNode.name)
-            : `${String((nameNode.object as Node).name)}.${String((nameNode.property as Node).name)}`;
         const attributes = (element.attributes ?? []) as Node[];
         for (const attribute of attributes) {
           if (attribute.type !== "JSXAttribute") continue;
@@ -75,7 +67,7 @@ export const noRefusedAttribute: Rule.RuleModule = {
           context.report({
             node: attribute as never,
             messageId: "refused",
-            data: { attribute: written, axis: written.slice("data-".length), element: elementName },
+            data: { attribute: written, axis: written.slice("data-".length) },
           });
         }
       },

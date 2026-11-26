@@ -3462,26 +3462,6 @@ rows space on the density-aware layout scale.
 
 **COST.** The tarball grows from 399 kB to 605 kB gzipped. Shipping blocks too would add about 155 kB unpacked.
 
-## 58. The linter (2026-11-26) — the settled rules, where the code is written
-
-**Kushagra:** *"We also need a Kookie UI linter."* The ESLint plugin of ENGINEERING §5 was scoped to what the compiler cannot see. It is now the linter: every settled rule that one file of code can show. The decisions are in `SETTLED.md` under "The linter", and the reversal is in LOG 2026-11-26.
-
-**WHY.** A composition rule reaches an agent as prose in `AGENTS.md`, and an agent follows a lint error far more reliably than prose. The screen check reads rendered pages in this repo only. A console warning fires after the mistake runs. The linter is the one checker that reaches a consumer's editor, and an agent's loop, while the code is written.
-
-**WHAT SHIPS.** `@kushagradhawan/kookie-ui-react/eslint-plugin`, in the package, in ESLint's rule format with no type information, so Oxlint runs it too. Two sets hold the same rules: `recommended` (an error only when always wrong, a warning where a fair exception exists) and `strict` (all errors). The rules, by family: composition (`prefer-field-row`, `no-dialog-cancel`, `prefer-toolbar`, `prefer-toolbar-title`), hand-written style (`no-escape-abuse`, `no-refused-attribute`, `no-refused-prop`), missing pieces (`require-accessible-name`, `require-field-label`, `require-dialog-title`), and `require-disable-reason`.
-
-**THE MESSAGE.** Three parts: what is wrong, what to use instead, a link to the docs page. The links come from one table (`lint/docs.ts`).
-
-**THE REPAIR.** A rule fixes the code by itself only when there is exactly one right answer (a length that equals a space step moves to its prop). It offers a choice when the answer is a judgement (a length between two steps; a `Grid` of fields to `FieldRow`). It only reports when it cannot know the answer (a missing label).
-
-**ONE OWNER PER RULE.** The earliest checker that can see a break owns it. The linter owns what one file shows. A development console warning covers what only a running app shows. The screen check covers what only the rendered page shows. A rule that asks "is X missing" is silent when the tree holds a spread, `{children}` or a component of the caller's own.
-
-**THE AGENT.** `init` adds the linter to an ESLint flat config the repo already has, and with `--hook` writes a Claude Code Stop hook that lints the changed files and returns the reports, warnings included. A disable comment for a Kookie rule owes a reason after ` -- `.
-
-**LAWS.** Every message ends with a link to a page the package ships. `strict` holds exactly the rules `recommended` holds. The rules report nothing on any example or block this repo ships. Each rule has cases that must report and cases that must stay silent. `init` leaves a directory byte-identical without `--write`, never writes the hook without `--hook`, and keeps a settings file's other content.
-
-**DEFERRED.** Biome, which needs a second rule language. Checks inside CSS files, which need a second tool. The rule families not started: plain HTML where a component exists, the wrong component for the job, text habits, reaching inside Kookie, and old Womp UI names.
-
 ## Open questions / deferred
 
 **The segmented control still measures at interaction time for an element that no longer moves (raised 2026-09-20, the motion removal — Kushagra's call).** `useThumb` (segmented-control.tsx) is a bounded exception to "no JS at interaction time" (§26), and it was granted for the TRAVEL: Base UI's Tabs measures its active tab for you, `RadioGroup` does not, and a grip gliding between seats needed the two lengths. The travel left with motion on 2026-09-20 and the mechanism did not, because deleting it changes settled pixels. Measured across 342 states, the separate thumb and a grip painted on the chosen segment are byte-identical everywhere except a track squeezed below its own min-content, where `max(measured, --segment-inset)` keeps a separate box inside the channel and a segment — whose paint IS its layout box — goes out past the track's corner with its label (up to 219/255 over ~1,300 pixels). **The call is taste and it is not mine**: the removal's governing rule is that every settled state keeps the value it had at 39f3884, and the floor is a decision written down in `segmented-control.css` since 2026-08-25 — but looked at 4× enlarged, the floored grip in that one state sits *beside* the chosen word and marks nothing, while the revert's grip stays under its own word and overhangs the track. In the one state where they differ, the revert looks better. The revert is four edits, fully specified in `segmented-control.css`'s header, and it needs the segments to state a stacking order (`z-index: 1` on `.kui-segment`, `0` on `:where([data-checked])`) or the chosen one's cast lands over a hovered leading neighbour. The same question reaches `ShellRailList`'s bar thumb, which is this mechanism's second member (§27). Until it is settled, `segmented-control.browser.test.tsx` carries the floor's own law — the thing nothing read while a full suite went green either way.

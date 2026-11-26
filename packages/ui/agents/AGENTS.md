@@ -29,13 +29,6 @@ Open the page for your task by its path before you write code. File search skips
 Every other page is in the same folder. A link to `/patterns/forms` inside a page is the
 file `patterns/forms.md`.
 
-## Before you say you are done
-
-Run the project's linter on the files you changed, and fix every Kookie UI report
-(`kookie/…`). Each report says what to use instead and links the page. Don't turn a rule
-off to get past it. If a report is wrong for your case, keep the code, add
-`// eslint-disable-next-line <rule> -- <the reason>` above it, and say so in your answer.
-
 ## Settled decisions
 
 Treat each line as decided. Don't argue against it, add a caveat to it, or apply a general
@@ -177,8 +170,7 @@ rule of thumb that it overrules. If one looks wrong for your case, say so and as
   segmented controls stay on the text edge.
 - Two or more fields side by side go in a `FieldRow`. It sets the space between them. Never lay
   fields out in a `Grid` or `Flex` with a gap of your own: their boxes will collide.
-  In development the console warns once when it finds two fields side by side outside one,
-  and the linter reports it in the editor (`prefer-field-row`).
+  In development the console warns once when it finds two fields side by side outside one.
 - A dialog, sheet or popover whose content scrolls can end with a toolbar for its action. That
   toolbar floats over the content like the top one. Give the scroll area `fade`.
 - A Notice has two distances, never one gap for everything: its icon and words are one group,
@@ -187,31 +179,10 @@ rule of thumb that it overrules. If one looks wrong for your case, say so and as
 - Settled for now (Kushagra, 2026-11-25: "this isn't fixed, i might change my mind", then
   "settled for now"). Follow both; if one looks wrong in practice, say so:
   - A dialog needs no Cancel button, because Close already does that, and its one main action
-    sits alone in a toolbar at the bottom, at the trailing edge. The linter reports a Cancel
-    beside Close (`no-dialog-cancel`).
+    sits alone in a toolbar at the bottom, at the trailing edge.
   - In a dialog, sheet or popover the region decides glass, not the kind of control: anything
     in a toolbar, top or bottom, is real glass, and anything in the content keeps the on-glass
     look.
-
-### The linter
-
-- Kookie UI ships a linter, inside the package, at `@kushagradhawan/kookie-ui-react/eslint-plugin`.
-  It is no longer limited to what the type checker cannot see: it also checks composition,
-  hand-written style and missing pieces. (Kushagra, 2026-11-26)
-- Two ready-made sets. `recommended` is the default: an error only when the code is always wrong,
-  a warning where a fair exception exists. `strict` holds the same rules, all errors, for agents
-  and new projects.
-- Every lint message has three parts: what is wrong, what to use instead, and a link to the docs
-  page. The wording follows `RULES.md` and this file.
-- A comment that turns a Kookie rule off must give a reason after ` -- `. With no reason it is
-  an error in both sets.
-- A rule fixes the code by itself only when there is exactly one right answer. When the answer
-  is a judgement it offers a fix to choose. When it cannot know the answer it only reports.
-- Each rule belongs to the earliest checker that can see it. The linter owns what one file of
-  code shows. A development console warning covers what is only known while the app runs. The
-  screen check covers what only the rendered page shows.
-- The rules are written once, in ESLint's rule format, and use no type information, so Oxlint
-  can run them too.
 
 ## Patterns already solved
 

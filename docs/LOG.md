@@ -8,12 +8,6 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
-## 2026-11-26 The ESLint plugin becomes the linter
-
-The plugin was built to stay small. Its header said it "exists for what the compiler provably cannot see" and "does not grow past" two holes. Kushagra reversed that scope: "We also need a Kookie UI linter". The reason is the reader. A composition rule in `RULES.md` reaches an agent as prose, and an agent follows a lint error far more reliably than prose. The screen check reads rendered pages in this repo only, and a console warning fires only after the mistake runs. The linter is the one checker that reaches a consumer's editor while the code is written.
-
-He settled seven things, one yes each, and they are in `SETTLED.md` under "The linter": the rule families, two sets (`recommended` and `strict`), the three-part message, a reason on every disable comment, three levels of fix, one owner per rule, and ESLint's rule format with no type information. **Rejected: a separate package**, which Atlassian and Primer use. It adds an install and its version can drift from the components it describes; a subpath of the one package cannot. **Rejected: banning disable comments**, because real exceptions exist and a rule with no way out gets turned off whole. **Deferred: Biome and checks inside CSS files**, which need a second rule language and a second tool.
-
 ## 2026-11-26 Two fields side by side outside a FieldRow print a development warning
 
 `FieldRow` cannot help the caller who never heard of it. Two fields in a plain grid overlap by 14px, and Kushagra asked "How do we give dev warning for this?", then "Yes". A `Field` now looks, one frame after it mounts, for another field with a text box beside it in a parent that is not a `FieldRow`, and says so in the console: development only, once per page load, a warning and not an error. It is silent for stacked fields, for a `FieldRow`, and for a field of marks.
