@@ -12,6 +12,7 @@ import {
   Card,
   Field,
   FieldLabel,
+  FieldRow,
   Flex,
   Grid,
   Heading,
@@ -732,7 +733,7 @@ export function CompositionFigure() {
                         </SegmentedItem>
                       </SegmentedControl>
                     </Field>
-                    <Grid columns="repeat(2, minmax(0, 1fr))" gap="3">
+                    <FieldRow columns="repeat(2, minmax(0, 1fr))">
                       <Field>
                         <FieldLabel>Goop</FieldLabel>
                         <NumberField
@@ -761,7 +762,7 @@ export function CompositionFigure() {
                           defaultValue={8}
                         />
                       </Field>
-                    </Grid>
+                    </FieldRow>
                   </InspectorSection>
                   <InspectorSection
                     title="Material"

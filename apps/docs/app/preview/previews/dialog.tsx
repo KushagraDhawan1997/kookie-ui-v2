@@ -111,11 +111,12 @@ function SignIn({ size = "3" }: { size?: Size }) {
           <TextField size={size} type="email" placeholder="you@company.com" aria-label="Email" />
           <TextField size={size} type="password" placeholder="Password" aria-label="Password" />
         </Stack>
-        <Flex gap="3" justify="flex-end">
-          <DialogClose render={<Button size={size} emphasis="quiet" bordered>Cancel</Button>} />
-          <DialogClose render={<Button size={size} tone="accent" emphasis="loud">Sign in</Button>} />
-        </Flex>
       </Stack>
+      <Toolbar aria-label="Actions">
+        <Flex flexGrow="1" justify="flex-end" gap="3">
+          <DialogClose render={<ToolbarButton tone="accent" emphasis="loud">Sign in</ToolbarButton>} />
+        </Flex>
+      </Toolbar>
     </>
   );
 }
@@ -236,11 +237,12 @@ function States() {
                     ),
                   )}
                 </Stack>
-                <Flex gap="3" justify="flex-end">
-                  <DialogClose render={<Button size="3" emphasis="quiet" bordered>Cancel</Button>} />
-                  <DialogClose render={<Button size="3" tone="accent" emphasis="loud">Connect</Button>} />
-                </Flex>
               </Stack>
+              <Toolbar aria-label="Actions">
+                <Flex flexGrow="1" justify="flex-end" gap="3">
+                  <DialogClose render={<ToolbarButton tone="accent" emphasis="loud">Connect</ToolbarButton>} />
+                </Flex>
+              </Toolbar>
             </DialogContent>
           </Dialog>
         </Flex>
@@ -268,11 +270,12 @@ function States() {
               <Stack gap="6">
                 <DialogDescription>Everyone with access will see the new name.</DialogDescription>
                 <TextField placeholder="Project name" aria-label="Project name" />
-                <Flex gap="3" justify="flex-end">
-                  <DialogClose render={<Button emphasis="quiet" bordered>Cancel</Button>} />
-                  <DialogClose render={<Button tone="accent" emphasis="loud">Save</Button>} />
-                </Flex>
               </Stack>
+              <Toolbar aria-label="Actions">
+                <Flex flexGrow="1" justify="flex-end" gap="3">
+                  <DialogClose render={<ToolbarButton tone="accent" emphasis="loud">Save</ToolbarButton>} />
+                </Flex>
+              </Toolbar>
             </DialogContent>
           </Dialog>
         </Flex>
@@ -299,7 +302,7 @@ function States() {
                 />
               </Toolbar>
               <DialogDescription>Latency is measured from your last deploy.</DialogDescription>
-              <ScrollArea>
+              <ScrollArea fade>
                 <Stack gap="1">
                   {REGIONS.map((r) => (
                     <Flex key={r.city} justify="space-between" align="center" py="3">
@@ -311,10 +314,11 @@ function States() {
                   ))}
                 </Stack>
               </ScrollArea>
-              <Flex gap="3" justify="flex-end">
-                <DialogClose render={<Button emphasis="quiet" bordered>Cancel</Button>} />
-                <DialogClose render={<Button tone="accent" emphasis="loud">Use region</Button>} />
-              </Flex>
+              <Toolbar aria-label="Actions">
+                <Flex flexGrow="1" justify="flex-end" gap="3">
+                  <DialogClose render={<ToolbarButton tone="accent" emphasis="loud">Use region</ToolbarButton>} />
+                </Flex>
+              </Toolbar>
             </DialogContent>
           </Dialog>
         </Flex>
@@ -473,11 +477,12 @@ function Nesting() {
                     <Switch id="dlg-prev-2fa" size="3" defaultChecked />
                   </Flex>
                 </Stack>
-                <Flex gap="3" justify="flex-end">
-                  <DialogClose render={<Button size="3" emphasis="quiet" bordered>Cancel</Button>} />
-                  <DialogClose render={<Button size="3" tone="accent" emphasis="loud">Save changes</Button>} />
-                </Flex>
               </Stack>
+              <Toolbar aria-label="Actions">
+                <Flex flexGrow="1" justify="flex-end" gap="3">
+                  <DialogClose render={<ToolbarButton tone="accent" emphasis="loud">Save changes</ToolbarButton>} />
+                </Flex>
+              </Toolbar>
             </DialogContent>
           </Dialog>
         </Flex>
@@ -531,11 +536,12 @@ function Nesting() {
                     </Menu>
                   </Flex>
                 </Stack>
-                <Flex gap="3" justify="flex-end">
-                  <DialogClose render={<Button size="3" emphasis="quiet" bordered>Cancel</Button>} />
-                  <DialogClose render={<Button size="3" tone="accent" emphasis="loud">Deploy</Button>} />
-                </Flex>
               </Stack>
+              <Toolbar aria-label="Actions">
+                <Flex flexGrow="1" justify="flex-end" gap="3">
+                  <DialogClose render={<ToolbarButton tone="accent" emphasis="loud">Deploy</ToolbarButton>} />
+                </Flex>
+              </Toolbar>
             </DialogContent>
           </Dialog>
         </Flex>
@@ -628,11 +634,12 @@ function InUse() {
                           <TextField size="2" placeholder="CVC" aria-label="Security code" />
                         </Flex>
                       </Stack>
-                      <Flex gap="3" justify="flex-end">
-                        <DialogClose render={<Button size="2" emphasis="quiet" bordered>Cancel</Button>} />
-                        <DialogClose render={<Button size="2" tone="accent" emphasis="loud">Save card</Button>} />
-                      </Flex>
                     </Stack>
+                    <Toolbar aria-label="Actions">
+                      <Flex flexGrow="1" justify="flex-end" gap="3">
+                        <DialogClose render={<ToolbarButton tone="accent" emphasis="loud">Save card</ToolbarButton>} />
+                      </Flex>
+                    </Toolbar>
                   </DialogContent>
                 </Dialog>
               </Flex>
@@ -661,11 +668,12 @@ function InUse() {
                     <Stack gap="6">
                       <DialogDescription>Invoices and receipts go here.</DialogDescription>
                       <TextField size="2" type="email" defaultValue="finance@acme.com" aria-label="Billing email" />
-                      <Flex gap="3" justify="flex-end">
-                        <DialogClose render={<Button size="2" emphasis="quiet" bordered>Cancel</Button>} />
-                        <DialogClose render={<Button size="2" tone="accent" emphasis="loud">Save</Button>} />
-                      </Flex>
                     </Stack>
+                    <Toolbar aria-label="Actions">
+                      <Flex flexGrow="1" justify="flex-end" gap="3">
+                        <DialogClose render={<ToolbarButton tone="accent" emphasis="loud">Save</ToolbarButton>} />
+                      </Flex>
+                    </Toolbar>
                   </DialogContent>
                 </Dialog>
               </Flex>
