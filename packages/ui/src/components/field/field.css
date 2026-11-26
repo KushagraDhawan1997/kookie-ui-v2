@@ -96,16 +96,19 @@
   --kui-field-inset: calc(var(--control-px-pill-4) + var(--border-width));
 }
 
-/* Only a box that holds text at its leading edge: a text field, a select's trigger, a text
-   area. A segmented control, a slider or a switch is a control too, but it pads no text in from
-   its edge, and a number field centres its value between its two steppers, so for those there
-   is nothing to line up and they stay on the field's own edge.
+/* Every BOX a field holds: a text field, a select's trigger, a number field, a text area. They
+   all overflow by the same rule, so boxes stacked in a form share their two edges. A number
+   field centres its value between its steppers and has no text to bring to the label's line,
+   but it is still a box in the column and must be as wide as the one above it (2026-11-26,
+   Kushagra: "Number field must also stick out"; it was left at the field's edge for one night
+   on the argument that nothing lined up). A segmented control, a slider and a switch are not
+   boxes of that family and stay on the field's own edge.
 
    THE INSET IS THE CONTROL'S OWN (`--kui-ct-px-pill`, declared on the control by its size), not
    the field's. A control may state a size of its own inside a field of another, and the box
    has to overflow by the padding IT has, or the value misses the label by the difference
    (review 2026-11-26: a size 1 control in a size 4 field sat 8px left of its label). */
-.kui-field-group > .kui-field:not(.kui-number-field),
+.kui-field-group > .kui-field,
 .kui-field-group > .kui-textarea {
   margin-inline: calc(-1 * (var(--kui-ct-px-pill) + var(--border-width)));
 }

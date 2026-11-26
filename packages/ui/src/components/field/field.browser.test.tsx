@@ -392,6 +392,30 @@ describe("the column is the whole stylesheet (§28)", () => {
     );
   });
 
+  it("a number field is a box in the column: it is as wide as the text field above it", async () => {
+    /* 2026-11-26, Kushagra: "Number field must also stick out". */
+    const { NumberField } = await import("../number-field/number-field.tsx");
+    const root = mounted(
+      <Box style={{ inlineSize: "20rem" }}>
+        <Field>
+          <FieldLabel>Name</FieldLabel>
+          <TextField defaultValue="Apollo" />
+        </Field>
+        <Field>
+          <FieldLabel>Seats</FieldLabel>
+          <NumberField defaultValue={3} />
+        </Field>
+      </Box>,
+      { theme: {} },
+    );
+    const [text, number] = [...root.querySelectorAll<HTMLElement>(".kui-field-group > .kui-field")];
+    expect(number!.classList.contains("kui-number-field")).toBe(true);
+    expect(number!.getBoundingClientRect().left).toBeCloseTo(text!.getBoundingClientRect().left, 1);
+    expect(number!.getBoundingClientRect().right).toBeCloseTo(text!.getBoundingClientRect().right, 1);
+    // And both reach outside the field, or the equality would hold with neither overflowing.
+    expect(text!.getBoundingClientRect().left).toBeLessThan(root.querySelector(".kui-field-group")!.getBoundingClientRect().left);
+  });
+
   it("a group of marks does not overflow: a mark has no padding to line up", () => {
     const root = mounted(
       <Field>
