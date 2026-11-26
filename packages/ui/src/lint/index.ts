@@ -21,6 +21,7 @@
 import type { ESLint, Linter } from "eslint";
 
 import { noDialogCancel, preferFieldRow, preferToolbar, preferToolbarTitle } from "./composition.ts";
+import { requireAccessibleName, requireDialogTitle, requireFieldLabel } from "./missing.ts";
 import { noEscapeAbuse } from "./no-escape-abuse.ts";
 import { noRefusedAttribute } from "./no-refused-attribute.ts";
 import { noRefusedProp } from "./no-refused-prop.ts";
@@ -39,6 +40,9 @@ export const rules = {
   "no-dialog-cancel": noDialogCancel,
   "prefer-toolbar": preferToolbar,
   "prefer-toolbar-title": preferToolbarTitle,
+  "require-accessible-name": requireAccessibleName,
+  "require-field-label": requireFieldLabel,
+  "require-dialog-title": requireDialogTitle,
 } as const;
 
 /** Severity per rule, in one place, so `recommended` cannot disagree with the argument above. */
@@ -52,6 +56,11 @@ const SEVERITY: Readonly<Record<keyof typeof rules, Linter.RuleSeverity>> = {
   "no-dialog-cancel": "warn",
   "prefer-toolbar": "warn",
   "prefer-toolbar-title": "warn",
+  // Missing pieces. A control or a field with no name is always wrong. A panel can be named
+  // in ways one file does not show, so its title is a warning.
+  "require-accessible-name": "error",
+  "require-field-label": "error",
+  "require-dialog-title": "warn",
 };
 
 const plugin: ESLint.Plugin = {

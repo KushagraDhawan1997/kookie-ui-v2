@@ -165,3 +165,24 @@ export function localNameFor(
   if (imports.named.has(exported) || !imports.lastSpecifier) return null;
   return { name: exported, importAfter: imports.lastSpecifier };
 }
+
+/**
+ * Can the whole tree under this element be read from the file? Every child is written out, and
+ * every component in it is one of ours or a plain HTML tag. A component of the caller's own may
+ * render anything, so a rule that asks "is X missing" must not answer when one is present.
+ */
+export function isReadable(imports: Imports, element: Node): boolean {
+  if (!isClosed(element)) return false;
+  for (const child of childElements(element)) {
+    const plain = /^[a-z]/.test(writtenName(child));
+    if (!plain && kookieName(imports, child) === null) return false;
+    if (hasSpread(child)) return false;
+    const rendered = attribute(child, "render");
+    if (rendered) {
+      const inner = elementValue(rendered);
+      if (!inner || kookieName(imports, inner) === null || !isReadable(imports, inner)) return false;
+    }
+    if (!isReadable(imports, child)) return false;
+  }
+  return true;
+}

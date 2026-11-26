@@ -14,6 +14,7 @@ import { Linter, RuleTester } from "eslint";
 import tseslint from "typescript-eslint";
 import { describe, expect, it } from "vitest";
 
+import { requireAccessibleName, requireDialogTitle, requireFieldLabel } from "./missing.ts";
 import { noEscapeAbuse } from "./no-escape-abuse.ts";
 import { noDialogCancel, preferFieldRow, preferToolbar, preferToolbarTitle } from "./composition.ts";
 import { DOCS_ORIGIN, DOCS_PAGES } from "./docs.ts";
@@ -368,6 +369,90 @@ describe("no-escape-abuse — the repair, and the styles the theme owns (SETTLED
         {
           code: box(`<Text style={{ fontWeight: "bold" }} />`),
           errors: [{ messageId: "rawFontWeight" }],
+        },
+      ],
+    });
+  });
+});
+
+describe("require-accessible-name — every control has a name (RULES 29)", () => {
+  const js = (code: string) => ({ code, filename: "example.jsx" });
+  it("runs", () => {
+    tester.run("require-accessible-name", requireAccessibleName, {
+      valid: [
+        js(file("Button", `<Button iconOnly aria-label="Close"><X /></Button>`)),
+        js(file("Button", `<Button iconOnly aria-labelledby="title"><X /></Button>`)),
+        js(file("Button", `<Button iconOnly aria-label={label}><X /></Button>`)),
+        // A button with words names itself.
+        js(file("Button", `<Button>Save</Button>`)),
+        // What a spread carries cannot be read.
+        js(file("Button", `<Button iconOnly {...props}><X /></Button>`)),
+        // In TypeScript the props type already refuses this, with its own sentence.
+        { code: file("Button", `<Button iconOnly><X /></Button>`), filename: "example.tsx" },
+      ],
+      invalid: [
+        { ...js(file("Button", `<Button iconOnly><X /></Button>`)), errors: [{ messageId: "iconButton", data: { element: "Button" } }] },
+        { ...js(file("ToolbarButton", `<ToolbarButton iconOnly={true}><X /></ToolbarButton>`)), errors: [{ messageId: "iconButton" }] },
+        {
+          // An empty name is typed as a string, so only the linter can see it.
+          code: file("Button", `<Button iconOnly aria-label=""><X /></Button>`),
+          filename: "example.tsx",
+          errors: [{ messageId: "iconButton" }],
+        },
+      ],
+    });
+  });
+});
+
+describe("require-field-label — a field has a label (RULES 24)", () => {
+  it("runs", () => {
+    tester.run("require-field-label", requireFieldLabel, {
+      valid: [
+        file("Field, FieldLabel, TextField", `<Field><FieldLabel>Email</FieldLabel><TextField /></Field>`),
+        file("Field, TextField", `<Field><TextField aria-label="Search" /></Field>`),
+        // The label may be inside the caller's own component, or passed in.
+        file("Field, TextField", `<Field><EmailLabel /><TextField /></Field>`),
+        file("Field, TextField", `<Field>{label}<TextField /></Field>`),
+        file("Field, TextField", `<Field {...props}><TextField /></Field>`),
+        // A group whose items each carry a label.
+        file("Field, FieldItem, FieldLabel, Radio, RadioGroup", `<Field><RadioGroup><FieldItem><Radio value="a" /><FieldLabel>A</FieldLabel></FieldItem></RadioGroup></Field>`),
+      ],
+      invalid: [
+        {
+          code: file("Field, TextField", `<Field><TextField placeholder="Email" /></Field>`),
+          errors: [{ messageId: "field" }],
+        },
+        {
+          code: file("Field, FieldDescription, Switch", `<Field><Switch /><FieldDescription>Sends a weekly summary.</FieldDescription></Field>`),
+          errors: [{ messageId: "field" }],
+        },
+      ],
+    });
+  });
+});
+
+describe("require-dialog-title — a dialog and a sheet say what they are (RULES 1, 2)", () => {
+  it("runs", () => {
+    tester.run("require-dialog-title", requireDialogTitle, {
+      valid: [
+        file(DIALOG, `<Dialog><DialogContent>${band}</DialogContent></Dialog>`),
+        // The title under the toolbar is one of the three settled tops.
+        file(DIALOG, `<Dialog><DialogContent><Toolbar>${close}</Toolbar><DialogTitle>Rename project</DialogTitle></DialogContent></Dialog>`),
+        file(DIALOG, `<Dialog><DialogContent aria-label="Rename project"><Toolbar>${close}</Toolbar></DialogContent></Dialog>`),
+        // The caller's own body may hold the title.
+        file(DIALOG, `<Dialog><DialogContent><RenameForm /></DialogContent></Dialog>`),
+        file(DIALOG, `<Dialog><DialogContent>{children}</DialogContent></Dialog>`),
+        // A popover may go untitled.
+        `import { Popover, PopoverContent, Text } from "@kushagradhawan/kookie-ui-react";\nconst x = <Popover><PopoverContent><Text>Saved</Text></PopoverContent></Popover>;`,
+      ],
+      invalid: [
+        {
+          code: file("Dialog, DialogContent, DialogDescription, Text", `<Dialog><DialogContent><DialogDescription>They get an email.</DialogDescription></DialogContent></Dialog>`),
+          errors: [{ messageId: "panel", data: { panel: "DialogContent", title: "DialogTitle" } }],
+        },
+        {
+          code: `import { Sheet, SheetContent, Text } from "@kushagradhawan/kookie-ui-react";\nconst x = <Sheet><SheetContent><Text>Activity</Text></SheetContent></Sheet>;`,
+          errors: [{ messageId: "panel", data: { panel: "SheetContent", title: "SheetTitle" } }],
         },
       ],
     });
