@@ -10,10 +10,11 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { Linter } from "eslint";
+import { Linter, RuleTester } from "eslint";
 import tseslint from "typescript-eslint";
 import { describe, expect, it } from "vitest";
 
+import { noDialogCancel, preferFieldRow, preferToolbar, preferToolbarTitle } from "./composition.ts";
 import { DOCS_ORIGIN, DOCS_PAGES } from "./docs.ts";
 import plugin, { NAMESPACE, recommended, rules, strict } from "./index.ts";
 
@@ -23,6 +24,12 @@ const languageOptions = {
   parser: tseslint.parser as never,
   parserOptions: { ecmaFeatures: { jsx: true }, sourceType: "module" as const },
 };
+
+const tester = new RuleTester({ languageOptions });
+
+/** A file that imports the names it uses from the package, then one expression. */
+const file = (names: string, jsx: string) =>
+  `import { ${names} } from "@kushagradhawan/kookie-ui-react";\nconst x = (\n${jsx}\n);\n`;
 
 describe("a message says what is wrong, what to use, and where to read", () => {
   it("every linked page is a page the package ships", () => {
@@ -114,5 +121,187 @@ describe("require-disable-reason — an ignore needs a reason", () => {
   it("cannot be silenced by the comment it reports", () => {
     const code = `import { Card } from "@kushagradhawan/kookie-ui-react";\n// eslint-disable-next-line kookie/no-escape-abuse\nconst x = <Card className="p-4" />;\n`;
     expect(found(code).length).toBe(1);
+  });
+});
+
+describe("prefer-field-row — fields side by side go in a FieldRow (SETTLED, Components and patterns)", () => {
+  const two = `<Field><FieldLabel>First name</FieldLabel><TextField /></Field><Field><FieldLabel>Last name</FieldLabel><TextField /></Field>`;
+  it("runs", () => {
+    tester.run("prefer-field-row", preferFieldRow, {
+      valid: [
+        file("Field, FieldLabel, FieldRow, TextField", `<FieldRow>${two}</FieldRow>`),
+        // Stacked fields are the ordinary form.
+        file("Field, FieldLabel, Stack, TextField", `<Stack gap="5">${two}</Stack>`),
+        file("Field, FieldLabel, Flex, TextField", `<Flex direction="column" gap="5">${two}</Flex>`),
+        file("Field, FieldLabel, Grid, TextField", `<Grid gap="5">${two}</Grid>`),
+        // One field beside a button is a search row, not a row of fields.
+        file("Button, Field, FieldLabel, Flex, TextField", `<Flex gap="3"><Field><FieldLabel>Email</FieldLabel><TextField /></Field><Button>Invite</Button></Flex>`),
+        // A field with no text box has nothing that reaches past its label.
+        file("Checkbox, Field, FieldLabel, Flex", `<Flex gap="5"><Field><Checkbox /><FieldLabel>Email</FieldLabel></Field><Field><Checkbox /><FieldLabel>Push</FieldLabel></Field></Flex>`),
+        // A consumer's own grid is their business, and so is a direction the file cannot state.
+        `const x = <Grid columns="2"><Field><TextField /></Field><Field><TextField /></Field></Grid>;`,
+        file("Field, FieldLabel, Flex, TextField", `<Flex direction={narrow ? "column" : "row"}>${two}</Flex>`),
+      ],
+      invalid: [
+        {
+          code: file("Field, FieldLabel, Grid, TextField", `<Grid columns="2" gap="3">${two}</Grid>`),
+          errors: [
+            {
+              messageId: "sideBySide",
+              data: { element: "Grid" },
+              suggestions: [
+                {
+                  messageId: "suggestFieldRow",
+                  data: { element: "Grid" },
+                  output: file("Field, FieldLabel, Grid, TextField, FieldRow", `<FieldRow>${two}</FieldRow>`),
+                },
+              ],
+            },
+          ],
+        },
+        {
+          // The import is already there, under another name.
+          code: file("Field, FieldLabel, FieldRow as Pair, Flex, TextField", `<Flex gap="3">${two}</Flex>`),
+          errors: [
+            {
+              messageId: "sideBySide",
+              suggestions: [
+                {
+                  messageId: "suggestFieldRow",
+                  output: file("Field, FieldLabel, FieldRow as Pair, Flex, TextField", `<Pair>${two}</Pair>`),
+                },
+              ],
+            },
+          ],
+        },
+        {
+          // A row that also holds something else is reported, and no swap is offered.
+          code: file("Button, Field, FieldLabel, Flex, TextField", `<Flex gap="3">${two}<Button>Save</Button></Flex>`),
+          errors: [{ messageId: "sideBySide", suggestions: [] }],
+        },
+      ],
+    });
+  });
+});
+
+const close = `<DialogClose render={<ToolbarButton iconOnly aria-label="Close"><X /></ToolbarButton>} />`;
+const band = `<Toolbar><ToolbarTitle render={<DialogTitle />}>Rename project</ToolbarTitle>${close}</Toolbar>`;
+const DIALOG = "Button, Dialog, DialogClose, DialogContent, DialogTitle, Flex, Toolbar, ToolbarButton, ToolbarTitle";
+
+describe("no-dialog-cancel — Close already cancels (SETTLED, settled for now 2026-11-25)", () => {
+  it("runs", () => {
+    tester.run("no-dialog-cancel", noDialogCancel, {
+      valid: [
+        file(DIALOG, `<Dialog><DialogContent>${band}<Toolbar><ToolbarButton emphasis="loud">Rename</ToolbarButton></Toolbar></DialogContent></Dialog>`),
+        // With no Close, Cancel is the only way out that a pointer has.
+        file(DIALOG, `<Dialog><DialogContent><DialogClose render={<Button>Cancel</Button>} /></DialogContent></Dialog>`),
+        // An alert dialog asks a question, and Cancel is one of its two answers.
+        `import { AlertDialog, AlertDialogCancel, AlertDialogContent } from "@kushagradhawan/kookie-ui-react";\nconst x = <AlertDialog><AlertDialogContent><AlertDialogCancel>Cancel</AlertDialogCancel></AlertDialogContent></AlertDialog>;`,
+        // "Cancel subscription" is an action, not the way out.
+        file(DIALOG, `<Dialog><DialogContent>${band}<Button>Cancel subscription</Button></DialogContent></Dialog>`),
+      ],
+      invalid: [
+        {
+          code: file(DIALOG, `<Dialog><DialogContent>${band}<Flex><DialogClose render={<Button emphasis="quiet">Cancel</Button>} /><Button emphasis="loud">Rename</Button></Flex></DialogContent></Dialog>`),
+          errors: [
+            {
+              messageId: "cancel",
+              suggestions: [
+                {
+                  messageId: "suggestRemove",
+                  output: file(DIALOG, `<Dialog><DialogContent>${band}<Flex><Button emphasis="loud">Rename</Button></Flex></DialogContent></Dialog>`),
+                },
+              ],
+            },
+          ],
+        },
+        {
+          code: file(DIALOG, `<Dialog><DialogContent>${band}<Button onClick={close}>Cancel</Button></DialogContent></Dialog>`),
+          errors: [{ messageId: "cancel", suggestions: 1 }],
+        },
+      ],
+    });
+  });
+});
+
+describe("prefer-toolbar — a panel's top row is a Toolbar (RULES 2)", () => {
+  it("runs", () => {
+    tester.run("prefer-toolbar", preferToolbar, {
+      valid: [
+        file(DIALOG, `<Dialog><DialogContent>${band}</DialogContent></Dialog>`),
+        // Grouping band items in a Flex cluster is how a band is written.
+        file(DIALOG, `<Dialog><DialogContent><Toolbar><ToolbarTitle render={<DialogTitle />}>Rename</ToolbarTitle><Flex>${close}</Flex></Toolbar></DialogContent></Dialog>`),
+        // A title under the band, with no button beside it, is one of the three settled tops.
+        file(DIALOG, `<Dialog><DialogContent><Toolbar>${close}</Toolbar><DialogTitle>Rename project</DialogTitle></DialogContent></Dialog>`),
+        // The consumer's own header may be a toolbar of theirs. The rule cannot read it.
+        file(DIALOG, `<Dialog><DialogContent><Header><DialogTitle>Rename</DialogTitle><Button>Save</Button></Header></DialogContent></Dialog>`),
+        // A close that says its name is an action in the content, not the X.
+        file(DIALOG, `<Dialog><DialogContent>${band}<DialogClose render={<Button>Done</Button>} /></DialogContent></Dialog>`),
+      ],
+      invalid: [
+        {
+          code: file(DIALOG, `<Dialog><DialogContent><Flex justify="space-between"><DialogTitle>Rename project</DialogTitle>${close}</Flex></DialogContent></Dialog>`),
+          // One row built by hand is one report, not one for the row and one for its X.
+          errors: [{ messageId: "rowByHand", data: { row: "Flex" } }],
+        },
+        {
+          code: file(DIALOG, `<Dialog><DialogContent><div className="head"><DialogTitle>Rename project</DialogTitle><Button>Save</Button></div></DialogContent></Dialog>`),
+          errors: [{ messageId: "rowByHand", data: { row: "div" } }],
+        },
+        {
+          code: `import { Popover, PopoverClose, PopoverContent, ToolbarButton } from "@kushagradhawan/kookie-ui-react";\nconst x = <Popover><PopoverContent><PopoverClose render={<ToolbarButton iconOnly aria-label="Close" />} /></PopoverContent></Popover>;`,
+          errors: [{ messageId: "closeByHand", data: { panel: "PopoverContent" } }],
+        },
+      ],
+    });
+  });
+});
+
+describe("prefer-toolbar-title — a title in a row is the row's own (RULES 2)", () => {
+  it("runs", () => {
+    tester.run("prefer-toolbar-title", preferToolbarTitle, {
+      valid: [
+        file(DIALOG, band),
+        // A heading outside any toolbar is an ordinary heading.
+        file("Heading, Stack", `<Stack><Heading>Billing</Heading></Stack>`),
+        // A screen's own section heading is not its title.
+        file("Heading, NavigatorScreen, Stack", `<NavigatorScreen title="Billing"><Stack><Heading>Current plan</Heading></Stack></NavigatorScreen>`),
+      ],
+      invalid: [
+        {
+          code: file("Heading, Toolbar", `<Toolbar><Heading size="4">Activity</Heading></Toolbar>`),
+          errors: [
+            {
+              messageId: "title",
+              data: { element: "Heading" },
+              suggestions: [
+                {
+                  messageId: "suggestToolbarTitle",
+                  output: file("Heading, Toolbar, ToolbarTitle", `<Toolbar><ToolbarTitle>Activity</ToolbarTitle></Toolbar>`),
+                },
+              ],
+            },
+          ],
+        },
+        {
+          code: file("DialogTitle, Flex, Toolbar, ToolbarTitle", `<Toolbar><Flex><DialogTitle>Rename project</DialogTitle></Flex></Toolbar>`),
+          errors: [
+            {
+              messageId: "title",
+              suggestions: [
+                {
+                  messageId: "suggestToolbarTitle",
+                  output: file("DialogTitle, Flex, Toolbar, ToolbarTitle", `<Toolbar><Flex><ToolbarTitle render={<DialogTitle />}>Rename project</ToolbarTitle></Flex></Toolbar>`),
+                },
+              ],
+            },
+          ],
+        },
+        {
+          code: file("Heading, NavigatorScreen, Stack", `<NavigatorScreen title="Billing"><Stack><Heading>Billing</Heading><Text>Pro</Text></Stack></NavigatorScreen>`),
+          errors: [{ messageId: "repeated", suggestions: 1 }],
+        },
+      ],
+    });
   });
 });

@@ -20,6 +20,7 @@
 
 import type { ESLint, Linter } from "eslint";
 
+import { noDialogCancel, preferFieldRow, preferToolbar, preferToolbarTitle } from "./composition.ts";
 import { noEscapeAbuse } from "./no-escape-abuse.ts";
 import { noRefusedAttribute } from "./no-refused-attribute.ts";
 import { noRefusedProp } from "./no-refused-prop.ts";
@@ -34,6 +35,10 @@ export const rules = {
   "no-refused-prop": noRefusedProp,
   "no-escape-abuse": noEscapeAbuse,
   "require-disable-reason": requireDisableReason,
+  "prefer-field-row": preferFieldRow,
+  "no-dialog-cancel": noDialogCancel,
+  "prefer-toolbar": preferToolbar,
+  "prefer-toolbar-title": preferToolbarTitle,
 } as const;
 
 /** Severity per rule, in one place, so `recommended` cannot disagree with the argument above. */
@@ -42,6 +47,11 @@ const SEVERITY: Readonly<Record<keyof typeof rules, Linter.RuleSeverity>> = {
   "no-refused-prop": "error",
   "no-escape-abuse": "warn",
   "require-disable-reason": "error",
+  // Composition. A fair exception exists for each, so a person gets a warning.
+  "prefer-field-row": "warn",
+  "no-dialog-cancel": "warn",
+  "prefer-toolbar": "warn",
+  "prefer-toolbar-title": "warn",
 };
 
 const plugin: ESLint.Plugin = {
