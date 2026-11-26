@@ -115,7 +115,8 @@ When Kushagra settles something new, add its line here in the same change.
   segmented controls stay on the text edge.
 - Two or more fields side by side go in a `FieldRow`. It sets the space between them. Never lay
   fields out in a `Grid` or `Flex` with a gap of your own: their boxes will collide.
-  In development the console warns once when it finds two fields side by side outside one.
+  In development the console warns once when it finds two fields side by side outside one,
+  and the linter reports it in the editor (`prefer-field-row`).
 - A dialog, sheet or popover whose content scrolls can end with a toolbar for its action. That
   toolbar floats over the content like the top one. Give the scroll area `fade`.
 - A Notice has two distances, never one gap for everything: its icon and words are one group,
@@ -124,7 +125,8 @@ When Kushagra settles something new, add its line here in the same change.
 - Settled for now (Kushagra, 2026-11-25: "this isn't fixed, i might change my mind", then
   "settled for now"). Follow both; if one looks wrong in practice, say so:
   - A dialog needs no Cancel button, because Close already does that, and its one main action
-    sits alone in a toolbar at the bottom, at the trailing edge.
+    sits alone in a toolbar at the bottom, at the trailing edge. The linter reports a Cancel
+    beside Close (`no-dialog-cancel`).
   - In a dialog, sheet or popover the region decides glass, not the kind of control: anything
     in a toolbar, top or bottom, is real glass, and anything in the content keeps the on-glass
     look.

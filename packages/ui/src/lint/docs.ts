@@ -12,7 +12,7 @@ export const DOCS_ORIGIN = "https://ui.kookie.design";
 
 /** Every page a rule links, by the job the page does for the report. */
 export const DOCS_PAGES = {
-  linter: "/build/agents",
+  linter: "/build/linter",
   layout: "/foundations/layout",
   color: "/foundations/color",
   depth: "/foundations/depth",

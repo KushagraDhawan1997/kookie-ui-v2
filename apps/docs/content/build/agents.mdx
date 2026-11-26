@@ -8,13 +8,15 @@ commands on this page don't work until they are published.
 
 When an agent writes a prop Kookie does not accept, the type error names the prop, and for most
 props it says what to write instead. `variant` points to `tone` and `emphasis`, and `asChild`
-points to `render`. The lint rule below covers `color`. Each
+points to `render`. The linter below covers `color`. Each
 component's description also ships in its `.d.ts` file, so an agent can read it offline.
 
-## Lint what the type checker can't see
+## Turn on the linter
 
-The ESLint plugin catches a `data-tone` attribute, a utility class, a raw colour or length in
-`style`, and a refused prop inside a spread. Every message says what to write instead.
+The linter ships in the package. It reports a `data-tone` attribute, a utility class, a colour
+or a length written in `style`, a refused prop inside a spread, and code that breaks a
+composition rule, such as two fields side by side outside a `FieldRow`. Each report says what
+to write instead and links the page. The [Linter](/build/linter) chapter lists every rule.
 
 ```js title="eslint.config.mjs"
 import tseslint from "typescript-eslint";
@@ -22,7 +24,7 @@ import kookie from "@kushagradhawan/kookie-ui-react/eslint-plugin";
 
 export default [
   { files: ["**/*.tsx"], languageOptions: { parser: tseslint.parser } },
-  ...kookie.configs.recommended,
+  ...kookie.configs.strict,
 ];
 ```
 
@@ -31,7 +33,9 @@ export default [
 The package ships every page of these docs as Markdown, at the version you installed. This command
 adds a block to `AGENTS.md`, `CLAUDE.md` or your Cursor and Copilot files. The block holds the rules
 and tells your agent which page to read before it builds a form, a dialog or an app frame. Without
-the write flag it only prints the plan. Run it again after each upgrade.
+the write flag it only prints the plan. Run it again after each upgrade. The same command adds the
+linter to an ESLint flat config that your project already has. With the hook flag, Claude Code runs
+the linter each time it finishes. The [Linter](/build/linter) chapter shows the command.
 
 ```bash
 npx @kushagradhawan/kookie-ui-react init --write
