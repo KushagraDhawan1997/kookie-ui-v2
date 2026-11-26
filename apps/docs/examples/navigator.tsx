@@ -12,6 +12,7 @@ import {
   Field,
   FieldDescription,
   FieldLabel,
+  FieldRow,
   Flex,
   Grid,
   Navigator,
@@ -170,7 +171,7 @@ function Payment() {
               autoComplete="cc-number"
             />
           </Field>
-          <Grid columns="1fr 1fr" gap="3">
+          <FieldRow>
             <Field>
               <FieldLabel>Expiry (MM/YY)</FieldLabel>
               <TextField autoComplete="cc-exp" />
@@ -179,7 +180,7 @@ function Payment() {
               <FieldLabel>CVC</FieldLabel>
               <TextField autoComplete="cc-csc" />
             </Field>
-          </Grid>
+          </FieldRow>
           <Field>
             <FieldLabel>Country</FieldLabel>
             <Select defaultValue="us" items={{ us: "United States", gb: "United Kingdom", in: "India" }}>

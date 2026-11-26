@@ -48,6 +48,7 @@ import {
   Field,
   FieldDescription,
   FieldLabel,
+  FieldRow,
   Flex,
   Grid,
   Navigator,
@@ -206,7 +207,7 @@ function Payment() {
               autoComplete="cc-number"
             />
           </Field>
-          <Grid columns="1fr 1fr" gap="3">
+          <FieldRow>
             <Field>
               <FieldLabel>Expiry (MM/YY)</FieldLabel>
               <TextField autoComplete="cc-exp" />
@@ -215,7 +216,7 @@ function Payment() {
               <FieldLabel>CVC</FieldLabel>
               <TextField autoComplete="cc-csc" />
             </Field>
-          </Grid>
+          </FieldRow>
           <Field>
             <FieldLabel>Country</FieldLabel>
             <Select defaultValue="us" items={{ us: "United States", gb: "United Kingdom", in: "India" }}>
@@ -363,8 +364,8 @@ import {
   Field,
   FieldDescription,
   FieldLabel,
+  FieldRow,
   Flex,
-  Grid,
   Navigator,
   NavigatorScreen,
   NumberField,
@@ -526,7 +527,7 @@ function Payment() {
             <FieldLabel>Card number</FieldLabel>
             <TextField autoComplete="cc-number" />
           </Field>
-          <Grid columns="1fr 1fr" gap="3">
+          <FieldRow>
             <Field>
               <FieldLabel>Expiry (MM/YY)</FieldLabel>
               <TextField autoComplete="cc-exp" />
@@ -535,7 +536,7 @@ function Payment() {
               <FieldLabel>CVC</FieldLabel>
               <TextField autoComplete="cc-csc" />
             </Field>
-          </Grid>
+          </FieldRow>
         </Stack>
         {/* A finished purchase goes back to Billing, now showing the new plan. */}
         <Button

@@ -70,11 +70,12 @@ export default function Invite() {
             </RadioGroup>
           </Field>
 
-          <Flex gap="3" justify="flex-end">
-            <DialogClose render={<Button emphasis="quiet">Cancel</Button>} />
-            <Button emphasis="loud">Send invite</Button>
-          </Flex>
         </Stack>
+        <Toolbar aria-label="Actions">
+          <Flex flexGrow="1" justify="flex-end" gap="3">
+            <ToolbarButton emphasis="loud">Send invite</ToolbarButton>
+          </Flex>
+        </Toolbar>
       </DialogContent>
     </Dialog>
   );
