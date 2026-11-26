@@ -162,6 +162,9 @@ rule of thumb that it overrules. If one looks wrong for your case, say so and as
 - In a Field, the label, the value inside the text field, the description and the error share
   one left edge. The text field's box sticks out past that edge on both sides, by its own
   inner padding. Don't inset the label instead, and don't add padding to line things up.
+- In a dialog with a field, the field's box, the buttons and the text end on three different
+  right edges (18, 29 and 33px at the default size). That is accepted. Don't flag it or even
+  them out.
 - Two or more fields side by side go in a `FieldRow`. It sets the space between them. Never lay
   fields out in a `Grid` or `Flex` with a gap of your own: their boxes will collide.
 - A dialog, sheet or popover whose content scrolls can end with a toolbar for its action. That
