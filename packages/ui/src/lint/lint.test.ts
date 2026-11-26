@@ -73,7 +73,7 @@ describe("no-refused-attribute — the hole TSX leaves open (§9, §12)", () => 
       invalid: [
         {
           code: withImport(`<Card data-tone="destructive" />`),
-          errors: [{ messageId: "refused", data: { attribute: "data-tone", axis: "tone" } }],
+          errors: [{ messageId: "refused", data: { attribute: "data-tone", axis: "tone", element: "Card" } }],
         },
         {
           // The pair that actually re-grew the deleted `variant` axis from a call site.

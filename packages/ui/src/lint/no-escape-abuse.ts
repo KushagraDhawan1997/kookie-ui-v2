@@ -22,6 +22,8 @@
 
 import type { Rule } from "eslint";
 
+import { docs } from "./docs.ts";
+
 import { LAYOUT_SYMBOLS, typeRefusalsFor } from "../system/refusal-sets.ts";
 
 import { isOwnedProperty, kebab, normalizeProperty, propFor } from "./owned-properties.ts";
@@ -88,20 +90,25 @@ export const noEscapeAbuse: Rule.RuleModule = {
       // Every message names the replacement. A warning that only says "do not" leaves the call
       // site to invent something, and what it invents is usually a wrapper div with a class.
       utility:
-        "`{{className}}` is a utility class on `<{{element}}>` — {{sentence}}. Utility classes are not shipped, and one arriving through `className` is a second spacing system.",
+        "`{{className}}` on `<{{element}}>` is a utility class, and Kookie UI ships none. Use this instead: {{sentence}}. Docs: " +
+        docs("layout"),
       rawColor:
-        "`{{property}}: {{value}}` writes a colour out on `<{{element}}>`. Appearance is resolved output: choose it with the `tone` and `emphasis` props, or reach a token through `style` as `var(--color-…)`.",
+        "`{{property}}: {{value}}` on `<{{element}}>` is a colour written by hand. Use the `tone` and `emphasis` props, or a colour token in `style`, such as `var(--color-text)`. Docs: " +
+        docs("color"),
       ownedLength:
-        "`{{property}}: {{value}}` is a raw length on `<{{element}}>` for a property the `{{prop}}` prop owns. Pass `{{prop}}` with a space index; `style` is for the CSS this system has no prop for.",
+        "`{{property}}: {{value}}` on `<{{element}}>` is a length written by hand. Use the `{{prop}}` prop with a step from the space scale. Docs: " +
+        docs("layout"),
       // The SAME defect the message above would otherwise commit, one element over: `propFor`
       // reads the Box prop table, and only the four layouts take those props — so telling a
       // Button to "pass `m`" named a prop `refused.ts` refuses on it, which is a report whose
       // repair does not compile (2026-09-07, the audit). The escape is the refusal's own
       // sentence, taken from the one home that states it.
       ownedLengthRefused:
-        "`{{property}}: {{value}}` is a raw length on `<{{element}}>`, and `{{prop}}` is not a prop it takes. {{why}}",
+        "`{{property}}: {{value}}` on `<{{element}}>` is spacing written by hand, and `<{{element}}>` takes no `{{prop}}` prop. {{why}} Docs: " +
+        docs("layout"),
       ownedLengthInner:
-        "`{{property}}: {{value}}` is a raw length on `<{{element}}>`. Inner spacing is the system's: it is priced per `size` and re-picked per `density`, so a component takes no `{{prop}}`. Wrap the content in a `<Box {{prop}}=\"…\">` if the distance is yours to choose.",
+        "`{{property}}: {{value}}` on `<{{element}}>` is spacing written by hand. The space inside a component follows its `size`, so `<{{element}}>` takes no `{{prop}}` prop. To choose the distance yourself, wrap the content in `<Box {{prop}}=\"…\">`. Docs: " +
+        docs("layout"),
     },
   },
   create(context) {

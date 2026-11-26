@@ -31,6 +31,8 @@
 
 import type { Rule } from "eslint";
 
+import { docs } from "./docs.ts";
+
 import { REFUSAL_SETS, typeRefusalsFor } from "../system/refusal-sets.ts";
 import { createTracker, isKookieElement, recordImport, type SymbolTracker } from "./kookie-symbols.ts";
 
@@ -83,9 +85,10 @@ export const noRefusedProp: Rule.RuleModule = {
       // The sentence is `refused.ts`'s own, passed through verbatim. A second wording here
       // would be a second answer to the same question, which is the defect the whole agent
       // surface exists to close.
-      refused: "{{why}}",
+      refused: "{{why}} Docs: " + docs("linter"),
       spread:
-        "`{{prop}}` is spread onto `<{{element}}>`, and a spread goes past the type — TypeScript excess-property-checks an attribute and not a spread. {{why}}",
+        "`{{prop}}` reaches `<{{element}}>` through a spread, and the type checker does not check a spread. {{why}} Docs: " +
+        docs("linter"),
     },
   },
   create(context) {

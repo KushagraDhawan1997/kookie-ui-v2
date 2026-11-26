@@ -128,3 +128,23 @@ When Kushagra settles something new, add its line here in the same change.
   - In a dialog, sheet or popover the region decides glass, not the kind of control: anything
     in a toolbar, top or bottom, is real glass, and anything in the content keeps the on-glass
     look.
+
+## The linter
+
+- Kookie UI ships a linter, inside the package, at `@kushagradhawan/kookie-ui-react/eslint-plugin`.
+  It is no longer limited to what the type checker cannot see: it also checks composition,
+  hand-written style and missing pieces. (Kushagra, 2026-11-26)
+- Two ready-made sets. `recommended` is the default: an error only when the code is always wrong,
+  a warning where a fair exception exists. `strict` holds the same rules, all errors, for agents
+  and new projects.
+- Every lint message has three parts: what is wrong, what to use instead, and a link to the docs
+  page. The wording follows `RULES.md` and this file.
+- A comment that turns a Kookie rule off must give a reason after ` -- `. With no reason it is
+  an error in both sets.
+- A rule fixes the code by itself only when there is exactly one right answer. When the answer
+  is a judgement it offers a fix to choose. When it cannot know the answer it only reports.
+- Each rule belongs to the earliest checker that can see it. The linter owns what one file of
+  code shows. A development console warning covers what is only known while the app runs. The
+  screen check covers what only the rendered page shows.
+- The rules are written once, in ESLint's rule format, and use no type information, so Oxlint
+  can run them too.
