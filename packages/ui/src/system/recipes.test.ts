@@ -1107,6 +1107,10 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
       // One pointer-down commitment each, no per-frame work.
       "components/combobox/combobox.tsx": ["onMouseDown"],
       "components/number-field/number-field.tsx": ["onMouseDown"],
+      // Two Fields side by side outside a FieldRow (§28, 2026-11-26, Kushagra: "Yes" to a dev
+      // warning). DEV-ONLY, one frame after mount, two box reads, no style written and nothing
+      // observed. "Side by side" is not a fact a prop holds, so the page is where it is read.
+      "components/field/field.tsx": ["requestAnimationFrame", "getBoundingClientRect"],
       // The floating layer (§20): a portalled panel takes its author's direction, so the
       // ambient direction is READ off the trigger (or the document) and a MutationObserver on
       // the document element catches a language switch that changes `dir` with no React render.

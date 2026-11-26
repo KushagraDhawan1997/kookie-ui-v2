@@ -1897,7 +1897,7 @@ function FieldSection() {
           it. The label's step is the control's own, by derivation rather than by a table. */}
       <Stack gap="4">
         <Text size="2" emphasis="medium">One index, the whole unit</Text>
-        <Flex gap="9" wrap="wrap" align="start">
+        <FieldRow columns="repeat(auto-fill, minmax(15rem, 1fr))">
           {(["1", "2", "3", "4"] as const).map((size) => (
             <Box key={size} width="14rem">
               <Field size={size}>
@@ -1907,7 +1907,7 @@ function FieldSection() {
               </Field>
             </Box>
           ))}
-        </Flex>
+        </FieldRow>
       </Stack>
 
       {/* And an explicit index on the control still wins, which is what keeps the supply from

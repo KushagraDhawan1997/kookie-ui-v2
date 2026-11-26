@@ -20,7 +20,7 @@ import {
   Button,
   Card,
   Code,
-  Field,
+  Field, FieldRow,
   FieldDescription,
   FieldError,
   FieldLabel,
@@ -549,7 +549,7 @@ function Nesting() {
           box. An explicit `size` on the control still wins, which is what makes a size context
           safe to have at all; the last cell is that rail. */}
       <Demo label="Inside a Field — one index for the label, the description and the box">
-        <Grid columns="repeat(4, minmax(0, 1fr))" gapX="9" gapY="5" align="flex-start">
+        <FieldRow columns="repeat(4, minmax(0, 1fr))">
           {SIZES.map((size) => (
             <Field key={size} size={size}>
               <FieldLabel>Workspace name</FieldLabel>
@@ -562,7 +562,7 @@ function Nesting() {
             <TextField size="1" defaultValue="Kookie" />
             <FieldDescription>The field said 4; the control said 1 and kept it.</FieldDescription>
           </Field>
-        </Grid>
+        </FieldRow>
       </Demo>
 
       {/* Where it lands on a pane. A field inside a card must not read as a second card: it

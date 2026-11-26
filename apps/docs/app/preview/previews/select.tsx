@@ -24,7 +24,7 @@ import {
   DialogDescription,
   DialogTitle,
   DialogTrigger,
-  Field,
+  Field, FieldRow,
   FieldDescription,
   FieldError,
   FieldLabel,
@@ -292,7 +292,7 @@ function States() {
           it. Read the trigger's boundary against the live one beside it, and check that the
           chevron and the value do not change with it: an invalid select is still a select. */}
       <Demo label="Invalid, inside the unit that announces it — only the boundary moves">
-        <Flex gap="9" align="flex-start" wrap="wrap">
+        <FieldRow columns="repeat(auto-fill, minmax(15rem, 1fr))">
           <Box width="16rem">
             <Field>
               <FieldLabel>Region</FieldLabel>
@@ -318,7 +318,7 @@ function States() {
               <FieldError match={true}>Choose a region before deploying.</FieldError>
             </Field>
           </Box>
-        </Flex>
+        </FieldRow>
       </Demo>
       {/* WIDTH, both facts together (audit 2026-08-09): a trigger grows to fit its chosen value
           unless something bounds it, and inside a bound it ellipsizes rather than pushing out.
@@ -524,7 +524,7 @@ function Nesting() {
           context (§28), so nothing states it twice. Read the label's step against the trigger's
           value: they are the same step by derivation, not by a table. */}
       <Demo label="Inside a field — one index prices the label, the description and the control">
-        <Flex gap="9" align="flex-start" wrap="wrap">
+        <FieldRow columns="repeat(auto-fill, minmax(15rem, 1fr))">
           {SIZES.map((size) => (
             <Box key={size} width="15rem">
               <Field size={size as Size}>
@@ -539,7 +539,7 @@ function Nesting() {
               </Field>
             </Box>
           ))}
-        </Flex>
+        </FieldRow>
       </Demo>
       {/* A SELECT INSIDE A MODAL is the composition that can actually break: both portal, so
           §20's stacking frame orders them by DOM position rather than by a z-index ladder. Open
@@ -623,7 +623,7 @@ function Nesting() {
               </Text>
             </Stack>
           </Card>
-          <Flex gap="8" align="flex-end" wrap="wrap">
+          <FieldRow columns="repeat(auto-fill, minmax(15rem, 1fr))">
             <Box width="14rem">
               <Field>
                 <FieldLabel>Continent</FieldLabel>
@@ -650,7 +650,7 @@ function Nesting() {
                 </Select>
               </Field>
             </Box>
-          </Flex>
+          </FieldRow>
         </Stack>
       </Demo>
     </Stack>

@@ -4,6 +4,7 @@ import type { ComponentRefusals } from "../../system/refused.ts";
 import { Field as BaseField } from "@base-ui/react/field";
 import * as React from "react";
 import { Grid, type GridProps } from "../grid/grid.tsx";
+import { DEV } from "../../system/dev.ts";
 
 import type { Size } from "../../system/axes.ts";
 import { SizeScopeContext, useSize } from "../../system/size.ts";
@@ -106,11 +107,13 @@ const FieldTypeContext = React.createContext<Size>(themeDefaults.size);
  */
 export function Field({ size: sizeProp, className, children, ...props }: FieldProps) {
   const size = useSize(sizeProp);
+  const warnRef = useSideBySideWarning();
   return (
     <SizeScopeContext.Provider value={size}>
       <FieldTypeContext.Provider value={size}>
         <BaseField.Root
           {...props}
+          ref={warnRef}
           // The size as a class, so the control can overflow by the inset it gives its own text
           // at this size (field.css). A class and not `data-size`: the field is not a control.
           className={`kui-field-group kui-field-size-${size}${className ? ` ${className}` : ""}`}
@@ -120,6 +123,82 @@ export function Field({ size: sizeProp, className, children, ...props }: FieldPr
       </FieldTypeContext.Provider>
     </SizeScopeContext.Provider>
   );
+}
+
+/* The warning is said once for the page, not once per field: a form of ten fields in a grid is
+   one mistake. */
+let sideBySideSaid = false;
+
+/* The field's text box, when it has one. Only a text box overflows (field.css), so a field of
+   marks, a slider or a segmented control beside another is nobody's problem. */
+const textBox = (field: Element): Element | null =>
+  field.querySelector(":scope > .kui-field, :scope > .kui-textarea");
+
+/* Through a wrapper that holds nothing else: `<Box><Field/></Box>` in a grid is still that
+   field in that grid. Two levels, which is a Box and a layout part. */
+function soleDescendantField(el: Element): Element | null {
+  let node: Element | null = el;
+  for (let depth = 0; node && depth < 3; depth += 1) {
+    if (node.classList.contains("kui-field-group")) return node;
+    node = node.childElementCount === 1 ? node.firstElementChild : null;
+  }
+  return null;
+}
+
+/**
+ * TWO FIELDS SIDE BY SIDE WANT A `FieldRow` (2026-11-26, Kushagra, of fields overlapping in a
+ * plain grid: "How do we give dev warning for this?", then "Yes").
+ *
+ * A field's text box reaches past its label on both sides, so in a caller's own grid or row the
+ * boxes overlap, and nothing told the caller why. Development only, once per page load, a
+ * warning and not an error. It is silent for stacked fields, for a `FieldRow`, and for a field
+ * with no text box.
+ *
+ * Read from the page after paint because "side by side" is not a fact any prop holds: a `Flex`,
+ * a `Grid`, a caller's own class and a `render` element all lay fields in a row, and one grid
+ * is a column on a phone and a row on a desktop. One read, on mount, never again.
+ */
+function useSideBySideWarning(): (node: HTMLElement | null) => void {
+  return React.useCallback((node: HTMLElement | null) => {
+    if (!DEV || !node || sideBySideSaid) return;
+    requestAnimationFrame(() => {
+      if (sideBySideSaid || !node.isConnected) return;
+      const own = textBox(node);
+      if (!own) return;
+      // Out through sole-child wrappers to the element that actually arranges the fields.
+      let item: Element = node;
+      for (let depth = 0; depth < 2; depth += 1) {
+        const up: Element | null = item.parentElement;
+        if (!up || up.childElementCount !== 1) break;
+        item = up;
+      }
+      const arranger = item.parentElement;
+      if (!arranger || arranger.classList.contains("kui-field-row")) return;
+      const box = own.getBoundingClientRect();
+      for (const sibling of arranger.children) {
+        if (sibling === item) continue;
+        const other = soleDescendantField(sibling);
+        const otherOwn = other && textBox(other);
+        if (!otherOwn) continue;
+        const rect = otherOwn.getBoundingClientRect();
+        // Side by side: the two boxes share some height and do not start at the same edge.
+        const sharesRow = rect.top < box.bottom && rect.bottom > box.top;
+        if (!sharesRow || Math.abs(rect.left - box.left) < 1) continue;
+        sideBySideSaid = true;
+        console.warn(
+          "[kookie-ui] Two <Field>s sit side by side outside a <FieldRow>. A field's box " +
+            "reaches past its label on both sides, so in a grid or row of your own the boxes " +
+            "overlap. Wrap them in <FieldRow> and it sets the space between them.",
+        );
+        return;
+      }
+    });
+  }, []);
+}
+
+/** For the tests: forget that the side-by-side warning was said. Not exported from the package. */
+export function resetSideBySideWarning(): void {
+  sideBySideSaid = false;
 }
 
 /** The props of a `FieldRow`: the fields it lays side by side, and an optional size for them. */

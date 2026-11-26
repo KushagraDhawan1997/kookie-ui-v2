@@ -4,15 +4,25 @@
  * measured against a MOUNTED TWIN rather than against a token, because the claim is "the same
  * as a control that stated it itself" and a token comparison is one indirection short of that.
  */
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { APPEARANCES, colorOn, computed, mounted, within } from "../../test/browser.tsx";
+import { APPEARANCES, colorOn, computed, mounted, render, within } from "../../test/browser.tsx";
 import { Checkbox } from "../checkbox/checkbox.tsx";
 import { Box } from "../box/box.tsx";
 import { Card } from "../card/card.tsx";
 import { TextField } from "../text-field/text-field.tsx";
 import { Radio, RadioGroup } from "../radio/radio.tsx";
-import { Field, FieldDescription, FieldError, FieldItem, FieldLabel, FieldRow } from "./field.tsx";
+import { Grid } from "../grid/grid.tsx";
+import { Stack } from "../stack/stack.tsx";
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldItem,
+  FieldLabel,
+  FieldRow,
+  resetSideBySideWarning,
+} from "./field.tsx";
 
 /** The whole unit, in the order §28 argues for. */
 const unit = (
@@ -683,5 +693,100 @@ describe("FieldRow lays fields side by side and owns the space between them (202
         1,
       );
     }
+  });
+});
+
+/**
+ * THE WARNING (2026-11-26, Kushagra, of fields overlapping in a plain grid: "How do we give dev
+ * warning for this?", then "Yes"). A `FieldRow` cannot help the caller who never heard of it, so
+ * the field says so itself: once, in development, when it finds another field beside it in a
+ * row that is not a `FieldRow`. Every silent case below is one the warning must not cry about.
+ */
+describe("two fields side by side outside a FieldRow are told about it (§28, 2026-11-26)", () => {
+  const SAID = "side by side outside a <FieldRow>";
+  const name = (label: string) => (
+    <Field>
+      <FieldLabel>{label}</FieldLabel>
+      <TextField />
+    </Field>
+  );
+  /** Long enough for the frame the warning waits, when the claim is that nothing is said. */
+  const settled = () => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
+  const said = (warn: { mock: { calls: unknown[][] } }) =>
+    warn.mock.calls.filter(([msg]) => String(msg).includes(SAID)).length;
+
+  // Before as well as after: an earlier law in this file may already have used the one warning.
+  beforeEach(() => resetSideBySideWarning());
+  afterEach(() => {
+    resetSideBySideWarning();
+    vi.restoreAllMocks();
+  });
+
+  it("a grid of the caller's own is warned, once for the page however many fields it holds", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    render(
+      <Box style={{ inlineSize: "40rem" }}>
+        <Grid columns="repeat(3, minmax(0, 1fr))" gap="5">
+          {name("First name")}
+          {name("Middle name")}
+          {name("Surname")}
+        </Grid>
+      </Box>,
+    );
+    await vi.waitFor(() => expect(said(warn)).toBe(1));
+    await settled();
+    expect(said(warn)).toBe(1);
+  });
+
+  it("a field inside a wrapper is still a field in that grid", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    render(
+      <Box style={{ inlineSize: "40rem" }}>
+        <Grid columns="repeat(2, minmax(0, 1fr))" gap="5">
+          <Box>{name("First name")}</Box>
+          <Box>{name("Surname")}</Box>
+        </Grid>
+      </Box>,
+    );
+    await vi.waitFor(() => expect(said(warn)).toBe(1));
+  });
+
+  it("a FieldRow is silent, and so are stacked fields", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    render(
+      <Box style={{ inlineSize: "40rem" }}>
+        <Stack gap="5">
+          {/* Columns stated, so the row IS a row at the suite's window width and the silence
+              below is the row's, not a narrow window's. */}
+          <FieldRow columns="repeat(2, minmax(0, 1fr))">
+            {name("First name")}
+            {name("Surname")}
+          </FieldRow>
+          {name("Email")}
+          {name("Phone")}
+        </Stack>
+      </Box>,
+    );
+    await settled();
+    expect(said(warn)).toBe(0);
+  });
+
+  it("fields with no text box are silent: a mark has nothing that reaches out", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    render(
+      <Box style={{ inlineSize: "40rem" }}>
+        <Grid columns="repeat(2, minmax(0, 1fr))" gap="5">
+          <Field>
+            <FieldItem>
+              <Checkbox />
+              <FieldLabel>Email me</FieldLabel>
+            </FieldItem>
+          </Field>
+          {name("Surname")}
+        </Grid>
+      </Box>,
+    );
+    await settled();
+    expect(said(warn)).toBe(0);
   });
 });

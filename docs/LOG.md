@@ -8,6 +8,12 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-11-26 Two fields side by side outside a FieldRow print a development warning
+
+`FieldRow` cannot help the caller who never heard of it. Two fields in a plain grid overlap by 14px, and Kushagra asked "How do we give dev warning for this?", then "Yes". A `Field` now looks, one frame after it mounts, for another field with a text box beside it in a parent that is not a `FieldRow`, and says so in the console: development only, once per page load, a warning and not an error. It is silent for stacked fields, for a `FieldRow`, and for a field of marks.
+
+It reads the page because "side by side" is not a fact any prop holds: one grid is a column on a phone and a row on a desktop. That is a new measuring exemption for `field.tsx` in `recipes.test.ts`, licensed by his yes. **Rejected: warning only when the boxes actually overlap.** A gap typed wide enough by hand is still a number somebody typed, which the row exists to remove. The preview page's own specimen rows moved onto `FieldRow` for the same reason. A linter for the same class of mistake is being researched in its own thread.
+
 ## 2026-11-26 A field's box overflows its words, surfaces pad one step more, and the foot band floats
 
 One evening on a scratch page, four changes that only work together.

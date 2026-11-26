@@ -15,7 +15,7 @@ import {
   Button,
   Card,
   Code,
-  Field,
+  Field, FieldRow,
   FieldDescription,
   FieldError,
   FieldLabel,
@@ -353,7 +353,7 @@ function Nesting() {
       {/* Where it lands: inside a Field, which states the index for the label, the description
           and the box at once. An explicit size on the control still wins — the last cell. */}
       <Demo label="Inside a Field — one index for the label, the description and the box">
-        <Grid columns="repeat(auto-fill, minmax(15rem, 1fr))" gapX="9" gapY="5" align="flex-start">
+        <FieldRow columns="repeat(auto-fill, minmax(15rem, 1fr))">
           {SIZES.map((size) => (
             <Field key={size} size={size}>
               <FieldLabel>Seats</FieldLabel>
@@ -366,7 +366,7 @@ function Nesting() {
             <NumberField size="1" defaultValue={12} />
             <FieldDescription>The field said 4; the control said 1 and kept it.</FieldDescription>
           </Field>
-        </Grid>
+        </FieldRow>
       </Demo>
 
       {/* On a pane. A field in a card casts nothing and keeps the control band's corner; on

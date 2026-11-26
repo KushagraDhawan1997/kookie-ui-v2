@@ -31,7 +31,7 @@ import {
   DialogDescription,
   DialogTitle,
   DialogTrigger,
-  Field,
+  Field, FieldRow,
   FieldDescription,
   FieldError,
   FieldLabel,
@@ -303,7 +303,7 @@ function States() {
       {/* INVALID is a field-family state from the shared layer, shown inside the unit that
           announces it. Only the boundary moves; the chevron and the value do not. */}
       <Demo label="Invalid, inside the unit that announces it — only the boundary moves">
-        <Flex gap="9" align="flex-start" wrap="wrap">
+        <FieldRow columns="repeat(auto-fill, minmax(15rem, 1fr))">
           <Box width="16rem">
             <Field>
               <FieldLabel>Region</FieldLabel>
@@ -319,7 +319,7 @@ function States() {
               <FieldError match={true}>Choose a region before deploying.</FieldError>
             </Field>
           </Box>
-        </Flex>
+        </FieldRow>
       </Demo>
       {/* Options whose label is not their value: the field shows the label, the form submits the
           value. Pick one and read the field. */}
@@ -450,7 +450,7 @@ function Nesting() {
     <Stack gap="6">
       {/* Inside a Field, the ordinary case: the field supplies the label, description and SIZE. */}
       <Demo label="Inside a field — one index prices the label, the description and the control">
-        <Flex gap="9" align="flex-start" wrap="wrap">
+        <FieldRow columns="repeat(auto-fill, minmax(15rem, 1fr))">
           {SIZES.map((size) => (
             <Box key={size} width="15rem">
               <Field size={size as Size}>
@@ -460,7 +460,7 @@ function Nesting() {
               </Field>
             </Box>
           ))}
-        </Flex>
+        </FieldRow>
       </Demo>
       {/* Inside a modal, both portal: the panel must land above the dialog, and Escape must close
           only the list. */}
@@ -515,7 +515,7 @@ function Nesting() {
       {/* Self-nesting is not expressible: the panel is a listbox, which holds only options and
           groups. Two dependent choices are two controls side by side. */}
       <Demo label="A combobox inside a combobox — refused; two dependent choices are two controls">
-        <Flex gap="8" align="flex-end" wrap="wrap">
+        <FieldRow columns="repeat(auto-fill, minmax(15rem, 1fr))">
           <Box width="14rem">
             <Field>
               <FieldLabel>Continent</FieldLabel>
@@ -535,7 +535,7 @@ function Nesting() {
               <RegionCombobox defaultValue="London" />
             </Field>
           </Box>
-        </Flex>
+        </FieldRow>
       </Demo>
     </Stack>
   );

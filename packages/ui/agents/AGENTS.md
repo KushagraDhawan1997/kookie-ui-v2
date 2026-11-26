@@ -170,6 +170,7 @@ rule of thumb that it overrules. If one looks wrong for your case, say so and as
   segmented controls stay on the text edge.
 - Two or more fields side by side go in a `FieldRow`. It sets the space between them. Never lay
   fields out in a `Grid` or `Flex` with a gap of your own: their boxes will collide.
+  In development the console warns once when it finds two fields side by side outside one.
 - A dialog, sheet or popover whose content scrolls can end with a toolbar for its action. That
   toolbar floats over the content like the top one. Give the scroll area `fade`.
 - A Notice has two distances, never one gap for everything: its icon and words are one group,
