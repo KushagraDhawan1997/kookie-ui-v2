@@ -15,23 +15,29 @@
  */
 import * as React from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Cancel01Icon } from "@hugeicons/core-free-icons";
+import { Cancel01Icon, MoreHorizontalIcon } from "@hugeicons/core-free-icons";
 import {
   Box,
   Button,
   Card,
+  Checkbox,
   Dialog,
   DialogClose,
   DialogContent,
   DialogDescription,
   DialogTitle,
   DialogTrigger,
+  Field,
+  FieldItem,
+  FieldLabel,
+  FieldRow,
   Flex,
   Heading,
   Menu,
   MenuContent,
   MenuItem,
   MenuTrigger,
+  Row,
   ScrollArea,
   Select,
   SelectContent,
@@ -39,12 +45,12 @@ import {
   SelectTrigger,
   Separator,
   Stack,
-  Switch,
   Text,
   TextField,
   Theme,
   Toolbar,
   ToolbarButton,
+  ToolbarGroup,
   ToolbarTitle,
   iconStroke,
   themeAxes,
@@ -92,7 +98,32 @@ type Size = "1" | "2" | "3" | "4";
  * alone, so this is a composition decision the specimen demonstrates rather than a behaviour
  * the component provides.
  */
-function SignIn({ size = "3" }: { size?: Size }) {
+/** The region list, with one row chosen, so the action has something to act on. */
+function RegionList() {
+  const [chosen, setChosen] = React.useState("Frankfurt");
+  return (
+    <Stack gap="1" role="listbox" aria-label="Regions">
+      {REGIONS.map((r) => (
+        <Row
+          key={r.city}
+          role="option"
+          aria-selected={r.city === chosen}
+          highlighted={r.city === chosen}
+          onClick={() => setChosen(r.city)}
+          trailing={
+            <Text size="2" emphasis="medium">
+              {r.ms} ms
+            </Text>
+          }
+        >
+          {r.city}
+        </Row>
+      ))}
+    </Stack>
+  );
+}
+
+function SignIn({ size }: { size?: Size }) {
   return (
     <>
       <Toolbar>
@@ -108,8 +139,14 @@ function SignIn({ size = "3" }: { size?: Size }) {
       <Stack gap="6">
         <DialogDescription>Use your work email to continue.</DialogDescription>
         <Stack gap="5">
-          <TextField size={size} type="email" placeholder="you@company.com" aria-label="Email" />
-          <TextField size={size} type="password" placeholder="Password" aria-label="Password" />
+          <Field {...(size ? { size } : {})}>
+            <FieldLabel>Email</FieldLabel>
+            <TextField type="email" placeholder="you@company.com" />
+          </Field>
+          <Field {...(size ? { size } : {})}>
+            <FieldLabel>Password</FieldLabel>
+            <TextField type="password" />
+          </Field>
         </Stack>
       </Stack>
       <Toolbar aria-label="Actions">
@@ -224,16 +261,14 @@ function States() {
                 />
               </Toolbar>
               <Stack gap="6">
-                <DialogDescription>Pick a branch and name the environment.</DialogDescription>
+                <DialogDescription>Tell us where the code lives and how to build it.</DialogDescription>
                 <Stack gap="5">
-                  {["Repository", "Branch", "Environment", "Region", "Build command", "Output directory", "Install command", "Root directory"].map(
+                  {["Repository", "Branch", "Environment", "Team", "Build command", "Output directory", "Install command", "Root directory"].map(
                     (label) => (
-                      <Stack key={label} gap="3">
-                        <Text size="2" weight="medium">
-                          {label}
-                        </Text>
-                        <TextField size="3" placeholder={label} aria-label={label} />
-                      </Stack>
+                      <Field key={label}>
+                        <FieldLabel>{label}</FieldLabel>
+                        <TextField />
+                      </Field>
                     ),
                   )}
                 </Stack>
@@ -269,7 +304,10 @@ function States() {
               </Toolbar>
               <Stack gap="6">
                 <DialogDescription>Everyone with access will see the new name.</DialogDescription>
-                <TextField placeholder="Project name" aria-label="Project name" />
+                <Field>
+                  <FieldLabel>Project name</FieldLabel>
+                  <TextField defaultValue="Field notes" />
+                </Field>
               </Stack>
               <Toolbar aria-label="Actions">
                 <Flex flexGrow="1" justify="flex-end" gap="3">
@@ -301,17 +339,10 @@ function States() {
                   }
                 />
               </Toolbar>
-              <DialogDescription>Latency is measured from your last deploy.</DialogDescription>
               <ScrollArea fade>
-                <Stack gap="1">
-                  {REGIONS.map((r) => (
-                    <Flex key={r.city} justify="space-between" align="center" py="3">
-                      <Text size="2">{r.city}</Text>
-                      <Text size="2" emphasis="medium">
-                        {r.ms} ms
-                      </Text>
-                    </Flex>
-                  ))}
+                <Stack gap="6">
+                  <DialogDescription>Latency is measured from your last deploy.</DialogDescription>
+                  <RegionList />
                 </Stack>
               </ScrollArea>
               <Toolbar aria-label="Actions">
@@ -464,18 +495,16 @@ function Nesting() {
               <Stack gap="6">
                 <DialogDescription>Changes apply to every member.</DialogDescription>
                 <Stack gap="5">
-                  <Stack gap="3">
-                    <Text size="2" weight="medium" render={<label htmlFor="dlg-prev-name" />}>
-                      Name
-                    </Text>
-                    <TextField id="dlg-prev-name" size="3" defaultValue="Acme Inc" />
-                  </Stack>
-                  <Flex gap="3" align="center" justify="space-between">
-                    <Text size="2" weight="medium" render={<label htmlFor="dlg-prev-2fa" />}>
-                      Require two-factor
-                    </Text>
-                    <Switch id="dlg-prev-2fa" size="3" defaultChecked />
-                  </Flex>
+                  <Field size="3">
+                    <FieldLabel>Name</FieldLabel>
+                    <TextField defaultValue="Acme Inc" />
+                  </Field>
+                  <Field size="3">
+                    <FieldItem>
+                      <Checkbox defaultChecked />
+                      <FieldLabel>Require two-factor</FieldLabel>
+                    </FieldItem>
+                  </Field>
                 </Stack>
               </Stack>
               <Toolbar aria-label="Actions">
@@ -498,43 +527,44 @@ function Nesting() {
             <DialogContent>
               <Toolbar>
                 <ToolbarTitle render={<DialogTitle />}>Deploy to production</ToolbarTitle>
-                <DialogClose
-                  render={
-                    <ToolbarButton iconOnly aria-label="Close">
-                      <HugeiconsIcon icon={Cancel01Icon} strokeWidth={iconStroke} aria-hidden />
-                    </ToolbarButton>
-                  }
-                />
+                <ToolbarGroup>
+                  <Menu>
+                    <MenuTrigger
+                      render={
+                        <ToolbarButton iconOnly aria-label="More actions">
+                          <HugeiconsIcon icon={MoreHorizontalIcon} strokeWidth={iconStroke} aria-hidden />
+                        </ToolbarButton>
+                      }
+                    />
+                    <MenuContent>
+                      <MenuItem>Dry run</MenuItem>
+                      <MenuItem>Skip cache</MenuItem>
+                      <MenuItem tone="destructive">Cancel queued builds</MenuItem>
+                    </MenuContent>
+                  </Menu>
+                  <DialogClose
+                    render={
+                      <ToolbarButton iconOnly aria-label="Close">
+                        <HugeiconsIcon icon={Cancel01Icon} strokeWidth={iconStroke} aria-hidden />
+                      </ToolbarButton>
+                    }
+                  />
+                </ToolbarGroup>
               </Toolbar>
               <Stack gap="6">
                 <DialogDescription>Choose a branch and confirm.</DialogDescription>
                 <Stack gap="5">
-                  <Stack gap="3">
-                    <Text size="2" weight="medium">
-                      Branch
-                    </Text>
-                    <Select size="3" defaultValue="main" items={{ main: "main", next: "next", hotfix: "hotfix" }}>
-                      <SelectTrigger aria-label="Branch" />
+                  <Field size="3">
+                    <FieldLabel>Branch</FieldLabel>
+                    <Select defaultValue="main" items={{ main: "main", next: "next", hotfix: "hotfix" }}>
+                      <SelectTrigger />
                       <SelectContent>
                         <SelectItem value="main">main</SelectItem>
                         <SelectItem value="next">next</SelectItem>
                         <SelectItem value="hotfix">hotfix</SelectItem>
                       </SelectContent>
                     </Select>
-                  </Stack>
-                  <Flex gap="3" align="center" justify="space-between">
-                    <Text size="2" weight="medium">
-                      More actions
-                    </Text>
-                    <Menu>
-                      <MenuTrigger render={<Button size="3" emphasis="quiet" bordered>Options</Button>} />
-                      <MenuContent>
-                        <MenuItem>Dry run</MenuItem>
-                        <MenuItem>Skip cache</MenuItem>
-                        <MenuItem tone="destructive">Cancel queued builds</MenuItem>
-                      </MenuContent>
-                    </Menu>
-                  </Flex>
+                  </Field>
                 </Stack>
               </Stack>
               <Toolbar aria-label="Actions">
@@ -624,15 +654,25 @@ function InUse() {
                           </ToolbarButton>
                         }
                       />
-                    </Toolbar>
+    
+                </Toolbar>
                     <Stack gap="6">
                       <DialogDescription>Charges apply from the next cycle.</DialogDescription>
                       <Stack gap="5">
-                        <TextField size="2" placeholder="Card number" aria-label="Card number" />
-                        <Flex gap="3">
-                          <TextField size="2" placeholder="MM / YY" aria-label="Expiry" />
-                          <TextField size="2" placeholder="CVC" aria-label="Security code" />
-                        </Flex>
+                        <Field size="2">
+                          <FieldLabel>Card number</FieldLabel>
+                          <TextField inputMode="numeric" placeholder="4242 4242 4242 4242" />
+                        </Field>
+                        <FieldRow size="2" columns="repeat(2, minmax(0, 1fr))">
+                          <Field>
+                            <FieldLabel>Expiry</FieldLabel>
+                            <TextField placeholder="08 / 28" />
+                          </Field>
+                          <Field>
+                            <FieldLabel>Security code</FieldLabel>
+                            <TextField inputMode="numeric" placeholder="123" />
+                          </Field>
+                        </FieldRow>
                       </Stack>
                     </Stack>
                     <Toolbar aria-label="Actions">
@@ -656,7 +696,7 @@ function InUse() {
                   <DialogTrigger render={<Button emphasis="quiet" bordered>Change</Button>} />
                   <DialogContent>
                     <Toolbar>
-                      <ToolbarTitle render={<DialogTitle />}>Billing email</ToolbarTitle>
+                      <ToolbarTitle render={<DialogTitle />}>Change billing email</ToolbarTitle>
                       <DialogClose
                         render={
                           <ToolbarButton iconOnly aria-label="Close">
@@ -667,7 +707,10 @@ function InUse() {
                     </Toolbar>
                     <Stack gap="6">
                       <DialogDescription>Invoices and receipts go here.</DialogDescription>
-                      <TextField size="2" type="email" defaultValue="finance@acme.com" aria-label="Billing email" />
+                      <Field size="2">
+                        <FieldLabel>Billing email</FieldLabel>
+                        <TextField type="email" defaultValue="finance@acme.com" />
+                      </Field>
                     </Stack>
                     <Toolbar aria-label="Actions">
                       <Flex flexGrow="1" justify="flex-end" gap="3">
@@ -713,24 +756,23 @@ function InUse() {
                           />
                         </Toolbar>
                         <Stack gap="6">
-                          <DialogDescription>Anyone with the link can view it.</DialogDescription>
-                          <Stack gap="3">
-                            <Text size="2" weight="medium">
-                              Who can open it
-                            </Text>
-                            <Select size="2" defaultValue="link" items={{ link: "Anyone with the link", team: "Only my team" }}>
-                              <SelectTrigger aria-label="Who can open it" />
+                          <DialogDescription>People you share with can view the set, not change it.</DialogDescription>
+                          <Field size="2">
+                            <FieldLabel>Who can open it</FieldLabel>
+                            <Select defaultValue="link" items={{ link: "Anyone with the link", team: "Only my team" }}>
+                              <SelectTrigger />
                               <SelectContent>
                                 <SelectItem value="link">Anyone with the link</SelectItem>
                                 <SelectItem value="team">Only my team</SelectItem>
                               </SelectContent>
                             </Select>
-                          </Stack>
-                          <Flex gap="3" justify="flex-end">
-                            <DialogClose render={<Button size="2" emphasis="quiet" bordered>Done</Button>} />
-                            <DialogClose render={<Button size="2" tone="accent" emphasis="loud">Copy link</Button>} />
-                          </Flex>
+                          </Field>
                         </Stack>
+                        <Toolbar aria-label="Actions">
+                          <Flex flexGrow="1" justify="flex-end" gap="3">
+                            <DialogClose render={<ToolbarButton tone="accent" emphasis="loud">Copy link</ToolbarButton>} />
+                          </Flex>
+                        </Toolbar>
                       </DialogContent>
                     </Dialog>
                     <Button emphasis="quiet" bordered>
