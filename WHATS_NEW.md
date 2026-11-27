@@ -7,6 +7,8 @@ Each day groups its changes as Major, Minor or Quiet. Major is a new product or 
 ### Minor
 
 - **Pink docs.** The docs site opens in Kookie's pink, and the K logo is pink. The K's long stroke now runs the full height of the letter. You can still pick another accent in the theme panel.
+- **Pink and purple.** Two new colour families join the set, twelve in all. Pink matches the K logo, and green is a little softer.
+- **Accent can be any colour.** A Theme's accent can be a hex code, and a section of a page can take its own accent. The docs theme panel has a new Accent row.
 
 ## November 8
 
