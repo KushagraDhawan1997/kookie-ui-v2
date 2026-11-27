@@ -127,7 +127,9 @@ const cases = {
     }
   },
   "size-1-retired": () => {
-    document.querySelector('[data-under-test] .kui-type').dataset.size = "1";
+    // The dialog's own title, not the first text in it: since 25 Nov 2026 that is the top row's
+    // hidden title, which shows only after a scroll, and the checker rightly skips hidden text.
+    document.querySelector('[data-under-test] .kui-dialog-title').dataset.size = "1";
   },
   // Buttons side by side at two sizes.
   "mixed-control-sizes": () => {
@@ -159,7 +161,7 @@ const cases = {
   },
   // Facts glued with a middle dot.
   "dot-separator": () => {
-    document.querySelector("[data-under-test] .kui-type").textContent = "Friday · Flights land at 9:40";
+    document.querySelector("[data-under-test] .kui-dialog-title").textContent = "Friday · Flights land at 9:40";
   },
   // A list of pressable rows divided by lines.
   "hover-with-separators": () => {
