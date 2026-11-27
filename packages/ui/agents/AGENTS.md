@@ -191,9 +191,11 @@ rule of thumb that it overrules. If one looks wrong for your case, say so and as
 - A `RowGroup`'s label and note sit as far from its box as a field's label and description sit
   from theirs. A field label is dark and a group label is grey, on purpose: they do different
   jobs. (2026-11-27)
-- A `Page` sizes its title by its own width, not the window's: under 40rem it takes the narrow
-  title size, so a page in a dialog or a narrow pane doesn't get a wide window's title.
-  (2026-11-27)
+- A `Page` inside a dialog, sheet or popover takes the narrow title size, whatever the window's
+  width. Don't make a Page or its header a container to size the title: a container gives its
+  parent no width, and a page that was one collapsed wherever something sized itself by the
+  page. A page in a narrow Shell pane outside a panel keeps the window's title size.
+  (2026-11-27, corrected 2026-11-28)
 - A dialog, sheet or popover whose content scrolls can end with a toolbar for its action. That
   toolbar floats over the content like the top one. Give the scroll area `fade`.
 - A Notice has two distances, never one gap for everything: its icon and words are one group,

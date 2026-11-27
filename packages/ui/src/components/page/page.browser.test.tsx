@@ -389,3 +389,44 @@ describe("what the type refuses (§46)", () => {
     expect(true).toBe(true);
   });
 });
+
+/**
+ * THE TITLE IN A PANEL, AND WHAT IT MUST NOT COST (2026-11-27 and 2026-11-28, Kushagra).
+ *
+ * A page in a dialog's pane took a wide window's 64px title ("why is appearance that large"). The
+ * first fix made the page an inline-size container, and a container gives its parent no width
+ * of its own: every demo whose frame sized itself by the page collapsed to nothing ("What is
+ * this demo"). So the narrow title is given by WHERE the page is, a dialog, sheet or popover,
+ * and nothing measures anything.
+ */
+describe("a page in a panel takes the narrow title, and a page never gives up its width", () => {
+  it("something that sizes itself by the page gets the title's width, on one line", () => {
+    const root = mounted(
+      <div style={{ display: "inline-block" }}>
+        <Page title="Settings" />
+      </div>,
+      { theme: {} },
+    );
+    const title = root.querySelector("h1")!;
+    const style = getComputedStyle(title);
+    expect(root.getBoundingClientRect().width, "the wrapper must not collapse").toBeGreaterThan(100);
+    expect(title.getBoundingClientRect().height, "the title must not break").toBeLessThan(
+      parseFloat(style.lineHeight) * 1.5,
+    );
+    // The mechanism the first fix used, named so it cannot come back unnoticed.
+    expect(getComputedStyle(root.querySelector(".kui-page")!).containerType).toBe("normal");
+    expect(getComputedStyle(root.querySelector(".kui-page-header")!).containerType).toBe("normal");
+  });
+
+  it("inside a dialog, sheet or popover the title is the narrow step", () => {
+    const outside = mounted(<Page title="Settings" />, { theme: {} });
+    const inside = mounted(
+      <div className="kui-overlay">
+        <Page title="Settings" />
+      </div>,
+      { theme: {} },
+    );
+    const size = (el: HTMLElement) => parseFloat(getComputedStyle(el.querySelector("h1")!).fontSize);
+    expect(size(inside), "a page in a panel").toBeLessThan(size(outside));
+  });
+});

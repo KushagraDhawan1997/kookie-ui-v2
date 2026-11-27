@@ -446,11 +446,6 @@ export const windowClass = {
  */
 export const narrowMedia = `(max-width: ${windowClass.narrowMax})`;
 
-/** TRIAL 2026-11-27: when a PAGE's own width takes the narrow title steps, whatever the window.
-    Below the window's 48rem on purpose: a docs page's column is 704px in a wide window and keeps
-    the big title, while a page in a 430px dialog pane takes the narrow one. */
-export const pageNarrowQuery = "(max-width: 40rem)";
-
 /**
  * §4 — the icon box, pulled by the size index, and priced per POINTER WORLD since 2026-08-10.
  *

@@ -8,6 +8,12 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-11-28 A page's title is sized by where the page is, not by measuring the page
+
+The 2026-11-27 entry below shipped a Page as an inline-size container so its title could follow its own width. It was on main for under an hour. A container contributes no width to its parent, so the page collapsed to zero wherever a frame sized itself by the page: the Page chapter's own examples drew their titles one letter per line (Kushagra: "What is this demo"). Moving the container to the header kept the page's width but broke a short title mid-word. Neither was covered by a law, because the laws mounted a page in a box with a stated width.
+
+So nothing measures. A page inside a dialog, sheet or popover takes the narrow steps, by selector. **The cost, accepted:** a page in a narrow Shell pane that is not in a panel keeps the window's title size, as it did before.
+
 ## 2026-11-27 A grouped list gets its own box, rows light edge to edge, and the bottom fade is static
 
 One evening on the spacing test page, from one screenshot: the Appearance figure's "Display" and "Mode" sat 36px inside the page title.

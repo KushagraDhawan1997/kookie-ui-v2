@@ -7241,15 +7241,13 @@
   }
 }
 
-@container kui-page (max-width: 40rem) {
-  .kui-page-header {
-    --font-size-8: calc(32px * var(--scale));
-    --font-size-9: calc(44px * var(--scale));
-    --line-height-8: calc(40px * var(--scale));
-    --line-height-9: calc(52px * var(--scale));
-    --letter-spacing-8: -0.015em;
-    --letter-spacing-9: -0.02em;
-    --title-space-8: calc(32px * var(--scale));
-    --title-space-9: calc(40px * var(--scale));
-  }
+.kui-overlay .kui-page-header {
+  --font-size-8: calc(32px * var(--scale));
+  --font-size-9: calc(44px * var(--scale));
+  --line-height-8: calc(40px * var(--scale));
+  --line-height-9: calc(52px * var(--scale));
+  --letter-spacing-8: -0.015em;
+  --letter-spacing-9: -0.02em;
+  --title-space-8: calc(32px * var(--scale));
+  --title-space-9: calc(40px * var(--scale));
 }

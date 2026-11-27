@@ -41,7 +41,6 @@ import {
   fontWeight,
   handheldMedia,
   narrowMedia,
-  pageNarrowQuery,
   iconSize,
   layoutSpace,
   letterSpacing,
@@ -708,15 +707,15 @@ export function generateTokens(): string {
     "",
   );
 
-  // AND A PAGE ASKS ITS OWN ROOM, NOT THE WINDOW'S (2026-11-27, Kushagra: "why is appearance that
-  // large", of a page in a 430px dialog pane inside a 1440px window). A Page is an inline-size
-  // container (page.css), so the same narrow steps apply to a page whose own width is narrow,
-  // whatever the window is. Scoped to the page's header, so nothing else inside a page moves.
+  // AND A PAGE IN A PANEL TAKES THE NARROW TITLE (2026-11-27, Kushagra: "why is appearance that
+  // large", of a page in a dialog's pane inside a wide window). A dialog, sheet or popover is
+  // never a window's width, so a page inside one takes the narrow steps whatever the window is.
+  // NOT a container query (2026-11-28, Kushagra: "What is this demo", of a page collapsed to no
+  // width): a container gives its parent no width of its own, so a page that was one, or whose
+  // header was one, collapsed or broke its title wherever something sized itself by the page.
   lines.push(
-    `@container kui-page ${pageNarrowQuery} {`,
-    "  .kui-page-header {",
-    ...indent(bandTypePalette(typeBands.narrow, narrow)),
-    "  }",
+    ".kui-overlay .kui-page-header {",
+    ...bandTypePalette(typeBands.narrow, narrow),
     "}",
     "",
   );
