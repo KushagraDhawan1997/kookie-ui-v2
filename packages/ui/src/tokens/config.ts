@@ -446,6 +446,11 @@ export const windowClass = {
  */
 export const narrowMedia = `(max-width: ${windowClass.narrowMax})`;
 
+/** TRIAL 2026-11-27: when a PAGE's own width takes the narrow title steps, whatever the window.
+    Below the window's 48rem on purpose: a docs page's column is 704px in a wide window and keeps
+    the big title, while a page in a 430px dialog pane takes the narrow one. */
+export const pageNarrowQuery = "(max-width: 40rem)";
+
 /**
  * §4 — the icon box, pulled by the size index, and priced per POINTER WORLD since 2026-08-10.
  *
@@ -1894,7 +1899,9 @@ export const scrollbar = {
       against the code wells on the documentation site the day the reach stopped leaking into
       them (see the nesting stand-down in `scroll-area.css`), which is the first day the
       designed number was what those blocks actually rendered. */
-  fade: 48,
+  /* 48 → 64 on 2026-11-27 (Kushagra: the bottom fade read as a cut). A fixed length, so the
+     room left under the last row can be the same number in every browser. */
+  fade: 64,
   /** Where the fade is half see-through, as a share of the way from the edge to solid
       (2026-11-24, Kushagra: "curve"). 0.5 is an even ramp; higher keeps content faint for
       longer and brings it back quickly near the end, which reads as a deeper edge. The one
@@ -2024,7 +2031,7 @@ export const groundColor = {
      a BED in the high-contrast edge solve, so `color.test.ts` re-measures the solved control
      and field edges against it. That is the reason to state the move here rather than paint
      around it in a stylesheet — the solve gets to see it. */
-  light: "var(--neutral-1)",
+  light: "var(--neutral-2)",
   /* Midway between --neutral-1 (#0f0f10) and --neutral-2 (#141516) — a literal because there is
      no rung there, which is the whole finding. Judged at a quarter of the way (#101112) first
      and it read too dark; the midpoint only became judgeable once the ground stopped wearing

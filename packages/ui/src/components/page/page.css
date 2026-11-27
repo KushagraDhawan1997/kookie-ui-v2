@@ -21,6 +21,10 @@
 .kui-page {
   display: flex;
   flex-direction: column;
+  /* The title answers the page's own width (tokens.css, the narrow band's container half). A
+     page is always a full-width block in its scroller, so inline-size containment costs it
+     nothing. */
+  container: kui-page / inline-size;
   /* The interval from the title block to whatever the page begins with. Two steps clear of the
      title-to-deck interval below it, which is what §15 asks of proximity: a section that sat
      one step away would read as a third line of the deck. */

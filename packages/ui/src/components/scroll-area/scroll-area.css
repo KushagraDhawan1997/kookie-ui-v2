@@ -90,7 +90,15 @@
   --kui-sa-curve: var(--scrollbar-fade-curve, 0.5);
   --kui-sa-xs: min(var(--scroll-area-overflow-x-start, 0px), var(--scrollbar-fade));
   --kui-sa-xe: min(var(--scroll-area-overflow-x-end, 0px), var(--scrollbar-fade));
-  --kui-sa-ye: min(var(--scroll-area-overflow-y-end, 0px), var(--kui-sa-fade-end, var(--scrollbar-fade)));
+  /* A STATIC BOTTOM FADE (2026-11-27, Kushagra: "why is it not always there and the content just
+     scrolls beyond it ... its a fade"). One length, always there, whatever the scroll position
+     and whether or not anything is left below. No scroll distance is read. The content ends with
+     that much room (the ::after below), so the last row comes to rest clear of it. */
+  /* THE TOP FADE, MIRRORED (2026-11-27, Kushagra: the top is right, the bottom reads as a cut).
+     The same length as the top one when a floating bar sets that, so both ends ramp alike. */
+  /* Stood down here so a scroller never inherits an ancestor's; the fallback where it is read
+     is the "no fade" answer. */
+  --kui-sa-ye: initial;
   --kui-sa-ys: max(
     min(var(--scroll-area-overflow-y-start, 0px), var(--kui-sa-fade-start, var(--scrollbar-fade))),
     var(--kui-sa-ramp-end, 0px)
@@ -119,11 +127,35 @@
       /* Under a hold, the ramp always spans from the hold to the band's edge, so content passing
          beneath the last row is never cut hard at the hold. */
       black var(--kui-sa-ys),
-      black calc(100% - var(--kui-sa-ye)),
-      calc(100% - var(--kui-sa-ye) * var(--kui-sa-curve)),
+      /* AN EASED RAMP, NOT A HINTED ONE (2026-11-27, Kushagra: "Its a sharp clip"). One colour
+         hint at 0.8 drops a third of the opacity in the first 6% of the fade, and on a bright
+         plate that start reads as a hard line. These stops leave the solid end gently. */
+      black calc(100% - var(--kui-sa-ye, 0px)),
+      rgb(0 0 0 / 0.97) calc(100% - var(--kui-sa-ye, 0px) * 0.95),
+      rgb(0 0 0 / 0.85) calc(100% - var(--kui-sa-ye, 0px) * 0.88),
+      rgb(0 0 0 / 0.62) calc(100% - var(--kui-sa-ye, 0px) * 0.78),
+      rgb(0 0 0 / 0.4) calc(100% - var(--kui-sa-ye, 0px) * 0.65),
+      rgb(0 0 0 / 0.24) calc(100% - var(--kui-sa-ye, 0px) * 0.5),
+      rgb(0 0 0 / 0.1) calc(100% - var(--kui-sa-ye, 0px) * 0.3),
       transparent 100%
     );
   mask-composite: intersect;
+}
+
+/* The room the last row scrolls into, as long as the fade. A scroller under a floating foot
+   band already clears it, so the band sets this to zero where it sets the fade's length. */
+/* The bottom fade belongs to a box that scrolls up and down, and to no other: a code block
+   whose lines fit must not lose its last one. Static once it is there. */
+.kui-scroll-area[data-fade] > .kui-scroll-viewport[data-has-overflow-y] {
+  --kui-sa-ye: var(--kui-sa-fade-end, var(--kui-sa-fade-start, var(--scrollbar-fade)));
+}
+
+/* Only a box that scrolls up and down gets it (2026-11-27, Kushagra: "why did this large gap
+   appear", of a code block). A box whose content fits has no last row to bring clear. */
+.kui-scroll-area[data-fade] > .kui-scroll-viewport[data-has-overflow-y]::after {
+  content: "";
+  display: block;
+  block-size: var(--kui-sa-room, var(--kui-sa-fade-start, var(--scrollbar-fade)));
 }
 
 .kui-scroll-area[data-fade] > .kui-scroll-viewport:dir(rtl) {

@@ -514,6 +514,31 @@
   );
 }
 
+/* ── THE PLATE (2026-11-27, Kushagra: a group "must use its own shell, same bg as card, so
+   that it stands out on a ground, but no shadow, lesser padding and therefore a lower scale
+   roundedness ... table will use the same shell if it needs one"). A card's fill with a text
+   field's box geometry: its inline padding is a text field's text inset at the same size, so it
+   sticks out past the words by exactly what a field's box does, and its corner is that padding,
+   the card's own padding-equals-corner relation one scale down. It casts nothing and pools
+   nothing: it is a panel of rows on the ground, not an object lifted off it. Worn by RowGroup;
+   a boxed Table will wear it too. (0,3,0) so it beats the surface size join, not file order. */
+.kui-surface.kui-card.kui-plate {
+  --kui-sf-cast: 0 0 0 0 transparent;
+  --kui-sf-pool: 0 0 0 0 transparent;
+  /* The text field's own edge (2026-11-27, Kushagra: "add dress field edge to plate"), in every
+     depth: in flat a card's edge is --tone-border, and a plate is not a card. The fallback is
+     the field's own: contrast="high" stands the dress edge down, and the tone hairline answers. */
+  --kui-border-color: var(--color-border);
+  /* What it holds wears its corner: a grouped row's edge-to-edge fill (recipes.css). */
+  overflow: clip;
+  --kui-sf-p: var(--kui-plate-p, var(--control-px-pill-2));
+  --kui-sf-radius: var(--kui-plate-p, var(--control-px-pill-2));
+}
+.kui-plate[data-size="1"] { --kui-plate-p: var(--control-px-pill-1); }
+.kui-plate[data-size="2"] { --kui-plate-p: var(--control-px-pill-2); }
+.kui-plate[data-size="3"] { --kui-plate-p: var(--control-px-pill-3); }
+.kui-plate[data-size="4"] { --kui-plate-p: var(--control-px-pill-4); }
+
 /* ── The FLOATING pane's size join (§22, Kushagra 2026-08-09) ────────────────────────────────
    A floating pane hugs control-scale rows, so its corner is CONCENTRIC: the ROW corner its
    content wears at this size, plus its own padding — the two curves share a centre in every
@@ -2615,6 +2640,7 @@
   > .kui-scroll-area:has(+ .kui-toolbar:last-child) {
   --kui-band-reach-end: calc(var(--kui-sf-p) - var(--layout-space-2) + var(--kui-band-row-end));
   --kui-sa-fade-end: calc(var(--kui-band-reach-end) + var(--layout-space-2));
+  --kui-sa-room: 0;
   margin-block-end: calc(-1 * var(--kui-sf-p));
 }
 :is(.kui-dialog-body, .kui-sheet-body, .kui-popover-popup .kui-floating-body)

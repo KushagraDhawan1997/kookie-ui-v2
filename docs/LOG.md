@@ -8,6 +8,20 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-11-27 A grouped list gets its own box, rows light edge to edge, and the bottom fade is static
+
+One evening on the spacing test page, from one screenshot: the Appearance figure's "Display" and "Mode" sat 36px inside the page title.
+
+**The box.** Kushagra: a group's card should stick out like a text field's box, "by exact amount ... as text fields". I first used the card's own 24px padding, which he corrected. Then: "confusing it with a card might be the wrong thing ... a group like this must use its own shell, same bg as card ... but no shadow, lesser padding and therefore a lower scale roundedness ... table will use the same shell". It is `kui-plate` in the surface layer: a card's fill, no cast, a text field's inset for padding and corner. On the white page it was white on white, so it needed an edge. **Tried and turned down:** the field's see-through edge, and grey step 4. It takes `--color-border`.
+
+**The lines.** While choosing that edge he moved the system's line from step 6 to step 5 ("step 5 was better" than 4), the tone edge from 7 to 6, and the light ground from step 1 back to step 2, so a white box shows on it. The ground was moved 2 to 1 on 2026-08-28 as "too gray"; this reverses that, for contrast against the box.
+
+**Hover.** The 2026-11-02 refusal of hover on divided rows was of a fill that stopped short of the lines and read as a second box. He asked for it back as the whole row: "inside a pane, hover should be edge to edge, no roundedness of its own", and confirmed lines and hover together. A row rendered as a `label` now counts as pressable, since it presses the switch it holds.
+
+**The fade.** Six rounds, and the cost is worth recording. The bottom fade read as "a sharp clip" on the new bright box. I changed its length to a share of the box, then made it slide, then switch off, each time on a guess, before looking at what he was looking at: a hard line where the fade begins. One colour hint at 0.8 drops a third of the opacity in the first 6% of the ramp, invisible on text and a line on a plate. What he asked for all along: "why is it not always there and the content just scrolls beyond it". So it is static, the top's length, eased stops, with room after the content, and only on a box that scrolls. **Rejected on the way:** a fade proportional to the box (the room under the last row needs a length every browser resolves), a fade that shrinks or slides with the distance left.
+
+**The title.** A Page in a 430px dialog pane took the wide window's 64px title. It is an inline-size container now, and takes the narrow steps under 40rem of its own width. Not the window's 48rem: the docs' 704px column keeps the large title.
+
 ## 2026-11-26 Two fields side by side outside a FieldRow print a development warning
 
 `FieldRow` cannot help the caller who never heard of it. Two fields in a plain grid overlap by 14px, and Kushagra asked "How do we give dev warning for this?", then "Yes". A `Field` now looks, one frame after it mounts, for another field with a text box beside it in a parent that is not a `FieldRow`, and says so in the console: development only, once per page load, a warning and not an error. It is silent for stacked fields, for a `FieldRow`, and for a field of marks.

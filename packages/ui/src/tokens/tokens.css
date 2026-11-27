@@ -367,7 +367,7 @@
   --neutral-solid: #1e1f20;
   --neutral-solid-hover: #333334;
   --neutral-solid-active: #48494a;
-  --neutral-border: var(--neutral-7);
+  --neutral-border: var(--neutral-6);
   --neutral-text: var(--neutral-11);
   --neutral-label: #444648;
   --neutral-contrast: #ffffff;
@@ -414,7 +414,7 @@
   --accent-solid: #1e1f20;
   --accent-solid-hover: #333334;
   --accent-solid-active: #48494a;
-  --accent-border: var(--accent-7);
+  --accent-border: var(--accent-6);
   --accent-text: var(--accent-11);
   --accent-label: #444648;
   --accent-contrast: #ffffff;
@@ -461,7 +461,7 @@
   --destructive-solid: #e5484d;
   --destructive-solid-hover: #d73a41;
   --destructive-solid-active: #c82a36;
-  --destructive-border: var(--destructive-7);
+  --destructive-border: var(--destructive-6);
   --destructive-text: var(--destructive-11);
   --destructive-label: #762728;
   --destructive-contrast: #ffffff;
@@ -508,7 +508,7 @@
   --blue-solid: #0094fc;
   --blue-solid-hover: #0088e8;
   --blue-solid-active: #007cd4;
-  --blue-border: var(--blue-7);
+  --blue-border: var(--blue-6);
   --blue-text: var(--blue-11);
   --blue-label: #0e487a;
   --blue-contrast: #ffffff;
@@ -555,7 +555,7 @@
   --green-solid: #45c560;
   --green-solid-hover: #54d26d;
   --green-solid-active: #62e079;
-  --green-border: var(--green-7);
+  --green-border: var(--green-6);
   --green-text: var(--green-11);
   --green-label: #1f5329;
   --green-contrast: #000000;
@@ -602,7 +602,7 @@
   --orange-solid: #f76b15;
   --orange-solid-hover: #e76000;
   --orange-solid-active: #d45700;
-  --orange-border: var(--orange-7);
+  --orange-border: var(--orange-6);
   --orange-text: var(--orange-11);
   --orange-label: #703110;
   --orange-contrast: #ffffff;
@@ -649,7 +649,7 @@
   --amber-solid: #f0b236;
   --amber-solid-hover: #fdbe47;
   --amber-solid-active: #ffcf7d;
-  --amber-border: var(--amber-7);
+  --amber-border: var(--amber-6);
   --amber-text: var(--amber-11);
   --amber-label: #594217;
   --amber-contrast: #000000;
@@ -696,7 +696,7 @@
   --pink-solid: #db589e;
   --pink-solid-hover: #cd4b92;
   --pink-solid-active: #bf3e86;
-  --pink-border: var(--pink-7);
+  --pink-border: var(--pink-6);
   --pink-text: var(--pink-11);
   --pink-label: #6c2c4d;
   --pink-contrast: #ffffff;
@@ -743,7 +743,7 @@
   --purple-solid: #8410ff;
   --purple-solid-hover: #7700e9;
   --purple-solid-active: #6a00d1;
-  --purple-border: var(--purple-7);
+  --purple-border: var(--purple-6);
   --purple-text: var(--purple-11);
   --purple-label: #5316a1;
   --purple-contrast: #ffffff;
@@ -790,7 +790,7 @@
   --success-solid: #45c560;
   --success-solid-hover: #54d26d;
   --success-solid-active: #62e079;
-  --success-border: var(--success-7);
+  --success-border: var(--success-6);
   --success-text: var(--success-11);
   --success-label: #1f5329;
   --success-contrast: #000000;
@@ -837,7 +837,7 @@
   --warning-solid: #f0b236;
   --warning-solid-hover: #fdbe47;
   --warning-solid-active: #ffcf7d;
-  --warning-border: var(--warning-7);
+  --warning-border: var(--warning-6);
   --warning-text: var(--warning-11);
   --warning-label: #594217;
   --warning-contrast: #000000;
@@ -884,7 +884,7 @@
   --info-solid: #0094fc;
   --info-solid-hover: #0088e8;
   --info-solid-active: #007cd4;
-  --info-border: var(--info-7);
+  --info-border: var(--info-6);
   --info-text: var(--info-11);
   --info-label: #0e487a;
   --info-contrast: #ffffff;
@@ -1156,7 +1156,7 @@
      quieter. An absolute pair rather than an alpha step: dark's ramp is built from white,
      so a relative ground would land ABOVE the seal and the cards would be darker than the
      ground holding them. See config's groundColor for the measurement. */
-  --color-ground: var(--neutral-1);
+  --color-ground: var(--neutral-2);
 
   /* the PAGE (§10, §13, 2026-08-20) — the ground this library has always presupposed (the
      seal's comment above calls a card "paper above the page") and never named, so an app
@@ -1174,7 +1174,7 @@
      way to name accent when it is checked — and naming a FAMILY in a component stylesheet
      is what the role-not-family law forbids. One step under neutral's own border role
      (2026-09-15): a line with no family is quieter than the edge a pane draws. */
-  --color-border: var(--neutral-6);
+  --color-border: var(--neutral-5);
 
   /* the shadow palette (§13) — a resource for Box and blocks, never read by a component;
      elevation stays deleted. Row 1 is the inset well, row 2 the control drop. */
@@ -1203,7 +1203,7 @@
   --scrollbar-inset: 2px;
   --scrollbar-thumb: var(--neutral-a6);
   --scrollbar-thumb-active: var(--neutral-a8);
-  --scrollbar-fade: 48px;
+  --scrollbar-fade: 64px;
   --scrollbar-fade-curve: 0.8;
   --disabled-dim: 70%;
   --disabled-fill: var(--neutral-2);
@@ -1318,7 +1318,7 @@
   --neutral-solid: #ebebec;
   --neutral-solid-hover: #d0d0d1;
   --neutral-solid-active: #b5b6b6;
-  --neutral-border: var(--neutral-7);
+  --neutral-border: var(--neutral-6);
   --neutral-text: var(--neutral-11);
   --neutral-label: #d1d2d3;
   --neutral-contrast: #000000;
@@ -1365,7 +1365,7 @@
   --accent-solid: #ebebec;
   --accent-solid-hover: #d0d0d1;
   --accent-solid-active: #b5b6b6;
-  --accent-border: var(--accent-7);
+  --accent-border: var(--accent-6);
   --accent-text: var(--accent-11);
   --accent-label: #d1d2d3;
   --accent-contrast: #000000;
@@ -1412,7 +1412,7 @@
   --destructive-solid: #e7494e;
   --destructive-solid-hover: #d83a42;
   --destructive-solid-active: #ca2a36;
-  --destructive-border: var(--destructive-7);
+  --destructive-border: var(--destructive-6);
   --destructive-text: var(--destructive-11);
   --destructive-label: #f2c6c2;
   --destructive-contrast: #ffffff;
@@ -1459,7 +1459,7 @@
   --blue-solid: #0094fc;
   --blue-solid-hover: #0088e8;
   --blue-solid-active: #007cd4;
-  --blue-border: var(--blue-7);
+  --blue-border: var(--blue-6);
   --blue-text: var(--blue-11);
   --blue-label: #b3d6fb;
   --blue-contrast: #ffffff;
@@ -1506,7 +1506,7 @@
   --green-solid: #55ef76;
   --green-solid-hover: #44e269;
   --green-solid-active: #31d45c;
-  --green-border: var(--green-7);
+  --green-border: var(--green-6);
   --green-text: var(--green-11);
   --green-label: #6af384;
   --green-contrast: #000000;
@@ -1553,7 +1553,7 @@
   --orange-solid: #f86b15;
   --orange-solid-hover: #e76000;
   --orange-solid-active: #d55800;
-  --orange-border: var(--orange-7);
+  --orange-border: var(--orange-6);
   --orange-text: var(--orange-11);
   --orange-label: #fac4ad;
   --orange-contrast: #ffffff;
@@ -1600,7 +1600,7 @@
   --amber-solid: #f0b236;
   --amber-solid-hover: #fdbe47;
   --amber-solid-active: #ffcf7d;
-  --amber-border: var(--amber-7);
+  --amber-border: var(--amber-6);
   --amber-text: var(--amber-11);
   --amber-label: #f7ca7e;
   --amber-contrast: #000000;
@@ -1647,7 +1647,7 @@
   --pink-solid: #de59a0;
   --pink-solid-hover: #d04c94;
   --pink-solid-active: #c23f88;
-  --pink-border: var(--pink-7);
+  --pink-border: var(--pink-6);
   --pink-text: var(--pink-11);
   --pink-label: #eec4d7;
   --pink-contrast: #ffffff;
@@ -1694,7 +1694,7 @@
   --purple-solid: #8410ff;
   --purple-solid-hover: #7700e9;
   --purple-solid-active: #6a00d1;
-  --purple-border: var(--purple-7);
+  --purple-border: var(--purple-6);
   --purple-text: var(--purple-11);
   --purple-label: #d5cafb;
   --purple-contrast: #ffffff;
@@ -1741,7 +1741,7 @@
   --success-solid: #55ef76;
   --success-solid-hover: #44e269;
   --success-solid-active: #31d45c;
-  --success-border: var(--success-7);
+  --success-border: var(--success-6);
   --success-text: var(--success-11);
   --success-label: #6af384;
   --success-contrast: #000000;
@@ -1788,7 +1788,7 @@
   --warning-solid: #f0b236;
   --warning-solid-hover: #fdbe47;
   --warning-solid-active: #ffcf7d;
-  --warning-border: var(--warning-7);
+  --warning-border: var(--warning-6);
   --warning-text: var(--warning-11);
   --warning-label: #f7ca7e;
   --warning-contrast: #000000;
@@ -1835,7 +1835,7 @@
   --info-solid: #0094fc;
   --info-solid-hover: #0088e8;
   --info-solid-active: #007cd4;
-  --info-border: var(--info-7);
+  --info-border: var(--info-6);
   --info-text: var(--info-11);
   --info-label: #b3d6fb;
   --info-contrast: #ffffff;
@@ -2125,7 +2125,7 @@
      way to name accent when it is checked — and naming a FAMILY in a component stylesheet
      is what the role-not-family law forbids. One step under neutral's own border role
      (2026-09-15): a line with no family is quieter than the edge a pane draws. */
-  --color-border: var(--neutral-6);
+  --color-border: var(--neutral-5);
 
   /* the shadow palette (§13) — a resource for Box and blocks, never read by a component;
      elevation stays deleted. Row 1 is the inset well, row 2 the control drop. */
@@ -2154,7 +2154,7 @@
   --scrollbar-inset: 2px;
   --scrollbar-thumb: var(--neutral-a6);
   --scrollbar-thumb-active: var(--neutral-a8);
-  --scrollbar-fade: 48px;
+  --scrollbar-fade: 64px;
   --scrollbar-fade-curve: 0.8;
   --disabled-dim: 70%;
   --disabled-fill: var(--neutral-3);
@@ -2258,7 +2258,7 @@
     --neutral-solid: color(display-p3 0.119 0.123 0.127);
     --neutral-solid-hover: color(display-p3 0.198 0.202 0.207);
     --neutral-solid-active: color(display-p3 0.283 0.286 0.291);
-    --neutral-border: var(--neutral-7);
+    --neutral-border: var(--neutral-6);
     --neutral-text: var(--neutral-11);
     --neutral-label: color(display-p3 0.268 0.275 0.285);
     --neutral-contrast: #ffffff;
@@ -2293,7 +2293,7 @@
     --accent-solid: color(display-p3 0.119 0.123 0.127);
     --accent-solid-hover: color(display-p3 0.198 0.202 0.207);
     --accent-solid-active: color(display-p3 0.283 0.286 0.291);
-    --accent-border: var(--accent-7);
+    --accent-border: var(--accent-6);
     --accent-text: var(--accent-11);
     --accent-label: color(display-p3 0.268 0.275 0.285);
     --accent-contrast: #ffffff;
@@ -2328,7 +2328,7 @@
     --destructive-solid: color(display-p3 0.863 0.284 0.293);
     --destructive-solid-hover: color(display-p3 0.808 0.227 0.247);
     --destructive-solid-active: color(display-p3 0.753 0.165 0.202);
-    --destructive-border: var(--destructive-7);
+    --destructive-border: var(--destructive-6);
     --destructive-text: var(--destructive-11);
     --destructive-label: color(display-p3 0.445 0.156 0.154);
     --destructive-contrast: #ffffff;
@@ -2363,7 +2363,7 @@
     --blue-solid: color(display-p3 0 0.513 0.994);
     --blue-solid-hover: color(display-p3 0 0.468 0.91);
     --blue-solid-active: color(display-p3 0 0.423 0.828);
-    --blue-border: var(--blue-7);
+    --blue-border: var(--blue-6);
     --blue-text: var(--blue-11);
     --blue-label: color(display-p3 0.055 0.271 0.517);
     --blue-contrast: #ffffff;
@@ -2398,7 +2398,7 @@
     --green-solid: color(display-p3 0.266 0.796 0.299);
     --green-solid-hover: color(display-p3 0.325 0.849 0.35);
     --green-solid-active: color(display-p3 0.382 0.902 0.401);
-    --green-border: var(--green-7);
+    --green-border: var(--green-6);
     --green-text: var(--green-11);
     --green-label: color(display-p3 0.12 0.334 0.128);
     --green-contrast: #000000;
@@ -2433,7 +2433,7 @@
     --orange-solid: color(display-p3 0.936 0.42 0.079);
     --orange-solid-hover: color(display-p3 0.874 0.376 0);
     --orange-solid-active: color(display-p3 0.803 0.343 0);
-    --orange-border: var(--orange-7);
+    --orange-border: var(--orange-6);
     --orange-text: var(--orange-11);
     --orange-label: color(display-p3 0.423 0.193 0.061);
     --orange-contrast: #ffffff;
@@ -2468,7 +2468,7 @@
     --amber-solid: color(display-p3 0.939 0.707 0.21);
     --amber-solid-hover: color(display-p3 0.992 0.759 0.274);
     --amber-solid-active: color(display-p3 1 0.826 0.495);
-    --amber-border: var(--amber-7);
+    --amber-border: var(--amber-6);
     --amber-text: var(--amber-11);
     --amber-label: color(display-p3 0.343 0.258 0.085);
     --amber-contrast: #000000;
@@ -2503,7 +2503,7 @@
     --pink-solid: color(display-p3 0.822 0.346 0.616);
     --pink-solid-hover: color(display-p3 0.769 0.295 0.568);
     --pink-solid-active: color(display-p3 0.716 0.243 0.521);
-    --pink-border: var(--pink-7);
+    --pink-border: var(--pink-6);
     --pink-text: var(--pink-11);
     --pink-label: color(display-p3 0.404 0.174 0.302);
     --pink-contrast: #ffffff;
@@ -2538,7 +2538,7 @@
     --purple-solid: color(display-p3 0.488 0.068 1);
     --purple-solid-hover: color(display-p3 0.441 0 0.916);
     --purple-solid-active: color(display-p3 0.392 0 0.822);
-    --purple-border: var(--purple-7);
+    --purple-border: var(--purple-6);
     --purple-text: var(--purple-11);
     --purple-label: color(display-p3 0.301 0.088 0.618);
     --purple-contrast: #ffffff;
@@ -2573,7 +2573,7 @@
     --success-solid: color(display-p3 0.266 0.796 0.299);
     --success-solid-hover: color(display-p3 0.325 0.849 0.35);
     --success-solid-active: color(display-p3 0.382 0.902 0.401);
-    --success-border: var(--success-7);
+    --success-border: var(--success-6);
     --success-text: var(--success-11);
     --success-label: color(display-p3 0.12 0.334 0.128);
     --success-contrast: #000000;
@@ -2608,7 +2608,7 @@
     --warning-solid: color(display-p3 0.939 0.707 0.21);
     --warning-solid-hover: color(display-p3 0.992 0.759 0.274);
     --warning-solid-active: color(display-p3 1 0.826 0.495);
-    --warning-border: var(--warning-7);
+    --warning-border: var(--warning-6);
     --warning-text: var(--warning-11);
     --warning-label: color(display-p3 0.343 0.258 0.085);
     --warning-contrast: #000000;
@@ -2643,7 +2643,7 @@
     --info-solid: color(display-p3 0 0.513 0.994);
     --info-solid-hover: color(display-p3 0 0.468 0.91);
     --info-solid-active: color(display-p3 0 0.423 0.828);
-    --info-border: var(--info-7);
+    --info-border: var(--info-6);
     --info-text: var(--info-11);
     --info-label: color(display-p3 0.055 0.271 0.517);
     --info-contrast: #ffffff;
@@ -2701,7 +2701,7 @@
     --neutral-solid: color(display-p3 0.119 0.123 0.127);
     --neutral-solid-hover: color(display-p3 0.198 0.202 0.207);
     --neutral-solid-active: color(display-p3 0.283 0.286 0.291);
-    --neutral-border: var(--neutral-7);
+    --neutral-border: var(--neutral-6);
     --neutral-text: var(--neutral-11);
     --neutral-label: color(display-p3 0.268 0.275 0.285);
     --neutral-contrast: #ffffff;
@@ -2736,7 +2736,7 @@
     --accent-solid: color(display-p3 0.119 0.123 0.127);
     --accent-solid-hover: color(display-p3 0.198 0.202 0.207);
     --accent-solid-active: color(display-p3 0.283 0.286 0.291);
-    --accent-border: var(--accent-7);
+    --accent-border: var(--accent-6);
     --accent-text: var(--accent-11);
     --accent-label: color(display-p3 0.268 0.275 0.285);
     --accent-contrast: #ffffff;
@@ -2771,7 +2771,7 @@
     --destructive-solid: color(display-p3 0.863 0.284 0.293);
     --destructive-solid-hover: color(display-p3 0.808 0.227 0.247);
     --destructive-solid-active: color(display-p3 0.753 0.165 0.202);
-    --destructive-border: var(--destructive-7);
+    --destructive-border: var(--destructive-6);
     --destructive-text: var(--destructive-11);
     --destructive-label: color(display-p3 0.445 0.156 0.154);
     --destructive-contrast: #ffffff;
@@ -2806,7 +2806,7 @@
     --blue-solid: color(display-p3 0 0.513 0.994);
     --blue-solid-hover: color(display-p3 0 0.468 0.91);
     --blue-solid-active: color(display-p3 0 0.423 0.828);
-    --blue-border: var(--blue-7);
+    --blue-border: var(--blue-6);
     --blue-text: var(--blue-11);
     --blue-label: color(display-p3 0.055 0.271 0.517);
     --blue-contrast: #ffffff;
@@ -2841,7 +2841,7 @@
     --green-solid: color(display-p3 0.266 0.796 0.299);
     --green-solid-hover: color(display-p3 0.325 0.849 0.35);
     --green-solid-active: color(display-p3 0.382 0.902 0.401);
-    --green-border: var(--green-7);
+    --green-border: var(--green-6);
     --green-text: var(--green-11);
     --green-label: color(display-p3 0.12 0.334 0.128);
     --green-contrast: #000000;
@@ -2876,7 +2876,7 @@
     --orange-solid: color(display-p3 0.936 0.42 0.079);
     --orange-solid-hover: color(display-p3 0.874 0.376 0);
     --orange-solid-active: color(display-p3 0.803 0.343 0);
-    --orange-border: var(--orange-7);
+    --orange-border: var(--orange-6);
     --orange-text: var(--orange-11);
     --orange-label: color(display-p3 0.423 0.193 0.061);
     --orange-contrast: #ffffff;
@@ -2911,7 +2911,7 @@
     --amber-solid: color(display-p3 0.939 0.707 0.21);
     --amber-solid-hover: color(display-p3 0.992 0.759 0.274);
     --amber-solid-active: color(display-p3 1 0.826 0.495);
-    --amber-border: var(--amber-7);
+    --amber-border: var(--amber-6);
     --amber-text: var(--amber-11);
     --amber-label: color(display-p3 0.343 0.258 0.085);
     --amber-contrast: #000000;
@@ -2946,7 +2946,7 @@
     --pink-solid: color(display-p3 0.822 0.346 0.616);
     --pink-solid-hover: color(display-p3 0.769 0.295 0.568);
     --pink-solid-active: color(display-p3 0.716 0.243 0.521);
-    --pink-border: var(--pink-7);
+    --pink-border: var(--pink-6);
     --pink-text: var(--pink-11);
     --pink-label: color(display-p3 0.404 0.174 0.302);
     --pink-contrast: #ffffff;
@@ -2981,7 +2981,7 @@
     --purple-solid: color(display-p3 0.488 0.068 1);
     --purple-solid-hover: color(display-p3 0.441 0 0.916);
     --purple-solid-active: color(display-p3 0.392 0 0.822);
-    --purple-border: var(--purple-7);
+    --purple-border: var(--purple-6);
     --purple-text: var(--purple-11);
     --purple-label: color(display-p3 0.301 0.088 0.618);
     --purple-contrast: #ffffff;
@@ -3016,7 +3016,7 @@
     --success-solid: color(display-p3 0.266 0.796 0.299);
     --success-solid-hover: color(display-p3 0.325 0.849 0.35);
     --success-solid-active: color(display-p3 0.382 0.902 0.401);
-    --success-border: var(--success-7);
+    --success-border: var(--success-6);
     --success-text: var(--success-11);
     --success-label: color(display-p3 0.12 0.334 0.128);
     --success-contrast: #000000;
@@ -3051,7 +3051,7 @@
     --warning-solid: color(display-p3 0.939 0.707 0.21);
     --warning-solid-hover: color(display-p3 0.992 0.759 0.274);
     --warning-solid-active: color(display-p3 1 0.826 0.495);
-    --warning-border: var(--warning-7);
+    --warning-border: var(--warning-6);
     --warning-text: var(--warning-11);
     --warning-label: color(display-p3 0.343 0.258 0.085);
     --warning-contrast: #000000;
@@ -3086,7 +3086,7 @@
     --info-solid: color(display-p3 0 0.513 0.994);
     --info-solid-hover: color(display-p3 0 0.468 0.91);
     --info-solid-active: color(display-p3 0 0.423 0.828);
-    --info-border: var(--info-7);
+    --info-border: var(--info-6);
     --info-text: var(--info-11);
     --info-label: color(display-p3 0.055 0.271 0.517);
     --info-contrast: #ffffff;
@@ -3144,7 +3144,7 @@
     --neutral-solid: color(display-p3 0.92 0.922 0.924);
     --neutral-solid-hover: color(display-p3 0.814 0.816 0.818);
     --neutral-solid-active: color(display-p3 0.711 0.712 0.715);
-    --neutral-border: var(--neutral-7);
+    --neutral-border: var(--neutral-6);
     --neutral-text: var(--neutral-11);
     --neutral-label: color(display-p3 0.819 0.823 0.829);
     --neutral-contrast: #000000;
@@ -3179,7 +3179,7 @@
     --accent-solid: color(display-p3 0.92 0.922 0.924);
     --accent-solid-hover: color(display-p3 0.814 0.816 0.818);
     --accent-solid-active: color(display-p3 0.711 0.712 0.715);
-    --accent-border: var(--accent-7);
+    --accent-border: var(--accent-6);
     --accent-text: var(--accent-11);
     --accent-label: color(display-p3 0.819 0.823 0.829);
     --accent-contrast: #000000;
@@ -3214,7 +3214,7 @@
     --destructive-solid: color(display-p3 0.902 0.299 0.308);
     --destructive-solid-hover: color(display-p3 0.847 0.241 0.262);
     --destructive-solid-active: color(display-p3 0.792 0.179 0.216);
-    --destructive-border: var(--destructive-7);
+    --destructive-border: var(--destructive-6);
     --destructive-text: var(--destructive-11);
     --destructive-label: color(display-p3 0.949 0.768 0.75);
     --destructive-contrast: #ffffff;
@@ -3249,7 +3249,7 @@
     --blue-solid: color(display-p3 0 0.513 0.994);
     --blue-solid-hover: color(display-p3 0 0.468 0.91);
     --blue-solid-active: color(display-p3 0 0.423 0.828);
-    --blue-border: var(--blue-7);
+    --blue-border: var(--blue-6);
     --blue-text: var(--blue-11);
     --blue-label: color(display-p3 0.719 0.836 0.984);
     --blue-contrast: #ffffff;
@@ -3284,7 +3284,7 @@
     --green-solid: color(display-p3 0.32 0.939 0.358);
     --green-solid-hover: color(display-p3 0.254 0.886 0.304);
     --green-solid-active: color(display-p3 0.178 0.833 0.248);
-    --green-border: var(--green-7);
+    --green-border: var(--green-6);
     --green-text: var(--green-11);
     --green-label: color(display-p3 0.483 0.965 0.491);
     --green-contrast: #000000;
@@ -3319,7 +3319,7 @@
     --orange-solid: color(display-p3 0.971 0.436 0.084);
     --orange-solid-hover: color(display-p3 0.909 0.392 0);
     --orange-solid-active: color(display-p3 0.837 0.359 0);
-    --orange-border: var(--orange-7);
+    --orange-border: var(--orange-6);
     --orange-text: var(--orange-11);
     --orange-label: color(display-p3 0.98 0.764 0.652);
     --orange-contrast: #ffffff;
@@ -3354,7 +3354,7 @@
     --amber-solid: color(display-p3 0.939 0.707 0.21);
     --amber-solid-hover: color(display-p3 0.992 0.759 0.274);
     --amber-solid-active: color(display-p3 1 0.826 0.495);
-    --amber-border: var(--amber-7);
+    --amber-border: var(--amber-6);
     --amber-text: var(--amber-11);
     --amber-label: color(display-p3 0.969 0.792 0.452);
     --amber-contrast: #000000;
@@ -3389,7 +3389,7 @@
     --pink-solid: color(display-p3 0.864 0.365 0.648);
     --pink-solid-hover: color(display-p3 0.81 0.314 0.599);
     --pink-solid-active: color(display-p3 0.757 0.262 0.552);
-    --pink-border: var(--pink-7);
+    --pink-border: var(--pink-6);
     --pink-text: var(--pink-11);
     --pink-label: color(display-p3 0.933 0.761 0.844);
     --pink-contrast: #ffffff;
@@ -3424,7 +3424,7 @@
     --purple-solid: color(display-p3 0.488 0.068 1);
     --purple-solid-hover: color(display-p3 0.441 0 0.916);
     --purple-solid-active: color(display-p3 0.392 0 0.822);
-    --purple-border: var(--purple-7);
+    --purple-border: var(--purple-6);
     --purple-text: var(--purple-11);
     --purple-label: color(display-p3 0.827 0.789 0.984);
     --purple-contrast: #ffffff;
@@ -3459,7 +3459,7 @@
     --success-solid: color(display-p3 0.32 0.939 0.358);
     --success-solid-hover: color(display-p3 0.254 0.886 0.304);
     --success-solid-active: color(display-p3 0.178 0.833 0.248);
-    --success-border: var(--success-7);
+    --success-border: var(--success-6);
     --success-text: var(--success-11);
     --success-label: color(display-p3 0.483 0.965 0.491);
     --success-contrast: #000000;
@@ -3494,7 +3494,7 @@
     --warning-solid: color(display-p3 0.939 0.707 0.21);
     --warning-solid-hover: color(display-p3 0.992 0.759 0.274);
     --warning-solid-active: color(display-p3 1 0.826 0.495);
-    --warning-border: var(--warning-7);
+    --warning-border: var(--warning-6);
     --warning-text: var(--warning-11);
     --warning-label: color(display-p3 0.969 0.792 0.452);
     --warning-contrast: #000000;
@@ -3529,7 +3529,7 @@
     --info-solid: color(display-p3 0 0.513 0.994);
     --info-solid-hover: color(display-p3 0 0.468 0.91);
     --info-solid-active: color(display-p3 0 0.423 0.828);
-    --info-border: var(--info-7);
+    --info-border: var(--info-6);
     --info-text: var(--info-11);
     --info-label: color(display-p3 0.719 0.836 0.984);
     --info-contrast: #ffffff;
@@ -3661,8 +3661,8 @@
   --info-solid-hover: #0081dd;
   --info-solid-active: #006ebe;
   --info-label: #042440;
-  --control-edge: #878b8f;
-  --field-edge: #a3a6aa;
+  --control-edge: #818488;
+  --field-edge: #9da0a4;
   --color-track: var(--neutral-6);
   --code-foreground: var(--color-text);
   --code-background: transparent;
@@ -3832,8 +3832,8 @@
     --info-solid-hover: #0081dd;
     --info-solid-active: #006ebe;
     --info-label: #042440;
-    --control-edge: #878b8f;
-    --field-edge: #a3a6aa;
+    --control-edge: #818488;
+    --field-edge: #9da0a4;
     --color-track: var(--neutral-6);
     --code-foreground: var(--color-text);
     --code-background: transparent;
@@ -4348,8 +4348,8 @@
     --info-solid-hover: color(display-p3 0 0.443 0.864);
     --info-solid-active: color(display-p3 0 0.374 0.737);
     --info-label: color(display-p3 0.015 0.134 0.275);
-    --control-edge: color(display-p3 0.534 0.545 0.559);
-    --field-edge: color(display-p3 0.643 0.653 0.665);
+    --control-edge: color(display-p3 0.509 0.519 0.533);
+    --field-edge: color(display-p3 0.619 0.629 0.642);
     --color-track: var(--neutral-6);
     --code-foreground: var(--color-text);
     --code-background: transparent;
@@ -4466,8 +4466,8 @@
       --info-solid-hover: color(display-p3 0 0.443 0.864);
       --info-solid-active: color(display-p3 0 0.374 0.737);
       --info-label: color(display-p3 0.015 0.134 0.275);
-      --control-edge: color(display-p3 0.534 0.545 0.559);
-      --field-edge: color(display-p3 0.643 0.653 0.665);
+      --control-edge: color(display-p3 0.509 0.519 0.533);
+      --field-edge: color(display-p3 0.619 0.629 0.642);
       --color-track: var(--neutral-6);
       --code-foreground: var(--color-text);
       --code-background: transparent;
@@ -7230,6 +7230,19 @@
 
 @media (max-width: 48rem) {
   :root {
+    --font-size-8: calc(32px * var(--scale));
+    --font-size-9: calc(44px * var(--scale));
+    --line-height-8: calc(40px * var(--scale));
+    --line-height-9: calc(52px * var(--scale));
+    --letter-spacing-8: -0.015em;
+    --letter-spacing-9: -0.02em;
+    --title-space-8: calc(32px * var(--scale));
+    --title-space-9: calc(40px * var(--scale));
+  }
+}
+
+@container kui-page (max-width: 40rem) {
+  .kui-page-header {
     --font-size-8: calc(32px * var(--scale));
     --font-size-9: calc(44px * var(--scale));
     --line-height-8: calc(40px * var(--scale));

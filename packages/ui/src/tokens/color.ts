@@ -882,7 +882,7 @@ export function colorDeclarations(
       decl(`${tone}-solid`, s.solid),
       decl(`${tone}-solid-hover`, s.solidHover),
       decl(`${tone}-solid-active`, s.solidActive),
-      decl(`${tone}-border`, `var(--${tone}-7)`),
+      decl(`${tone}-border`, `var(--${tone}-6)`),
       decl(`${tone}-text`, `var(--${tone}-11)`),
       decl(`${tone}-label`, s.label),
       decl(`${tone}-contrast`, s.contrast),

@@ -1546,6 +1546,7 @@
 
 .kui-shell-pane:has(> .kui-pane-footer[data-float]) > .kui-shell-scroll {
   --kui-sa-fade-end: var(--kui-pane-inset-block-end);
+  --kui-sa-room: 0;
 }
 
 /* THE TALLER OF THE TWO ROWS (2026-09-06). The reach is a derivation and not a measurement —
@@ -2180,6 +2181,7 @@
      scroller composed deeper keeps its own edges. */
   .kui-shell:has(> .kui-shell-rail[data-presentation="bar"]) > .kui-shell-content > .kui-shell-scroll {
     --kui-sa-fade-end: var(--kui-shell-inset-block-end);
+    --kui-sa-room: 0;
   }
   .kui-shell:has(> .kui-shell-rail[data-presentation="bar"]) > .kui-shell-content > .kui-shell-scroll > .kui-scroll-viewport {
     padding-block-end: calc(var(--kui-sf-p) + var(--kui-shell-inset-block-end));

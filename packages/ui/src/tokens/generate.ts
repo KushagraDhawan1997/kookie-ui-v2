@@ -41,6 +41,7 @@ import {
   fontWeight,
   handheldMedia,
   narrowMedia,
+  pageNarrowQuery,
   iconSize,
   layoutSpace,
   letterSpacing,
@@ -701,6 +702,19 @@ export function generateTokens(): string {
   lines.push(
     `@media ${narrowMedia} {`,
     "  :root {",
+    ...indent(bandTypePalette(typeBands.narrow, narrow)),
+    "  }",
+    "}",
+    "",
+  );
+
+  // AND A PAGE ASKS ITS OWN ROOM, NOT THE WINDOW'S (2026-11-27, Kushagra: "why is appearance that
+  // large", of a page in a 430px dialog pane inside a 1440px window). A Page is an inline-size
+  // container (page.css), so the same narrow steps apply to a page whose own width is narrow,
+  // whatever the window is. Scoped to the page's header, so nothing else inside a page moves.
+  lines.push(
+    `@container kui-page ${pageNarrowQuery} {`,
+    "  .kui-page-header {",
     ...indent(bandTypePalette(typeBands.narrow, narrow)),
     "  }",
     "}",
@@ -1394,7 +1408,7 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
     `     way to name accent when it is checked — and naming a FAMILY in a component stylesheet`,
     `     is what the role-not-family law forbids. One step under neutral's own border role`,
     `     (2026-09-15): a line with no family is quieter than the edge a pane draws. */`,
-    decl("color-border", "var(--neutral-6)"),
+    decl("color-border", "var(--neutral-5)"),
     "",
     `  /* the shadow palette (§13) — a resource for Box and blocks, never read by a component;`,
     `     elevation stays deleted. Row 1 is the inset well, row 2 the control drop. */`,
@@ -1430,7 +1444,7 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
     decl("scrollbar-inset", `${scrollbar.inset}px`),
     decl("scrollbar-thumb", `var(--neutral-a${scrollbar.thumbStep})`),
     decl("scrollbar-thumb-active", `var(--neutral-a${scrollbar.thumbActiveStep})`),
-    decl("scrollbar-fade", `${scrollbar.fade}px`),
+    decl("scrollbar-fade", typeof scrollbar.fade === "number" ? `${scrollbar.fade}px` : scrollbar.fade),
     decl("scrollbar-fade-curve", `${scrollbar.fadeCurve}`),
     // The dead dim for non-tone roles (2026-08-17): one factor, see config.
     decl("disabled-dim", `${disabledDim}%`),

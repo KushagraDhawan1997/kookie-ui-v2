@@ -613,6 +613,26 @@
   min-height: calc(var(--kui-ct-h) + var(--layout-space-3));
 }
 
+/* A GROUPED ROW'S FILL IS THE WHOLE ROW (2026-11-27, Kushagra: "The fill should not stop from
+   edge, inside a pane, hover should be edge to edge, no roundedness of its own"). In a plate the
+   row reaches out by the plate's padding and its own hairline on BOTH sides, so its fill runs
+   from the plate's edge to the plate's edge and its text still lands on the words' edge. It
+   takes no corner of its own: the plate clips it, so the first and last rows wear the plate's
+   corner and the rest are square. (0,3,0) to beat the standing row's start hang above. */
+.kui-plate.kui-row-group-rows > .kui-row {
+  inline-size: auto;
+  margin-inline: calc(-1 * (var(--kui-plate-p, var(--control-px-pill-2)) + var(--border-width)));
+  border-radius: 0;
+}
+/* And its trailing control mirrors its text: the switch or chevron ends as far from the plate's
+   right edge as the words start from its left, so the row reads as one inset on both sides. */
+.kui-plate.kui-row-group-rows > .kui-row:has(> [data-slot="trailing"]) {
+  padding-inline-end: var(--kui-ct-px-pill);
+}
+.kui-plate.kui-row-group-rows > .kui-row > [data-slot="trailing"] {
+  margin-inline-end: 0;
+}
+
 /* The floating row's NOTCH — height and corner together — lives in one rule after the size
    join ("THE NOTCH IS THE FLOATING ROW'S", below), because the corner half must win a
    source-order tie with the join and two blocks sharing one selector is the entropy this

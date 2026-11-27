@@ -98,6 +98,16 @@ rule of thumb that it overrules. If one looks wrong for your case, say so and as
   sizes 1 to 4 (they were 16, 24, 32, 40 until 2026-11-26).
 - A scroll edge fades on a curve, not evenly: content stays faint for most of the fade and
   comes back near the end. One value sets it for every fade (`--scrollbar-fade-curve`, 0.8).
+- The bottom fade of a box that scrolls up and down is static: one length, always there, the
+  same length as the top one. It never shrinks, slides or switches off with the scroll
+  position. The content ends with room as long as the fade, so the last row rests clear of it.
+  It leaves solid gently, so it never draws a hard line across a bright box. A box whose
+  content fits has no bottom fade and no extra room. (2026-11-27)
+- A grouped list sits in its own box, not a card: a card's fill, no shadow, a text field's
+  padding, a corner that matches that padding, and the system's line for an edge. It sticks
+  out past the words by exactly what a text field's box does, so a field and a group stacked
+  in one column share both outer edges and the words keep one edge. A table that needs a box
+  uses the same one. (2026-11-27)
 - A toolbar inside a glass dialog, sheet or popover has real glass buttons, with no prop: Close,
   the tools beside it, a Navigator's Back, an action row written as a toolbar. This is the one
   exception to "one glass per stack". Other controls in the panel keep the on-glass look.
@@ -118,6 +128,9 @@ rule of thumb that it overrules. If one looks wrong for your case, say so and as
   surface such as a Notice it is one solid step darker than that surface, in the surface's own
   colour: darker gray on a gray notice, darker amber on a warning one. Never a gray patch on a
   tinted surface, and never a see-through fill.
+- Lines are grey step 5 (`--color-border`: separators, tabs, table lines, Shell seams, a
+  grouped list's edge). An edge that takes a thing's colour is step 6 (`--tone-border`). The
+  light ground is grey step 2. Step 4 for lines was tried and turned down. (2026-11-27)
 - The accent is fixed when the app is built. A section can be tinted with `<Theme accent>`.
   There is no built-in accent picker.
 
@@ -171,6 +184,16 @@ rule of thumb that it overrules. If one looks wrong for your case, say so and as
 - Two or more fields side by side go in a `FieldRow`. It sets the space between them. Never lay
   fields out in a `Grid` or `Flex` with a gap of your own: their boxes will collide.
   In development the console warns once when it finds two fields side by side outside one.
+- A row in a `RowGroup` lights on hover and press. The fill is the whole row, from edge to edge
+  of the group's box, with no corner of its own; the box's corner rounds the first and last
+  rows. Lines and hover together are fine here. The trailing control ends as far from the box
+  as the words start from it. The divider under a lit row stays. (2026-11-27)
+- A `RowGroup`'s label and note sit as far from its box as a field's label and description sit
+  from theirs. A field label is dark and a group label is grey, on purpose: they do different
+  jobs. (2026-11-27)
+- A `Page` sizes its title by its own width, not the window's: under 40rem it takes the narrow
+  title size, so a page in a dialog or a narrow pane doesn't get a wide window's title.
+  (2026-11-27)
 - A dialog, sheet or popover whose content scrolls can end with a toolbar for its action. That
   toolbar floats over the content like the top one. Give the scroll area `fade`.
 - A Notice has two distances, never one gap for everything: its icon and words are one group,

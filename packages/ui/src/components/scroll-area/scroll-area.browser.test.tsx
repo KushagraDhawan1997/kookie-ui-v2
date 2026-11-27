@@ -406,10 +406,12 @@ describe("the scroll-edge fade (2026-08-29)", () => {
     // stops, the point where the edge is half see-through. Read apart from the stops, so the laws
     // about WHERE a fade starts and ends are untouched by how it is shaped.
     const hint = String.raw`(calc\([^)]*\)|[^,]+)`;
+    // The BOTTOM ramp is eased stops since 2026-11-27, not a hint: after the solid end stop comes
+    // the first eased stop, read here with its opacity.
     const stops = new RegExp(
-      String.raw`rgba\(0, 0, 0, 0\) [^,]+, rgba\(0, 0, 0, 0\) [^,]+, ${hint}, rgb\(0, 0, 0\) (.+?), rgb\(0, 0, 0\) (.+?), ${hint}, rgba`,
+      String.raw`rgba\(0, 0, 0, 0\) [^,]+, rgba\(0, 0, 0, 0\) [^,]+, ${hint}, rgb\(0, 0, 0\) (.+?), rgb\(0, 0, 0\) (.+?), rgba\(0, 0, 0, ([\d.]+)\)`,
     ).exec(y ?? "");
-    return { startHint: stops?.[1], start: stops?.[2], end: stops?.[3], endHint: stops?.[4] };
+    return { startHint: stops?.[1], start: stops?.[2], end: stops?.[3], endFirstAlpha: stops?.[4] };
   };
 
   it("without the prop there is no mask at all — the fade is opt-in", async () => {
@@ -446,11 +448,14 @@ describe("the scroll-edge fade (2026-08-29)", () => {
     expect(stops.start).toBe(fade);
     expect(stops.end).toBe(`calc(100% - ${fade})`);
 
-    // At the bottom: the end edge is the clean one now.
-    vp.scrollTop = 600;
+    // At the bottom: THE BOTTOM FADE IS STATIC (2026-11-27, Kushagra: "why is it not always there
+    // and the content just scrolls beyond it ... its a fade"). It does not shrink or switch off
+    // at the end of the content; the content ends with room as long as the fade instead, so the
+    // last row comes to rest clear of it.
+    vp.scrollTop = 99999;
     await laidOut(root);
-    // Chrome simplifies calc(100% - 0px) to a plain 100%.
-    expect(yStops(vp).end, "the settled bottom edge must not fade").toBe("100%");
+    expect(yStops(vp).end, "the bottom fade is the same length at the end").toBe(`calc(100% - ${fade})`);
+    expect(getComputedStyle(vp, "::after").blockSize, "the room under the last row").toBe(fade);
   });
 
   it("the fade follows a curve: half see-through sits `--scrollbar-fade-curve` of the way in (2026-11-25)", async () => {
@@ -469,8 +474,10 @@ describe("the scroll-edge fade (2026-08-29)", () => {
     await laidOut(root);
     const stops = yStops(vp);
     expect(parseFloat(stops.startHint ?? ""), "the top ramp").toBeCloseTo(fade * curve, 1);
-    const fromEnd = /calc\(100% - ([\d.]+)px\)/.exec(stops.endHint ?? "")?.[1];
-    expect(parseFloat(fromEnd ?? ""), "the bottom ramp").toBeCloseTo(fade * curve, 1);
+    // The bottom ramp is EASED, not hinted (2026-11-27, Kushagra: "Its a sharp clip"): one hint at
+    // 0.8 drops a third of the opacity in the first 6% of the fade, which reads as a hard line
+    // across a bright box. Its first stop past solid is still nearly opaque.
+    expect(parseFloat(stops.endFirstAlpha ?? ""), "the bottom ramp leaves solid gently").toBeGreaterThan(0.9);
   });
 
   it("content that does not overflow never fades — both stops sit at the edges", async () => {
@@ -482,9 +489,13 @@ describe("the scroll-edge fade (2026-08-29)", () => {
         { theme: {} },
       ),
     );
-    const stops = yStops(within(root, ".kui-scroll-viewport"));
+    const vp = within(root, ".kui-scroll-viewport");
+    const stops = yStops(vp);
     expect(stops.start).toBe("0px");
     expect(stops.end).toBe("100%");
+    // And no room is added under it: a box whose content fits must not grow a gap (2026-11-27,
+    // Kushagra, of a code block: "why did this large gap appear").
+    expect(vp.scrollHeight, "content that fits stays the box's own height").toBe(vp.clientHeight);
   });
 
   it("the x layer follows the writing direction — Base UI measures from the INLINE start", async () => {

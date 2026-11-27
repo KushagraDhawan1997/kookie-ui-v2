@@ -53,7 +53,9 @@ the disagreement is a bug to report.
    the panel's edge than the content's padding, measured from the panel's own padding, so it
    moves with the panel's size. Applies to every band: dialogs, sheets, popovers, and Shell
    pane headers and footers, pinned or floating. A panel places its first toolbar and its last
-   one, the action row, the same way, and over a scroll area both float. Enforced by: default (panels, Navigator; pane bands:
+   one, the action row, the same way, and over a scroll area both float. A text field's box and
+   a grouped list's box stick out past the words on purpose, so they may sit closer to the
+   edge than the band's button; the words are what the band is measured against. Enforced by: default (panels, Navigator; pane bands:
    coming), check (screen `band-inset`).
 4. **Toolbar buttons are glass.** Controls in a band use the band's material, not an opaque
    fill. In a glass dialog, sheet or popover they are real glass, not the flatter on-glass
@@ -155,7 +157,9 @@ the disagreement is a bug to report.
     9:40"). Give each fact its own place, or cut one. Kushagra: "less is more". Enforced by:
     check (screen `dot-separator`).
 28. **Lines or hover, never both.** A list divided by separators doesn't light its rows on
-    hover, and a list that lights its rows draws no lines between them. Enforced by: check
-    (screen `hover-with-separators`).
+    hover, and a list that lights its rows draws no lines between them. The exception is a
+    `RowGroup`: its rows have both, because there the fill is the whole row from edge to edge
+    of the group's box, with no corner of its own (2026-11-27). Enforced by: default
+    (RowGroup), check (screen `hover-with-separators`).
 29. **Every control has a name.** An icon-only button carries an `aria-label`, so a screen
     reader says what it does. Enforced by: check (screen `accessible-name`).

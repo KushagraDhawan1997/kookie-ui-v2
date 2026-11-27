@@ -1,28 +1,32 @@
 /* RowGroup (2026-11-02): a small label, a card of rows, an optional note.
  *
- * The label and the note sit at the rows' TEXT edge, not the card's, so the eye reads one
+ * The label and the note sit at the rows' TEXT edge, which is the container's edge (below), so the eye reads one
  * column of words from the label down through the rows to the note. The label belongs to the
  * card under it, so it sits closer to it than the group sits to anything else (the caller's gap
  * between groups is larger). */
 .kui-row-group {
   display: flex;
   flex-direction: column;
-  gap: var(--layout-space-2);
+  /* The field's own label-to-box and box-to-description step (field.css), so a field and a group
+     in one column keep one rhythm (2026-11-27, Kushagra: "Yes"). */
+  gap: var(--layout-space-3);
   min-inline-size: 0;
 }
 
-/* From the group's edge: the card's hairline and its padding, which is where the rows' text
-   sits now that a row's fill hangs outside its text. */
-.kui-row-group-label,
-.kui-row-group-note {
-  padding-inline: calc(var(--border-width) + var(--kui-rg-pad, var(--surface-p-2)));
-}
-
+/* THE CARD STICKS OUT, THE WORDS STAY ON THE EDGE (2026-11-27, Kushagra, of the Appearance
+   figure where "Display" and "Mode" sat 36px inside the page title: "Yes, and by exact amount",
+   then "as text fields"). The field's rule one family over (field.css): the label, the rows'
+   text and the note sit on the container's own text edge, and the card reaches past it on both
+   sides by exactly what a text field's box does at the same size, its text inset and hairline.
+   The card's inline padding is that inset, so its rows' text lands back on the edge, and a
+   card and a field stacked in one column share both outer edges. */
 .kui-row-group > .kui-row-group-rows {
+  margin-inline: calc(-1 * (var(--border-width) + var(--kui-rg-pad, var(--control-px-pill-2))));
   display: flex;
   flex-direction: column;
-  /* The rows bring their own air top and bottom (below), so the card adds only one step. */
-  padding-block: var(--layout-space-1);
+  /* The rows bring their own air top and bottom, and a row's fill runs to the plate's edge, so
+     the plate adds nothing above the first row or below the last. */
+  padding-block: 0;
 }
 
 /* The divider starts on the text axis, the card's content edge, and runs to the card's own edge,
@@ -30,5 +34,5 @@
 .kui-row-group-rows > .kui-row-group-divider {
   inline-size: auto;
   align-self: stretch;
-  margin-inline-end: calc(-1 * var(--kui-sf-p));
+  margin-inline-end: calc(-1 * var(--kui-rg-pad, var(--control-px-pill-2)));
 }

@@ -78,6 +78,9 @@ const pressable = (
   const target = unwrapLazy(render);
   if (typeof target.type !== "string") return true;
   if (target.type === "button") return true;
+  // A label presses the control it holds: a row rendered as one with a Switch in its trailing
+  // slot toggles the switch from anywhere on the row, so it answers the pointer (2026-11-27).
+  if (target.type === "label") return true;
   const own = target.props as { href?: unknown; onClick?: unknown; role?: unknown; tabIndex?: unknown };
   if (own.onClick !== undefined || own.role !== undefined || own.tabIndex !== undefined) return true;
   if (target.type === "a" || target.type === "area") return own.href !== undefined;
@@ -128,7 +131,6 @@ export function Row({
   ref,
   ...props
 }: RowProps) {
-  const divided = React.use(RowDividedContext);
   const size = useSize(sizeProp);
   const inert = render !== undefined && !pressable(render, props);
   const merged = {
@@ -153,11 +155,12 @@ export function Row({
     // asked — not its value — because a controlled `false` still means "I am the cursor here".
     // An INERT render target answers neither (2026-08-26, audit — see `pressable` above): the
     // pointer is not a cursor over something that cannot be pressed.
-    // Rows separated by dividers answer no hover (2026-11-02, Kushagra: "I have a bad feeling
-    // about hover states and separators being together, dont show hover state then"): a fill
-    // that stops at a hairline reads as a second box. A RowGroup says so for its rows.
+    // Rows between dividers answer hover again (2026-11-27, Kushagra: "inside a pane, hover
+    // should be edge to edge, no roundedness of its own"). The 2026-11-02 refusal was of a fill
+    // that stopped short of the hairlines and read as a second box; a grouped row's fill now
+    // spans its plate edge to edge (recipes.css), so it is the row, not a box inside it.
     ...(highlighted === undefined
-      ? inert || divided
+      ? inert
         ? {}
         : { "data-hover-lit": "" }
       : highlighted

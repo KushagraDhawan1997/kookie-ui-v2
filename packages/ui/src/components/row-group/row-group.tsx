@@ -56,16 +56,17 @@ export function RowGroup({ label, note, children, size: sizeProp, className, sty
       aria-describedby={note ? `${id}-note` : undefined}
       className={className ? `kui-row-group ${className}` : "kui-row-group"}
       data-size={size}
-      // The card's padding at this size, which is where the rows' text sits (a row's fill hangs
-      // outside its text). Stated here because a component sheet may not key on `data-size`.
-      style={{ "--kui-rg-pad": `var(--surface-p-${size})`, ...style } as React.CSSProperties}
+      // A text field's text inset at this size: the card's inline padding and how far it sticks
+      // out past the words (row-group.css). Stated here because a component sheet may not key on
+      // `data-size`.
+      style={{ "--kui-rg-pad": `var(--control-px-pill-${size})`, ...style } as React.CSSProperties}
     >
       {label ? (
         <Text size="2" emphasis="medium" id={`${id}-label`} className="kui-row-group-label">
           {label}
         </Text>
       ) : null}
-      <Card size={size} className="kui-row-group-rows">
+      <Card size={size} className="kui-plate kui-row-group-rows">
         <RowDividedContext.Provider value={true}>
           {rows.map((row, index) => (
             <React.Fragment key={row.key ?? index}>
