@@ -8,6 +8,27 @@ Each day groups its changes as Major, Minor or Quiet. Major is a new product or 
 
 - **Pink docs.** The docs site opens in Kookie's pink, and the K logo is pink. The K's long stroke now runs the full height of the letter. You can still pick another accent in the theme panel.
 
+## November 11
+
+### Minor
+
+- **useSurface for your own elements.** The new `useSurface` hook gives an element of your own the glass and fill of the system, with text that reads on it. With `family: "control"` it also takes a button's height, padding and corner.
+- **Overlays say why they closed.** Popover, Menu, ContextMenu, Select, Combobox and Tooltip pass the reason to `onOpenChange`, as Dialog and Sheet already did. Handlers that take one argument keep working.
+- **Tree sections that are pages.** A NavTree section with its own link now links from its name, and its arrow opens and closes it.
+- **Navigator words.** The `labels` prop sets the words Navigator says itself, such as Back and Close.
+
+### Quiet
+
+- **Docs open to search engines.** The docs site can be found in search, with a plain description of what Kookie UI is.
+- **Kookie logo in examples.** The builder header, the Footer demos and the Shell example show the Kookie logo in place of a text wordmark.
+- **Code in JetBrains Mono.** The docs set code in a font the live site can ship.
+
+## November 10
+
+### Minor
+
+- **Kookify.** Press the Kookie in the corner of the docs, and holographic Kookie stickers drop and pile up over the page.
+
 ## November 8
 
 ### Minor
