@@ -218,6 +218,48 @@ for (const [key, sabotage] of Object.entries(cases)) {
 // What a rule must NOT flag. Each was a false alarm a thread reported; the page's own count must
 // not rise when the good shape is added.
 const allowed = {
+  // A grouped list's box: lines between rows AND a hover fill, which runs edge to edge
+  // (27 Nov 2026).
+  "hover-with-separators: rows in a grouped list's box": () => {
+    const style = document.createElement("style");
+    style.textContent = ".probe-plate-row { background: transparent; border: 0 } .probe-plate-row:hover { background: rgb(200 200 200) }";
+    document.head.append(style);
+    const plate = document.createElement("div");
+    plate.className = "kui-plate";
+    for (const [i, name] of ["Password", "Export data"].entries()) {
+      if (i) plate.append(Object.assign(document.createElement("div"), { className: "kui-separator", role: "separator" }));
+      const b = document.createElement("button");
+      b.className = "probe-plate-row";
+      b.textContent = name;
+      plate.append(b);
+    }
+    document.querySelector("[data-under-test]").append(plate);
+  },
+  // A pane whose text field's box sticks out past the words, closer to the edge than the band's
+  // button. The words still start inside the band (26 and 27 Nov 2026).
+  "band-inset: a field's box sticking out past the words": `(${(() => {
+    const pane = document.createElement("div");
+    pane.className = "kui-surface kui-shell-pane";
+    pane.style.cssText = "padding: 32px; inline-size: 400px";
+    const header = document.createElement("div");
+    header.className = "kui-pane-header";
+    header.style.cssText = "display: flex; justify-content: flex-end; margin-inline: -8px";
+    const close = document.createElement("button");
+    close.className = "kui-control kui-button";
+    close.textContent = "Close";
+    header.append(close);
+    const group = document.createElement("div");
+    group.className = "kui-field-group";
+    const label = document.createElement("label");
+    label.className = "kui-type kui-text";
+    label.textContent = "Workspace name";
+    const box = document.createElement("div");
+    box.className = "kui-control kui-field";
+    box.style.cssText = "margin-inline: -15px; block-size: 32px; border: 1px solid gray";
+    group.append(label, box);
+    pane.append(header, group);
+    document.querySelector("[data-under-test]").append(pane);
+  }).toString()})()`,
   // A field: a label and a Select. Bordered and pressable, but not a list (2 Nov 2026).
   "hover-with-separators: a field": () => {
     const group = document.createElement("div");

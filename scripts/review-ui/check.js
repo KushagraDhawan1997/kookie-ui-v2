@@ -162,7 +162,14 @@
       run(scope, out) {
         // The band's edge buttons (Back at the leading edge, Close or actions at the trailing
         // one), each measured from the edge it stands against, against the content's inset.
-        const measure = (container, bar, body) => {
+        // A text field's box sticks out past the words by its own inset, on purpose, and so does
+        // a grouped list's box (Kushagra, 26 and 27 Nov 2026: "three right edges" accepted, then
+        // "ok" for a Shell pane). The content's inset is where its WORDS start, so a box that
+        // overflows them is not what the band is measured against.
+        const sticksOut = (el) => el.matches(".kui-field-group > .kui-field, .kui-field-group > .kui-textarea, .kui-plate");
+        const measure = (container, bar, all) => {
+          const body = all.filter((el) => !sticksOut(el));
+          if (!body.length) return;
           const panel = container.getBoundingClientRect();
           const edge = (el) => (el.matches(".kui-row") ? start(el) : el.getBoundingClientRect().left);
           const bodyInset = Math.min(...body.map((el) => edge(el) - panel.left).filter(Number.isFinite));
@@ -186,7 +193,7 @@
         if (scope.matches(PANELS)) {
           const bar = own(scope, ".kui-toolbar")[0];
           const body = own(scope, ".kui-type, .kui-control").filter((el) => !el.closest(".kui-toolbar"));
-          if (bar && body.length) measure(scope, bar, body.slice(0, 1));
+          if (bar && body.length) measure(scope, bar, body.filter((el) => !sticksOut(el)).slice(0, 1));
         }
         // A pane's band: ShellPaneHeader and ShellPaneFooter, pinned or floating (2 Nov 2026:
         // the reviewer caught a pinned header level with its content; this rule only read
@@ -340,8 +347,12 @@
         for (const el of own(scope, rowish))
           if (lined(el)) bordered.set(el.parentElement, (bordered.get(el.parentElement) ?? 0) + 1);
         for (const [list, n] of bordered) if (n >= 2) lists.add(list);
+        // A grouped list's box is the exception (Kushagra, 27 Nov 2026: "inside a pane, hover
+        // should be edge to edge, no roundedness of its own", then "yes" to lines and hover
+        // together). There the fill is the whole row from edge to edge of the box, so it does
+        // not read as a second box between the lines, which is what the rule is about.
         for (const list of lists)
-          if ([...list.children].some(row))
+          if (!list.matches(".kui-plate") && [...list.children].some(row))
             out(list, `${describe(list)} draws lines between rows and also lights a row. Drop the lines or the hover.`);
       },
     },
